@@ -79,9 +79,22 @@ public class GameplayState extends TTTGameState {
 	}
 
 	@Override
-	public void enter(GameContainer container, Tictactoe game) throws SlickException {
+	public void enter(GameContainer container, Tictactoe game)
+			throws SlickException {
 		BoardPacket bp = new BoardPacket();
 		game.client.sendTCP(bp);
+	}
+
+	public void movePiece(Tictactoe game, int x1, int y1, int x2, int y2) {
+		if (board.movePiece(x1, y1, x2, y2)) {
+			game.client.sendTCP(new MovePiecePacket(x1, y1, x2, y2));
+		}
+	}
+
+	public void placePiece(Tictactoe game, int x, int y, int player) {
+		if (board.placePiece(selectedColor, x, y)) {
+			game.client.sendTCP(new PlacePiecePacket(x, y, player));
+		}
 	}
 
 	@Override
@@ -97,7 +110,7 @@ public class GameplayState extends TTTGameState {
 				// TODO: SEND TCP TO SERVER WITH MOVEPIECE COMMAND
 				int x = getMouseXPositionOnBoard(container);
 				int y = getMouseYPositionOnBoard(container);
-				game.client.sendTCP(new MovePiecePacket(selectedPieceX, selectedPieceY, x, y));
+				movePiece(game, selectedPieceX, selectedPieceY, x, y);
 				deselectPiece();
 			}
 
@@ -122,11 +135,7 @@ public class GameplayState extends TTTGameState {
 				} else {
 					// place a new piece
 					// TODO: SEND TCP "PLACEPIECE" REQUEST
-					game.client.sendTCP(new PlacePiecePacket(boardX, boardY,
-							selectedColor));
-					/*board.placePiece(selectedColor,
-							getMouseXPositionOnBoard(container),
-							getMouseYPositionOnBoard(container));*/
+					placePiece(game, boardX, boardY, selectedColor);
 				}
 			}
 		}

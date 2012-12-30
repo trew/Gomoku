@@ -7,6 +7,7 @@ import tictactoe.Board;
 import net.*;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 
 /**
@@ -49,8 +50,8 @@ public class TTTServer {
 		}
 	}
 
-	public void broadcast(Object obj) {
-		server.sendToAllTCP(obj);
+	public void broadcast(Connection conn, Object obj) {
+		server.sendToAllExceptTCP(conn.getID(), obj);
 	}
 
 	/**
