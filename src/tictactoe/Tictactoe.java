@@ -7,6 +7,12 @@ import org.newdawn.slick.state.StateBasedGame;
 
 import com.esotericsoftware.kryonet.Client;
 
+/**
+ * The main entry class for the Tic-tac-toe client.
+ *
+ * @author Samuel Andersson
+ *
+ */
 public class Tictactoe extends StateBasedGame {
 
 	private static final int WIDTH = 640;
