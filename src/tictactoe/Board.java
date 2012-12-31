@@ -24,7 +24,7 @@ public class Board {
 	/**
 	 * Reset the board, making it all empty spaces
 	 */
-	public void init() {
+	public void reset() {
 		for (int i = 0; i < 9; i++) {
 			board[i] = NOPLAYER;
 		}

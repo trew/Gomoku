@@ -15,6 +15,7 @@ import com.esotericsoftware.kryonet.Client;
 public class ConnectState extends TTTGameState {
 
 	private int connectingState;
+	private String connectMessage;
 
 	@Override
 	public void init(GameContainer container, Tictactoe game)
@@ -26,7 +27,10 @@ public class ConnectState extends TTTGameState {
 		kryo.register(PlacePiecePacket.class);
 		kryo.register(MovePiecePacket.class);
 		kryo.register(BoardPacket.class);
+		kryo.register(GenericRequestPacket.class);
 		kryo.register(int[].class);
+
+		connectMessage = "Connecting...";
 	}
 
 	@Override
@@ -34,12 +38,12 @@ public class ConnectState extends TTTGameState {
 			throws SlickException {
 		if (connectingState == 0) {
 			try {
-				game.client.connect(5000, "127.0.0.1", 9123);
+				game.client.connect(5000, Tictactoe.ADDRESS, Tictactoe.PORT);
 				connectingState = 1;
-
+				connectMessage = "Connected.";
 			} catch (IOException e) {
 				connectingState = 2;
-				e.printStackTrace();
+				connectMessage = e.getMessage();
 			}
 		} else if (connectingState == 1) {
 			if (container.getInput().isKeyPressed(Input.KEY_SPACE)) {
@@ -55,15 +59,8 @@ public class ConnectState extends TTTGameState {
 	@Override
 	public void render(GameContainer container, Tictactoe game, Graphics g)
 			throws SlickException {
-		String s = "";
-		if (connectingState == 0)
-			s = "Connecting...";
-		else if (connectingState == 1)
-			s = "Connected.";
-		else if (connectingState == 2)
-			s = "Connection failed";
-		float w = container.getDefaultFont().getWidth(s);
-		g.drawString(s, center(0, container.getWidth(), w), 30);
+		int w = container.getDefaultFont().getWidth(connectMessage);
+		g.drawString(connectMessage, center(0, container.getWidth(), w), 30);
 	}
 
 	@Override

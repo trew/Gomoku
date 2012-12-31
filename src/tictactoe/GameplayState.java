@@ -1,6 +1,7 @@
 package tictactoe;
 
 import net.*;
+import static net.GenericRequestPacket.Request.*;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -81,8 +82,8 @@ public class GameplayState extends TTTGameState {
 	@Override
 	public void enter(GameContainer container, Tictactoe game)
 			throws SlickException {
-		BoardPacket bp = new BoardPacket();
-		game.client.sendTCP(bp);
+		GenericRequestPacket grp = new GenericRequestPacket(BoardUpdate);
+		game.client.sendTCP(grp);
 	}
 
 	public void movePiece(Tictactoe game, int x1, int y1, int x2, int y2) {
@@ -104,10 +105,23 @@ public class GameplayState extends TTTGameState {
 			container.exit();
 		}
 
+		if (container.getInput().isKeyPressed(Input.KEY_F5)) {
+			game.client.sendTCP(new GenericRequestPacket(BoardUpdate));
+		}
+
+		// ctrl is pressed
+		if (container.getInput().isKeyDown(Input.KEY_LCONTROL)
+				|| container.getInput().isKeyDown(Input.KEY_RCONTROL)) {
+
+			// clear board
+			if (container.getInput().isKeyPressed(Input.KEY_C)) {
+				game.client.sendTCP(new GenericRequestPacket(ClearBoard));
+			}
+		}
+
 		if (pieceIsSelected) {
 			// place piece
 			if (container.getInput().isMousePressed(0)) {
-				// TODO: SEND TCP TO SERVER WITH MOVEPIECE COMMAND
 				int x = getMouseXPositionOnBoard(container);
 				int y = getMouseYPositionOnBoard(container);
 				movePiece(game, selectedPieceX, selectedPieceY, x, y);
@@ -134,7 +148,6 @@ public class GameplayState extends TTTGameState {
 					selectPiece(boardX, boardY);
 				} else {
 					// place a new piece
-					// TODO: SEND TCP "PLACEPIECE" REQUEST
 					placePiece(game, boardX, boardY, selectedColor);
 				}
 			}

@@ -7,10 +7,7 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.PrintStream;
 
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.*;
 
 import tictactoe.Board;
 
@@ -21,6 +18,7 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
 import static com.esotericsoftware.minlog.Log.*;
+import com.martiansoftware.jsap.*;
 
 /**
  * Server of the Tic-tac-toe game<br />
@@ -35,7 +33,8 @@ import static com.esotericsoftware.minlog.Log.*;
 public class TTTServer {
 
 	/** The port which this server is listening on */
-	private static int PORT = 9123;
+	private static int PORT;
+	private static boolean SWING;
 
 	private Server server;
 	private ServerListener listener;
@@ -55,6 +54,7 @@ public class TTTServer {
 		kryo.register(PlacePiecePacket.class);
 		kryo.register(MovePiecePacket.class);
 		kryo.register(BoardPacket.class);
+		kryo.register(GenericRequestPacket.class);
 		kryo.register(int[].class);
 	}
 
@@ -63,7 +63,8 @@ public class TTTServer {
 		try {
 			server.bind(PORT);
 		} catch (IOException e) {
-			e.printStackTrace();
+			if (TRACE) trace("TTTServer", e);
+			else error("TTTServer", "Error: " + e.getMessage());
 		}
 	}
 
@@ -72,7 +73,35 @@ public class TTTServer {
 	}
 
 	public void broadcast(Connection conn, Object obj) {
-		server.sendToAllExceptTCP(conn.getID(), obj);
+		if (conn == null) {
+			server.sendToAllTCP(obj);
+		} else {
+			server.sendToAllExceptTCP(conn.getID(), obj);
+		}
+	}
+
+	public static void parseArgs(String[] args) {
+		JSAP jsap = new JSAP();
+		FlaggedOption swingOpt = new FlaggedOption("swing")
+						.setStringParser(JSAP.BOOLEAN_PARSER)
+						.setDefault("true")
+						.setLongFlag("swing");
+		FlaggedOption portOpt = new FlaggedOption("port")
+						.setStringParser(JSAP.INTEGER_PARSER)
+						.setDefault("9123")
+						.setLongFlag("port");
+		try {
+			jsap.registerParameter(swingOpt);
+			jsap.registerParameter(portOpt);
+
+			JSAPResult config = jsap.parse(args);
+			SWING = config.getBoolean("swing");
+			PORT = config.getInt("port");
+		} catch (JSAPException e) {
+			if (TRACE) trace("TTTServer", e);
+			else error("TTTServer", "Error parsing arguments: " + e.getMessage());
+			System.exit(-1);
+		}
 	}
 
 	/**
@@ -85,21 +114,15 @@ public class TTTServer {
 	public static void main(String[] args) throws IOException {
 		Log.set(LEVEL_DEBUG);
 
-		boolean useSwing = false;
+		parseArgs(args);
+
+		// override if using windows
 		if (System.getProperty("os.name").startsWith("Windows")) {
-			useSwing = true;
-		}
-		for (int i = 0; i < args.length; i++) {
-			if (args[i].equals("--port") && i != args.length) {
-				i++;
-				PORT = Integer.parseInt(args[i]);
-			} else if (args[i].equals("--swing")) {
-				useSwing = true;
-			}
+			SWING = true;
 		}
 
 		final TTTServer server;
-		if (useSwing) {
+		if (SWING) {
 			JFrame frame = new JFrame();
 			frame.add(new JLabel(" Output "), BorderLayout.NORTH);
 
@@ -123,7 +146,7 @@ public class TTTServer {
 			});
 			frame.pack();
 			frame.setVisible(true);
-		} else {
+		} else { //not using swing, output goes to default System.out/err
 			server = new TTTServer();
 		}
 

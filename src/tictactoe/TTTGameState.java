@@ -49,8 +49,8 @@ public abstract class TTTGameState extends BasicGameState {
 	 *            The width of the object being centered
 	 * @return The left position
 	 */
-	public float center(float x1, float x2, float width) {
-		return x1 + (x2 - x1) / 2 - width / 2;
+	public int center(float x1, float x2, float width) {
+		return (int)(x1 + (x2 - x1) / 2 - width / 2);
 	}
 
 	/**

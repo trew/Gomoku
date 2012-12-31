@@ -1,9 +1,8 @@
 package server;
 
 import tictactoe.Board;
-import net.BoardPacket;
-import net.MovePiecePacket;
-import net.PlacePiecePacket;
+import net.*;
+import static net.GenericRequestPacket.Request.*;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -21,6 +20,7 @@ public class ServerListener extends Listener {
 
 	@Override
 	public void received(Connection conn, Object obj) {
+
 		if (obj instanceof PlacePiecePacket) {
 			PlacePiecePacket ppp = (PlacePiecePacket) obj;
 			if (board.placePiece(ppp.player, ppp.x, ppp.y)) {
@@ -32,6 +32,7 @@ public class ServerListener extends Listener {
 				conn.sendTCP(new BoardPacket(board));
 				Log.info("Couldn't place there! Pos: " + ppp.x + ", " + ppp.y);
 			}
+
 		} else if (obj instanceof MovePiecePacket) {
 			MovePiecePacket mpp = (MovePiecePacket) obj;
 			if (board.movePiece(mpp.x1, mpp.y1, mpp.x2, mpp.y2)) {
@@ -45,10 +46,17 @@ public class ServerListener extends Listener {
 						+ mpp.y1 + " - Pos2: " + mpp.x2 + ", " + mpp.y2);
 			}
 
-		} else if (obj instanceof BoardPacket) {
-			// treat it as a request
-			BoardPacket bp = new BoardPacket(board);
-			conn.sendTCP(bp);
+		} else if (obj instanceof GenericRequestPacket) {
+			// send a response depending on the request
+			GenericRequestPacket grp = (GenericRequestPacket) obj;
+			if (grp.request == BoardUpdate) { //request board update
+				BoardPacket bp = new BoardPacket(board);
+				conn.sendTCP(bp);
+			} else if (grp.request == ClearBoard) {
+				board.reset();
+				BoardPacket bp = new BoardPacket(board);
+				server.broadcast(null, bp);
+			}
 		}
 	}
 
