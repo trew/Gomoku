@@ -5,6 +5,9 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
+import tictactoe.states.ConnectState;
+import tictactoe.states.GameplayState;
+
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.minlog.Log;
 import com.martiansoftware.jsap.*;

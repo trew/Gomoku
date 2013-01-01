@@ -7,7 +7,9 @@ import java.io.PrintStream;
 
 import javax.swing.*;
 
-import tictactoe.Board;
+import tictactoe.logic.Board;
+import tictactoe.logic.Game;
+import tictactoe.logic.Player;
 
 import net.*;
 
@@ -57,9 +59,12 @@ public class TTTServer {
 	private ServerListener listener;
 
 	/**
-	 * The board that the server runs
+	 * The game that the server runs
 	 */
-	private Board board;
+	public Game game;
+
+	public boolean redPlayerConnected;
+	public boolean bluePlayerConnected;
 
 	/**
 	 * The JFrame if we're using Swing console
@@ -73,13 +78,16 @@ public class TTTServer {
 	 */
 	public TTTServer() {
 		server = new Server();
-		board = new Board();
-		listener = new ServerListener(this, board);
+		game = new Game();
+		listener = new ServerListener(this);
 		frame = null;
+		redPlayerConnected = false;
+		bluePlayerConnected = false;
 	}
 
 	/**
 	 * Initialize the server, add the ServerListener and register kryo classes.
+	 *
 	 * @see ServerListener
 	 */
 	public void init() {
@@ -89,7 +97,11 @@ public class TTTServer {
 		kryo.register(PlacePiecePacket.class);
 		kryo.register(MovePiecePacket.class);
 		kryo.register(BoardPacket.class);
+		kryo.register(Board.class);
+		kryo.register(Player.class);
 		kryo.register(GenericRequestPacket.class);
+		kryo.register(SetColorPacket.class);
+		kryo.register(NotifyTurnPacket.class);
 		kryo.register(int[].class);
 	}
 
@@ -122,10 +134,14 @@ public class TTTServer {
 	/**
 	 * Reset the board and broadcast change to all connections
 	 */
-	public void resetBoard() {
-		board.reset();
-		broadcast(null, new BoardPacket(board));
+	public void resetGame() {
+		game.reset();
+		broadcast(null, new BoardPacket(game.getBoard()));
 		info("TTTServer", "Board was reset");
+	}
+
+	public void notifyTurn() {
+		broadcast(null, new NotifyTurnPacket(game.getTurn().getColor()));
 	}
 
 	/**
@@ -230,7 +246,7 @@ public class TTTServer {
 				resetItem.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						tttserver.resetBoard();
+						tttserver.resetGame();
 					}
 				});
 				menu.add(resetItem);

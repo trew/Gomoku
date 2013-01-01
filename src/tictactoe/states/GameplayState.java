@@ -1,4 +1,4 @@
-package tictactoe;
+package tictactoe.states;
 
 import net.*;
 import static net.GenericRequestPacket.Request.*;
@@ -11,13 +11,22 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.fills.GradientFill;
 import org.newdawn.slick.geom.Circle;
 
+import tictactoe.Tictactoe;
+import tictactoe.logic.Game;
+import tictactoe.logic.Player;
+
 public class GameplayState extends TTTGameState {
 
-	private Board board;
+	/** Contains the game logic */
+	public Game game;
+
+	public Player me;
 
 	private Circle piece;
 
-	private int selectedColor;
+	public boolean MyTurn() {
+		return me == game.getTurn();
+	}
 
 	private boolean pieceIsSelected;
 	private int selectedPieceX;
@@ -28,15 +37,14 @@ public class GameplayState extends TTTGameState {
 	@Override
 	public void init(GameContainer container, Tictactoe game)
 			throws SlickException {
-		board = new Board();
 		piece = new Circle(0, 0, 40);
-		selectedColor = Board.REDPLAYER;
 		selectedPieceX = -1;
 		selectedPieceY = -1;
 		pieceIsSelected = false;
+		this.game = new Game();
 
 		// add network listener
-		listener = new GameplayStateListener(this, board);
+		listener = new GameplayStateListener(this);
 		game.client.addListener(listener);
 	}
 
@@ -67,7 +75,10 @@ public class GameplayState extends TTTGameState {
 	}
 
 	public void selectPiece(int x, int y) {
-		selectedColor = board.getPlayer(x, y);
+
+		Player pieceColor = game.getPieceOwner(x, y);
+		if (me == null || pieceColor == null) return;
+
 		pieceIsSelected = true;
 		selectedPieceX = x;
 		selectedPieceY = y;
@@ -84,17 +95,19 @@ public class GameplayState extends TTTGameState {
 			throws SlickException {
 		GenericRequestPacket grp = new GenericRequestPacket(BoardUpdate);
 		game.client.sendTCP(grp);
+		grp = new GenericRequestPacket(GetColor);
+		game.client.sendTCP(grp);
 	}
 
 	public void movePiece(Tictactoe game, int x1, int y1, int x2, int y2) {
-		if (board.movePiece(x1, y1, x2, y2)) {
+		if (this.game.movePiece(x1, y1, x2, y2, me)) {
 			game.client.sendTCP(new MovePiecePacket(x1, y1, x2, y2));
 		}
 	}
 
-	public void placePiece(Tictactoe game, int x, int y, int player) {
-		if (board.placePiece(selectedColor, x, y)) {
-			game.client.sendTCP(new PlacePiecePacket(x, y, player));
+	public void placePiece(Tictactoe game, int x, int y) {
+		if (this.game.placePiece(x, y, me)) {
+			game.client.sendTCP(new PlacePiecePacket(x, y, me));
 		}
 	}
 
@@ -119,6 +132,8 @@ public class GameplayState extends TTTGameState {
 			}
 		}
 
+		if (me == null || !MyTurn()) return;
+
 		if (pieceIsSelected) {
 			// place piece
 			if (container.getInput().isMousePressed(0)) {
@@ -133,22 +148,16 @@ public class GameplayState extends TTTGameState {
 				deselectPiece();
 			}
 		} else {
-			// swap selected color
-			if (container.getInput().isMousePressed(1)) {
-				selectedColor = selectedColor == Board.REDPLAYER ? Board.BLUEPLAYER
-						: Board.REDPLAYER;
-			}
-
 			// select piece, if possible
 			if (container.getInput().isMousePressed(0)) {
 				int boardX = getMouseXPositionOnBoard(container);
 				int boardY = getMouseYPositionOnBoard(container);
-				int clr = board.getPlayer(boardX, boardY);
-				if (clr != Board.NOPLAYER) {
+				Player player = this.game.getPieceOwner(boardX, boardY);
+				if (player != null) {
 					selectPiece(boardX, boardY);
 				} else {
 					// place a new piece
-					placePiece(game, boardX, boardY, selectedColor);
+					placePiece(game, boardX, boardY);
 				}
 			}
 		}
@@ -178,10 +187,10 @@ public class GameplayState extends TTTGameState {
 						+ (container.getWidth() / 6));
 				piece.setCenterY((y) * (container.getHeight() / 3)
 						+ (container.getHeight() / 6));
-				if (board.getPlayer(x, y) == Board.REDPLAYER) {
+				if (this.game.getPieceOwner(x, y) == this.game.getRed()) {
 					g.fill(piece, new GradientFill(0, 0, Color.red, 1, 1,
 							Color.red));
-				} else if (board.getPlayer(x, y) == Board.BLUEPLAYER) {
+				} else if (this.game.getPieceOwner(x, y) == this.game.getBlue()) {
 					g.fill(piece, new GradientFill(0, 0, Color.blue, 1, 1,
 							Color.blue));
 				}
@@ -192,10 +201,10 @@ public class GameplayState extends TTTGameState {
 		if (pieceIsSelected) {
 			piece.setCenterX(container.getInput().getMouseX());
 			piece.setCenterY(container.getInput().getMouseY());
-			if (selectedColor == Board.REDPLAYER) {
+			if (me == this.game.getRed()) {
 				g.fill(piece,
 						new GradientFill(0, 0, Color.red, 1, 1, Color.red));
-			} else if (selectedColor == Board.BLUEPLAYER) {
+			} else if (me == this.game.getBlue()) {
 				g.fill(piece, new GradientFill(0, 0, Color.blue, 1, 1,
 						Color.blue));
 			}

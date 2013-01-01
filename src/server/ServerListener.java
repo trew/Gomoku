@@ -1,6 +1,10 @@
 package server;
 
-import tictactoe.Board;
+import java.util.HashMap;
+
+import tictactoe.logic.Board;
+import tictactoe.logic.Game;
+import tictactoe.logic.Player;
 import net.*;
 import static net.GenericRequestPacket.Request.*;
 
@@ -18,7 +22,10 @@ import static com.esotericsoftware.minlog.Log.*;
 public class ServerListener extends Listener {
 
 	private TTTServer server;
-	private Board board;
+	private HashMap<Integer, Player> playerList;
+
+	/** the same game as in server */
+	private Game game;
 
 	/**
 	 * Create a listener for the server
@@ -28,15 +35,46 @@ public class ServerListener extends Listener {
 	 * @param board
 	 *            The board we'll manipulate
 	 */
-	public ServerListener(TTTServer server, Board board) {
+	public ServerListener(TTTServer server) {
 		this.server = server;
-		this.board = board;
+		game = server.game;
+		playerList = new HashMap<Integer, Player>();
+	}
+
+	@Override
+	public void connected(Connection connection) {
+
+		if (!server.redPlayerConnected) {
+			playerList.put(connection.getID(), game.getRed());
+			server.redPlayerConnected = true;
+			info("TTTServer", "" + connection.toString()
+					+ " received playercolor " + Board.REDPLAYER);
+		} else if (!server.bluePlayerConnected) {
+			playerList.put(connection.getID(), game.getBlue());
+			server.bluePlayerConnected = true;
+			info("TTTServer", "" + connection.toString()
+					+ " received playercolor " + Board.BLUEPLAYER);
+		} else {
+			info("TTTServer", "" + connection.toString()
+					+ " received no playercolor ");
+		}
+
+	}
+
+	@Override
+	public void disconnected(Connection connection) {
+		if (playerList.get(connection.getID()) == game.getRed())
+			server.redPlayerConnected = false;
+		else if (playerList.get(connection.getID()) == game.getBlue())
+			server.bluePlayerConnected = false;
+		playerList.remove(connection.getID());
+		info("TTTServer", "Removed " + connection.getID() + " from playerlist");
 	}
 
 	/**
 	 * Called when an object has been received from the remote end of the
 	 * connection. This method dispatches to relevant methods depending on the
-	 * packet type. Logs an error if packet is of unknown type.
+	 * packet type.
 	 *
 	 * @param conn
 	 *            The connection that sent us the packet
@@ -58,9 +96,6 @@ public class ServerListener extends Listener {
 		} else if (obj instanceof GenericRequestPacket) {
 			HandleGenericRequestPacket(conn, (GenericRequestPacket) obj);
 
-		} else {
-			error("TTTServer", "Packet received of unknown type: "
-					+ obj.getClass().getSimpleName());
 		}
 	}
 
@@ -73,13 +108,20 @@ public class ServerListener extends Listener {
 	 *            The packet to process
 	 */
 	private void HandlePlacePiecePacket(Connection conn, PlacePiecePacket ppp) {
-		if (board.placePiece(ppp.player, ppp.x, ppp.y)) {
+
+		if (playerList.get(conn.getID()) != game.getTurn()) {
+			conn.sendTCP(new NotifyTurnPacket(game.getTurn().getColor()));
+			return;
+		}
+
+		if (game.placePiece(ppp.x, ppp.y, playerList.get(conn.getID()))) {
+			info("TTTServer", playerList.get(conn.getID()).getName()
+					+ " placed a piece on " + ppp.x + ", " + ppp.y);
 			server.broadcast(conn, ppp);
-			info("TTTServer", "Player: " + ppp.player + ", Pos: " + ppp.x
-					+ ", " + ppp.y);
+			server.notifyTurn();
 		} else {
 			// placement was not possible, update the board at client
-			conn.sendTCP(new BoardPacket(board));
+			conn.sendTCP(new BoardPacket(game.getBoard()));
 			info("TTTServer", "Couldn't place there! Pos: " + ppp.x + ", "
 					+ ppp.y);
 		}
@@ -94,13 +136,19 @@ public class ServerListener extends Listener {
 	 *            The packet to process
 	 */
 	private void HandleMovePiecePacket(Connection conn, MovePiecePacket mpp) {
-		if (board.movePiece(mpp.x1, mpp.y1, mpp.x2, mpp.y2)) {
+		if (playerList.get(conn.getID()) != game.getTurn()) {
+			conn.sendTCP(new NotifyTurnPacket(game.getTurn().getColor()));
+			return;
+		}
+
+		if (game.movePiece(mpp.x1, mpp.y1, mpp.x2, mpp.y2, game.getTurn())) {
 			server.broadcast(conn, mpp);
+			server.notifyTurn();
 			info("TTTServer", "MovePiecePacket, Pos1: " + mpp.x1 + ", "
 					+ mpp.y1 + " - Pos2: " + mpp.x2 + ", " + mpp.y2);
 		} else {
 			// move was not possible, update the board at client
-			conn.sendTCP(new BoardPacket(board));
+			conn.sendTCP(new BoardPacket(game.getBoard()));
 			info("TTTServer", "Couldn't move piece! Pos1: " + mpp.x1 + ", "
 					+ mpp.y1 + " - Pos2: " + mpp.x2 + ", " + mpp.y2);
 		}
@@ -117,14 +165,19 @@ public class ServerListener extends Listener {
 	private void HandleGenericRequestPacket(Connection conn,
 			GenericRequestPacket grp) {
 		if (grp.request == BoardUpdate) {
-			BoardPacket bp = new BoardPacket(board);
+			BoardPacket bp = new BoardPacket(game.getBoard());
 			conn.sendTCP(bp);
 
 		} else if (grp.request == ClearBoard) {
-			board.reset();
-			BoardPacket bp = new BoardPacket(board);
+			game.reset();
+			BoardPacket bp = new BoardPacket(game.getBoard());
 			server.broadcast(null, bp);
+			server.notifyTurn();
 
+		} else if (grp.request == GetColor) {
+			conn.sendTCP(new SetColorPacket(playerList.get(conn.getID())
+					.getColor()));
+			conn.sendTCP(new NotifyTurnPacket(game.getTurn().getColor()));
 		} else {
 			error("TTTServer", "GenericRequestPacket of unknown type: "
 					+ grp.request);

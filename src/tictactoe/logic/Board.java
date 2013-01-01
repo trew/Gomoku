@@ -1,4 +1,4 @@
-package tictactoe;
+package tictactoe.logic;
 
 /**
  * A Board represents a tic tac toe board.
@@ -30,6 +30,14 @@ public class Board {
 		}
 	}
 
+	public boolean isFilled() {
+		for (int i = 0; i < 9; i++) {
+			if (board[i] == NOPLAYER)
+				return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Checks whether the piece is within the game board
 	 *
@@ -44,17 +52,6 @@ public class Board {
 	}
 
 	/**
-	 * Check whether the player value is valid
-	 *
-	 * @param player
-	 *            The player value
-	 * @return True if the player value is valid
-	 */
-	private boolean correctPlayer(int player) {
-		return player > 0 && player < 3;
-	}
-
-	/**
 	 * Replace all pieces on this board with the pieces of the provided board
 	 *
 	 * @param board
@@ -65,11 +62,6 @@ public class Board {
 			for (int y = 0; y < 3; y++) {
 				setPlayer(x, y, board.getPlayer(x, y));
 			}
-		}
-	}
-	public void updateBoard(int[] board) {
-		for (int i = 0; i < 9; i++) {
-			this.board[i] = board[i];
 		}
 	}
 
@@ -137,12 +129,14 @@ public class Board {
 	/**
 	 * Place a new piece on the board
 	 *
-	 * @see tictactoe.Board#placePiece(int, int, int, boolean)
+	 * @see tictactoe.logic.Board#placePiece(int, int, int, boolean)
 	 */
+	public boolean placePiece(Player player, int x, int y) {
+		return placePiece(player.getColor(), x, y);
+	}
 	public boolean placePiece(int player, int x, int y) {
 		return placePiece(player, x, y, false);
 	}
-
 	/**
 	 * Place a new piece on the board. Pieces can only be placed on empty
 	 * positions
@@ -159,8 +153,6 @@ public class Board {
 	 */
 	public boolean placePiece(int player, int x, int y, boolean force) {
 		if (!correctPosition(x, y))
-			return false;
-		if (!correctPlayer(player))
 			return false;
 		if (!force && getPlayer(x, y) != NOPLAYER)
 			return false;
