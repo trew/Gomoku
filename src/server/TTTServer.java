@@ -1,9 +1,7 @@
 package server;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.io.IOException;
 import java.io.PrintStream;
 
@@ -32,21 +30,58 @@ import com.martiansoftware.jsap.*;
  */
 public class TTTServer {
 
-	/** The port which this server is listening on */
+	/**
+	 * The port which this server is listening on. Can be set by providing
+	 * --port to the application command line
+	 *
+	 * @see #parseArgs(String[])
+	 */
 	private static int PORT;
+
+	/**
+	 * Whether we are going to use Swing as our console
+	 *
+	 * @see #parseArgs(String[])
+	 */
 	private static boolean SWING;
 
+	/**
+	 * The Kryonet server
+	 */
 	private Server server;
+
+	/**
+	 * The listener for the open connections. Each connection will have its own
+	 * listener.
+	 */
 	private ServerListener listener;
 
+	/**
+	 * The board that the server runs
+	 */
 	private Board board;
 
+	/**
+	 * The JFrame if we're using Swing console
+	 */
+	private JFrame frame;
+
+	private static TTTServer tttserver = null;
+
+	/**
+	 * Create a new TTTServer
+	 */
 	public TTTServer() {
 		server = new Server();
 		board = new Board();
 		listener = new ServerListener(this, board);
+		frame = null;
 	}
 
+	/**
+	 * Initialize the server, add the ServerListener and register kryo classes.
+	 * @see ServerListener
+	 */
 	public void init() {
 		server.addListener(listener);
 
@@ -58,38 +93,75 @@ public class TTTServer {
 		kryo.register(int[].class);
 	}
 
+	/**
+	 * Start the server and begin listening on provided port
+	 *
+	 * @see #PORT
+	 */
 	public void start() {
 		server.start();
 		try {
 			server.bind(PORT);
 		} catch (IOException e) {
-			if (TRACE) trace("TTTServer", e);
-			else error("TTTServer", "Error: " + e.getMessage());
+			if (TRACE)
+				trace("TTTServer", e);
+			else
+				error("TTTServer", "Error: " + e.getMessage());
 		}
 	}
 
+	/**
+	 * Stop the server and exit cleanly.
+	 */
 	public void exit() {
+		info("TTTServer", "Exiting server");
 		server.stop();
+		System.exit(0);
 	}
 
-	public void broadcast(Connection conn, Object obj) {
-		if (conn == null) {
-			server.sendToAllTCP(obj);
+	/**
+	 * Reset the board and broadcast change to all connections
+	 */
+	public void resetBoard() {
+		board.reset();
+		broadcast(null, new BoardPacket(board));
+		info("TTTServer", "Board was reset");
+	}
+
+	/**
+	 * Broadcast a packet to all connections except provided source. We won't
+	 * send to the source connection because that client has already made
+	 * necessary changes.
+	 *
+	 * @param sourceConnection
+	 *            The connection that triggered this broadcast
+	 * @param object
+	 *            The object that will be broadcasted
+	 */
+	public void broadcast(Connection sourceConnection, Object object) {
+		debug("TTTServer", "Broadcasting " + object.getClass().getSimpleName());
+		if (sourceConnection == null) {
+			server.sendToAllTCP(object);
 		} else {
-			server.sendToAllExceptTCP(conn.getID(), obj);
+			server.sendToAllExceptTCP(sourceConnection.getID(), object);
 		}
 	}
 
+	/**
+	 * Parse command line arguments that was passed to the application upon
+	 * startup.
+	 *
+	 * @param args
+	 *            The arguments passed to the application
+	 */
 	public static void parseArgs(String[] args) {
 		JSAP jsap = new JSAP();
 		FlaggedOption swingOpt = new FlaggedOption("swing")
-						.setStringParser(JSAP.BOOLEAN_PARSER)
-						.setDefault("true")
-						.setLongFlag("swing");
+				.setStringParser(JSAP.BOOLEAN_PARSER).setDefault("true")
+				.setLongFlag("swing");
 		FlaggedOption portOpt = new FlaggedOption("port")
-						.setStringParser(JSAP.INTEGER_PARSER)
-						.setDefault("9123")
-						.setLongFlag("port");
+				.setStringParser(JSAP.INTEGER_PARSER).setDefault("9123")
+				.setLongFlag("port");
 		try {
 			jsap.registerParameter(swingOpt);
 			jsap.registerParameter(portOpt);
@@ -98,8 +170,10 @@ public class TTTServer {
 			SWING = config.getBoolean("swing");
 			PORT = config.getInt("port");
 		} catch (JSAPException e) {
-			if (TRACE) trace("TTTServer", e);
-			else error("TTTServer", "Error parsing arguments: " + e.getMessage());
+			if (TRACE)
+				trace("TTTServer", e);
+			else
+				error("TTTServer", "Error parsing arguments: " + e.getMessage());
 			System.exit(-1);
 		}
 	}
@@ -109,10 +183,9 @@ public class TTTServer {
 	 *
 	 * @param args
 	 *            Any arguments passed to the server
-	 * @throws IOException
 	 */
-	public static void main(String[] args) throws IOException {
-		Log.set(LEVEL_DEBUG);
+	public static void main(String[] args) {
+		Log.set(LEVEL_INFO);
 
 		parseArgs(args);
 
@@ -121,10 +194,11 @@ public class TTTServer {
 			SWING = true;
 		}
 
-		final TTTServer server;
+		tttserver = new TTTServer();
 		if (SWING) {
-			JFrame frame = new JFrame();
-			frame.add(new JLabel(" Output "), BorderLayout.NORTH);
+			tttserver.frame = new JFrame();
+			tttserver.frame.setAutoRequestFocus(true);
+			tttserver.frame.add(new JLabel(" Output "), BorderLayout.NORTH);
 
 			JTextArea ta = new JTextArea();
 			Console co = new Console(ta);
@@ -132,26 +206,68 @@ public class TTTServer {
 			System.setOut(ps);
 			System.setErr(ps);
 
-			frame.add(new JScrollPane(ta));
+			tttserver.frame.add(new JScrollPane(ta));
 
-			frame.setMinimumSize(new Dimension(350, 300));
-			server = new TTTServer();
+			tttserver.frame.setMinimumSize(new Dimension(350, 300));
 
-			frame.addWindowListener(new WindowAdapter() {
+			TrayIcon icon = null;
+			if (SystemTray.isSupported()) {
+				SystemTray tray = SystemTray.getSystemTray();
+				Image image = Toolkit
+						.getDefaultToolkit()
+						.getImage(
+								"C:/Users/samuel/Documents/dev/tictactoe_multi/src/res/tray.gif");
+
+				PopupMenu menu = new PopupMenu();
+				MenuItem exitItem = new MenuItem("Exit server");
+				exitItem.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						tttserver.exit();
+					}
+				});
+				MenuItem resetItem = new MenuItem("Reset board");
+				resetItem.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						tttserver.resetBoard();
+					}
+				});
+				menu.add(resetItem);
+				menu.add(exitItem);
+				icon = new TrayIcon(image, "Server", menu);
+				icon.addActionListener(new ActionListener() {
+					@Override
+					public void actionPerformed(ActionEvent ae) {
+						tttserver.frame.setExtendedState(Frame.NORMAL);
+						tttserver.frame.setVisible(true);
+						tttserver.frame.toFront();
+					}
+				});
+				try {
+					tray.add(icon);
+				} catch (AWTException e1) {
+					e1.printStackTrace();
+				}
+			}
+			tttserver.frame.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
-					server.exit();
+					tttserver.exit();
 					System.exit(0);
 				}
+
+				@Override
+				public void windowIconified(WindowEvent e) {
+					tttserver.frame.setVisible(false);
+				}
 			});
-			frame.pack();
-			frame.setVisible(true);
-		} else { //not using swing, output goes to default System.out/err
-			server = new TTTServer();
+			tttserver.frame.pack();
+			tttserver.frame.setVisible(true);
 		}
 
-		server.init();
-		server.start();
+		tttserver.init();
+		tttserver.start();
 	}
 
 }

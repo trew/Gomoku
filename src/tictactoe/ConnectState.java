@@ -20,6 +20,7 @@ public class ConnectState extends TTTGameState {
 	@Override
 	public void init(GameContainer container, Tictactoe game)
 			throws SlickException {
+
 		game.client = new Client();
 		game.client.start();
 
@@ -36,6 +37,7 @@ public class ConnectState extends TTTGameState {
 	@Override
 	public void update(GameContainer container, Tictactoe game, int delta)
 			throws SlickException {
+
 		if (connectingState == 0) {
 			try {
 				game.client.connect(5000, Tictactoe.ADDRESS, Tictactoe.PORT);
@@ -47,9 +49,9 @@ public class ConnectState extends TTTGameState {
 			}
 		} else if (connectingState == 1) {
 			if (container.getInput().isKeyPressed(Input.KEY_SPACE)) {
-				game.enterState(1); //gameplaystate
+				game.enterState(1); // gameplaystate
 			}
-		} else if (connectingState == 2){
+		} else if (connectingState == 2) {
 			if (container.getInput().isKeyPressed(Input.KEY_SPACE)) {
 				container.exit();
 			}
