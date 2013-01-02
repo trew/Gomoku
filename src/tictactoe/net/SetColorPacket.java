@@ -1,4 +1,4 @@
-package net;
+package tictactoe.net;
 
 public class SetColorPacket {
 	public int color;

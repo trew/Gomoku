@@ -1,12 +1,12 @@
 package tictactoe.states;
 
 import tictactoe.logic.Board;
-import net.*;
+import tictactoe.net.*;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
-import static net.GenericRequestPacket.Request.*;
+import static tictactoe.net.GenericRequestPacket.Request.*;
 
 /**
  * The listener towards the server for the GamePlayState. This will update the

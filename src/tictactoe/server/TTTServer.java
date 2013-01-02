@@ -1,4 +1,4 @@
-package server;
+package tictactoe.server;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -7,13 +7,9 @@ import java.io.PrintStream;
 
 import javax.swing.*;
 
-import tictactoe.logic.Board;
 import tictactoe.logic.Game;
-import tictactoe.logic.Player;
+import tictactoe.net.*;
 
-import net.*;
-
-import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
@@ -93,15 +89,7 @@ public class TTTServer {
 	public void init() {
 		server.addListener(listener);
 
-		Kryo kryo = server.getKryo();
-		kryo.register(PlacePiecePacket.class);
-		kryo.register(BoardPacket.class);
-		kryo.register(Board.class);
-		kryo.register(Player.class);
-		kryo.register(GenericRequestPacket.class);
-		kryo.register(SetColorPacket.class);
-		kryo.register(NotifyTurnPacket.class);
-		kryo.register(int[].class);
+		RegisterPackets.register(server.getKryo());
 	}
 
 	/**

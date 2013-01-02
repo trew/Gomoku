@@ -2,7 +2,6 @@ package tictactoe.states;
 
 import java.io.IOException;
 
-import net.*;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -10,10 +9,8 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
 import tictactoe.Tictactoe;
-import tictactoe.logic.Board;
-import tictactoe.logic.Player;
+import tictactoe.net.*;
 
-import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -30,15 +27,7 @@ public class ConnectState extends TTTGameState {
 		game.client = new Client();
 		game.client.start();
 
-		Kryo kryo = game.client.getKryo();
-		kryo.register(PlacePiecePacket.class);
-		kryo.register(BoardPacket.class);
-		kryo.register(Board.class);
-		kryo.register(Player.class);
-		kryo.register(GenericRequestPacket.class);
-		kryo.register(SetColorPacket.class);
-		kryo.register(NotifyTurnPacket.class);
-		kryo.register(int[].class);
+		RegisterPackets.register(game.client.getKryo());
 
 		connectMessage = "Press space to connect";
 	}

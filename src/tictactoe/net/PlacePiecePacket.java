@@ -1,4 +1,4 @@
-package net;
+package tictactoe.net;
 
 import tictactoe.logic.Player;
 

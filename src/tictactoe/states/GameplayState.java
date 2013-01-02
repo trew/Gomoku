@@ -1,7 +1,6 @@
 package tictactoe.states;
 
-import net.*;
-import static net.GenericRequestPacket.Request.*;
+import static tictactoe.net.GenericRequestPacket.Request.*;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -14,6 +13,7 @@ import org.newdawn.slick.geom.Circle;
 import tictactoe.Tictactoe;
 import tictactoe.logic.Game;
 import tictactoe.logic.Player;
+import tictactoe.net.*;
 
 public class GameplayState extends TTTGameState {
 
@@ -46,11 +46,11 @@ public class GameplayState extends TTTGameState {
 		int mouseX = container.getInput().getMouseX();
 
 		if (mouseX < width / 3) {
-			return 0;
+			return -1;
 		} else if (mouseX < 2 * width / 3) {
-			return 1;
+			return 0;
 		} else {
-			return 2;
+			return 1;
 		}
 	}
 
@@ -59,11 +59,11 @@ public class GameplayState extends TTTGameState {
 		int mouseY = container.getInput().getMouseY();
 
 		if (mouseY < height / 3) {
-			return 0;
+			return -1;
 		} else if (mouseY < 2 * height / 3) {
-			return 1;
+			return 0;
 		} else {
-			return 2;
+			return 1;
 		}
 	}
 
@@ -131,11 +131,11 @@ public class GameplayState extends TTTGameState {
 				2 * (container.getWidth() / 3), container.getHeight());
 
 		// draw the pieces of the board
-		for (int x = 0; x < 3; x++) {
-			for (int y = 0; y < 3; y++) {
-				piece.setCenterX((x) * (container.getWidth() / 3)
+		for (int x = -1; x < 2; x++) {
+			for (int y = -1; y < 2; y++) {
+				piece.setCenterX((x+1) * (container.getWidth() / 3)
 						+ (container.getWidth() / 6));
-				piece.setCenterY((y) * (container.getHeight() / 3)
+				piece.setCenterY((y+1) * (container.getHeight() / 3)
 						+ (container.getHeight() / 6));
 				if (this.game.getPieceOwner(x, y) == this.game.getRed()) {
 					g.fill(piece, new GradientFill(0, 0, Color.red, 1, 1,

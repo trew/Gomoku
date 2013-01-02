@@ -34,15 +34,17 @@ public class Game {
 				switchTurn();
 				return true;
 			}
-			info("TTTServer#Game", "Couldn't place on " + x + ", " + y);
+			info("Game", "Couldn't place on " + x + ", " + y);
 			return false;
 		}
-		info("TTTServer#Game", "Not " + player.getName() + "'s turn!");
+		info("Game", "Not " + player.getName() + "'s turn!");
 		return false;
 	}
 
 	public Player getPieceOwner(int x, int y) {
-		int clr = board.getPlayer(x, y);
+		Piece piece = board.getPiece(x, y);
+		if (piece == null) return null;
+		int clr = piece.getPlayerColor();
 		if (clr == Board.REDPLAYER) return red;
 		if (clr == Board.BLUEPLAYER) return blue;
 		return null;

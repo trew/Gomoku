@@ -1,12 +1,12 @@
-package server;
+package tictactoe.server;
 
 import java.util.HashMap;
 
 import tictactoe.logic.Board;
 import tictactoe.logic.Game;
 import tictactoe.logic.Player;
-import net.*;
-import static net.GenericRequestPacket.Request.*;
+import tictactoe.net.*;
+import static tictactoe.net.GenericRequestPacket.Request.*;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
