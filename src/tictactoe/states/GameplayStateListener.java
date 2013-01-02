@@ -35,14 +35,6 @@ public class GameplayStateListener extends Listener {
 				connection.sendTCP(new GenericRequestPacket(BoardUpdate));
 			}
 
-		} else if (object instanceof MovePiecePacket) {
-			MovePiecePacket mpp = (MovePiecePacket) object;
-
-			// force movement of piece, since server is asking
-			// if there is already a piece on the place we're moving to, the
-			// piece will be replaced
-			state.game.movePiece(mpp.x1, mpp.y1, mpp.x2, mpp.y2, state.game.getTurn());
-
 		} else if (object instanceof BoardPacket) {
 			// let's update our board with the board of the server
 			BoardPacket bp = (BoardPacket) object;

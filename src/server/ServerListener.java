@@ -90,9 +90,6 @@ public class ServerListener extends Listener {
 		if (obj instanceof PlacePiecePacket) {
 			HandlePlacePiecePacket(conn, (PlacePiecePacket) obj);
 
-		} else if (obj instanceof MovePiecePacket) {
-			HandleMovePiecePacket(conn, (MovePiecePacket) obj);
-
 		} else if (obj instanceof GenericRequestPacket) {
 			HandleGenericRequestPacket(conn, (GenericRequestPacket) obj);
 
@@ -124,33 +121,6 @@ public class ServerListener extends Listener {
 			conn.sendTCP(new BoardPacket(game.getBoard()));
 			info("TTTServer", "Couldn't place there! Pos: " + ppp.x + ", "
 					+ ppp.y);
-		}
-	}
-
-	/**
-	 * Move a piece on the board and notify other connections
-	 *
-	 * @param conn
-	 *            The connection that sent us the packet
-	 * @param mpp
-	 *            The packet to process
-	 */
-	private void HandleMovePiecePacket(Connection conn, MovePiecePacket mpp) {
-		if (playerList.get(conn.getID()) != game.getTurn()) {
-			conn.sendTCP(new NotifyTurnPacket(game.getTurn().getColor()));
-			return;
-		}
-
-		if (game.movePiece(mpp.x1, mpp.y1, mpp.x2, mpp.y2, game.getTurn())) {
-			server.broadcast(conn, mpp);
-			server.notifyTurn();
-			info("TTTServer", "MovePiecePacket, Pos1: " + mpp.x1 + ", "
-					+ mpp.y1 + " - Pos2: " + mpp.x2 + ", " + mpp.y2);
-		} else {
-			// move was not possible, update the board at client
-			conn.sendTCP(new BoardPacket(game.getBoard()));
-			info("TTTServer", "Couldn't move piece! Pos1: " + mpp.x1 + ", "
-					+ mpp.y1 + " - Pos2: " + mpp.x2 + ", " + mpp.y2);
 		}
 	}
 

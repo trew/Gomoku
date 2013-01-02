@@ -41,22 +41,6 @@ public class Game {
 		return false;
 	}
 
-	/**
-	 * Move a piece and switch player turn. You can only move pieces if the
-	 * board is filled entirely
-	 *
-	 * @see Board#movePiece(int, int, int, int)
-	 */
-	public boolean movePiece(int x1, int y1, int x2, int y2, Player player) {
-		if (turn == player) {
-			if (board.movePiece(x1, y1, x2, y2)) {
-				switchTurn();
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public Player getPieceOwner(int x, int y) {
 		int clr = board.getPlayer(x, y);
 		if (clr == Board.REDPLAYER) return red;

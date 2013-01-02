@@ -32,7 +32,6 @@ public class ConnectState extends TTTGameState {
 
 		Kryo kryo = game.client.getKryo();
 		kryo.register(PlacePiecePacket.class);
-		kryo.register(MovePiecePacket.class);
 		kryo.register(BoardPacket.class);
 		kryo.register(Board.class);
 		kryo.register(Player.class);

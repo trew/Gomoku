@@ -95,7 +95,6 @@ public class TTTServer {
 
 		Kryo kryo = server.getKryo();
 		kryo.register(PlacePiecePacket.class);
-		kryo.register(MovePiecePacket.class);
 		kryo.register(BoardPacket.class);
 		kryo.register(Board.class);
 		kryo.register(Player.class);
