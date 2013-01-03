@@ -29,7 +29,11 @@ public class Game {
 	 * @see Board#placePiece(int, int, int)
 	 */
 	public boolean placePiece(int x, int y, Player player) {
-		if (turn == player) {
+		// not possible to compare "turn == player" because it is a reference
+		// comparison. it would've been possible in C++ with operator
+		// overloading, but here we can rely on the colors instead, which is
+		// comparison by value.
+		if (turn.getColor() == player.getColor()) {
 			if (board.placePiece(player, x, y)) {
 				switchTurn();
 				return true;
@@ -37,28 +41,33 @@ public class Game {
 			info("Game", "Couldn't place on " + x + ", " + y);
 			return false;
 		}
-		info("Game", "Not " + player.getName() + "'s turn!");
+		debug("Game", "Not " + player.getName() + "'s turn!");
 		return false;
 	}
 
 	public Player getPieceOwner(int x, int y) {
 		Piece piece = board.getPiece(x, y);
-		if (piece == null) return null;
+		if (piece == null)
+			return null;
 		int clr = piece.getPlayerColor();
-		if (clr == Board.REDPLAYER) return red;
-		if (clr == Board.BLUEPLAYER) return blue;
+		if (clr == Board.REDPLAYER)
+			return red;
+		if (clr == Board.BLUEPLAYER)
+			return blue;
 		return null;
 	}
 
 	public void switchTurn() {
 		if (turn == red)
-			turn = blue;
+			setTurn(blue);
 		else
-			turn = red;
+			setTurn(red);
 	}
 
 	public void setTurn(Player player) {
-		if (player != red && player != blue) return;
+		if (player != red && player != blue)
+			return;
+		debug("Game", "Turn set to " + turn.getName());
 		turn = player;
 	}
 
@@ -75,13 +84,15 @@ public class Game {
 	}
 
 	public Player getPlayer(int color) {
-		if (color == Board.REDPLAYER) return red;
-		if (color == Board.BLUEPLAYER) return blue;
+		if (color == Board.REDPLAYER)
+			return red;
+		if (color == Board.BLUEPLAYER)
+			return blue;
 		return null;
 	}
 
-
 	public void updateBoard(Board board) {
+		debug("Game", "Updating board");
 		this.board.updateBoard(board);
 	}
 

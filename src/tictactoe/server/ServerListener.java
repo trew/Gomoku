@@ -47,15 +47,15 @@ public class ServerListener extends Listener {
 		if (!server.redPlayerConnected) {
 			playerList.put(connection.getID(), game.getRed());
 			server.redPlayerConnected = true;
-			info("TTTServer", "" + connection.toString()
+			debug("TTTServer", "" + connection.toString()
 					+ " received playercolor " + Board.REDPLAYER);
 		} else if (!server.bluePlayerConnected) {
 			playerList.put(connection.getID(), game.getBlue());
 			server.bluePlayerConnected = true;
-			info("TTTServer", "" + connection.toString()
+			debug("TTTServer", "" + connection.toString()
 					+ " received playercolor " + Board.BLUEPLAYER);
 		} else {
-			info("TTTServer", "" + connection.toString()
+			debug("TTTServer", "" + connection.toString()
 					+ " received no playercolor ");
 		}
 
@@ -68,7 +68,7 @@ public class ServerListener extends Listener {
 		else if (playerList.get(connection.getID()) == game.getBlue())
 			server.bluePlayerConnected = false;
 		playerList.remove(connection.getID());
-		info("TTTServer", "Removed " + connection.getID() + " from playerlist");
+		debug("TTTServer", "Removed " + connection.getID() + " from playerlist");
 	}
 
 	/**
@@ -112,10 +112,9 @@ public class ServerListener extends Listener {
 		}
 
 		if (game.placePiece(ppp.x, ppp.y, playerList.get(conn.getID()))) {
-			info("TTTServer", playerList.get(conn.getID()).getName()
+			debug("TTTServer", playerList.get(conn.getID()).getName()
 					+ " placed a piece on " + ppp.x + ", " + ppp.y);
 			server.broadcast(conn, ppp);
-			server.notifyTurn();
 		} else {
 			// placement was not possible, update the board at client
 			conn.sendTCP(new BoardPacket(game.getBoard()));
@@ -142,12 +141,17 @@ public class ServerListener extends Listener {
 			game.reset();
 			BoardPacket bp = new BoardPacket(game.getBoard());
 			server.broadcast(null, bp);
-			server.notifyTurn();
+			server.broadcast(null, new NotifyTurnPacket(game.getTurn()
+					.getColor()));
 
-		} else if (grp.request == GetColor) {
+		} else if (grp.request == GetColorAndTurn) {
 			conn.sendTCP(new SetColorPacket(playerList.get(conn.getID())
 					.getColor()));
 			conn.sendTCP(new NotifyTurnPacket(game.getTurn().getColor()));
+
+		} else if (grp.request == GetTurn) {
+			conn.sendTCP(new NotifyTurnPacket(game.getTurn().getColor()));
+
 		} else {
 			error("TTTServer", "GenericRequestPacket of unknown type: "
 					+ grp.request);

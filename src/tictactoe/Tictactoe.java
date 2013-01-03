@@ -65,7 +65,7 @@ public class Tictactoe extends StateBasedGame {
 	 */
 	public static void main(String[] args) {
 		try {
-			Log.set(Log.LEVEL_INFO);
+			Log.set(Log.LEVEL_DEBUG);
 			ParseArgs(args);
 
 			Tictactoe game = new Tictactoe();

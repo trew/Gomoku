@@ -2,6 +2,8 @@ package tictactoe.logic;
 
 import tictactoe.util.HashMap2D;
 
+import static com.esotericsoftware.minlog.Log.*;
+
 /**
  * A Board represents a tic tac toe board.
  *
@@ -16,6 +18,15 @@ public class Board {
 	public static final int REDPLAYER = 1;
 	public static final int BLUEPLAYER = 2;
 
+	private int leftBorder;
+	private int topBorder;
+	private int rightBorder;
+	private int bottomBorder;
+
+	private boolean leftBorderSet;
+	private boolean topBorderSet;
+
+
 	/**
 	 * Construct a new tic tac toe board
 	 */
@@ -28,6 +39,9 @@ public class Board {
 	 */
 	public void reset() {
 		board = new HashMap2D<Integer, Integer, Piece>();
+		leftBorder = topBorder = rightBorder = bottomBorder = 0;
+		leftBorderSet = false;
+		topBorderSet = false;
 	}
 
 	/**
@@ -38,24 +52,21 @@ public class Board {
 	 */
 	public void updateBoard(Board board) {
 		this.board = board.board;
+		leftBorder = board.leftBorder;
+		topBorder = board.topBorder;
+		rightBorder = board.rightBorder;
+		bottomBorder = board.bottomBorder;
+		leftBorderSet = board.leftBorderSet;
+		topBorderSet = board.topBorderSet;
 	}
 
 	/**
 	 * Place a new piece on the board
 	 *
-	 * @see #placePiece(int, int, int, boolean)
+	 * @see #placePiece(int, int, int)
 	 */
 	public boolean placePiece(Player player, int x, int y) {
-		return placePiece(player.getColor(), x, y, false);
-	}
-
-	/**
-	 * Place a new piece on the board
-	 *
-	 * @see #placePiece(int, int, int, boolean)
-	 */
-	public boolean placePiece(int player, int x, int y) {
-		return placePiece(player, x, y, false);
+		return placePiece(player.getColor(), x, y);
 	}
 
 	/**
@@ -68,12 +79,10 @@ public class Board {
 	 *            The x location of the new piece
 	 * @param y
 	 *            The y location of the new piece
-	 * @param force
-	 *            Force placement to occur, even if a piece is already there
 	 * @return True if piece was placed
 	 */
-	public boolean placePiece(int player, int x, int y, boolean force) {
-		if (!force && getPiece(x, y) != null)
+	public boolean placePiece(int player, int x, int y) {
+		if (getPiece(x, y) != null)
 			return false;
 
 		setPiece(x, y, player);
@@ -94,7 +103,56 @@ public class Board {
 		return board.get(x, y);
 	}
 
+	/**
+	 * Place a piece on the board
+	 *
+	 * @param x
+	 *            The x location for the piece
+	 * @param y
+	 *            The y location for the piece
+	 * @param player
+	 *            The player color for the piece
+	 */
 	private void setPiece(int x, int y, int player) {
+		if (!leftBorderSet) {
+			leftBorder = rightBorder = x;
+			leftBorderSet = true;
+		}
+		if (!topBorderSet) {
+			topBorder = bottomBorder = y;
+			topBorderSet = true;
+		}
+		if (x < leftBorder) {
+			// update left border and width
+			leftBorder = x;
+			info("Board", "left border set to " + x);
+		} else if (x > rightBorder) {
+			rightBorder = x;
+			info("Board", "right border set to " + x);
+		}
+		if (y < topBorder) {
+			topBorder = y;
+			info("Board", "top border set to " + y);
+		} else if (y > bottomBorder) {
+			bottomBorder = y;
+			info("Board", "bottom border set to " + y);
+		}
 		board.put(x, y, new Piece(x, y, player));
 	}
+
+	public int getLeftBorder() {
+		return leftBorder;
+	}
+	public int getTopBorder() {
+		return topBorder;
+	}
+	public int getWidth() {
+		if (board.isEmpty()) return 0;
+		return rightBorder - leftBorder + 1;
+	}
+	public int getHeight() {
+		if (board.isEmpty()) return 0;
+		return bottomBorder - topBorder + 1;
+	}
+
 }

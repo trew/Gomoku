@@ -79,6 +79,7 @@ public class TTTServer {
 		frame = null;
 		redPlayerConnected = false;
 		bluePlayerConnected = false;
+
 	}
 
 	/**
@@ -124,11 +125,7 @@ public class TTTServer {
 	public void resetGame() {
 		game.reset();
 		broadcast(null, new BoardPacket(game.getBoard()));
-		info("TTTServer", "Board was reset");
-	}
-
-	public void notifyTurn() {
-		broadcast(null, new NotifyTurnPacket(game.getTurn().getColor()));
+		debug("TTTServer", "Board was reset");
 	}
 
 	/**
@@ -188,13 +185,13 @@ public class TTTServer {
 	 *            Any arguments passed to the server
 	 */
 	public static void main(String[] args) {
-		Log.set(LEVEL_INFO);
+		Log.set(LEVEL_DEBUG);
 
 		parseArgs(args);
 
 		// override if using windows
 		if (System.getProperty("os.name").startsWith("Windows")) {
-			SWING = true;
+			//SWING = true;
 		}
 
 		tttserver = new TTTServer();
