@@ -2,11 +2,10 @@ package tictactoe;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.geom.Ellipse;
 import org.newdawn.slick.geom.Rectangle;
-import org.newdawn.slick.geom.Shape;
 import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
 
@@ -29,8 +28,9 @@ public class BoardComponent extends AbstractComponent {
 
 	private Board board;
 
-	private Ellipse ellipse;
 	private Rectangle rect;
+	private Image cross;
+	private Image circle;
 
 	private int xPosOnBoard;
 	private int yPosOnBoard;
@@ -85,9 +85,14 @@ public class BoardComponent extends AbstractComponent {
 		this.height = height;
 		this.board = board;
 
-		ellipse = new Ellipse(0, 0, 10, 10);
 		rect = new Rectangle(0, 0, 10, 10);
-
+		try {
+			cross = new Image("res/cross.png");
+			circle = new Image("res/circle.png");
+		} catch (SlickException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		xPosOnBoard = 0;
 		yPosOnBoard = 0;
 		posOnBoard = "Pos: ---";
@@ -106,8 +111,8 @@ public class BoardComponent extends AbstractComponent {
 		setPieceMargin(pieceMargin);
 	}
 
-	public void drawShape(Shape shape, Color clr, int x, int y, Graphics g) {
-		g.setColor(clr);
+	public void drawShape(Image image, int x, int y, Graphics g) {
+		g.setColor(Color.white);
 		// get the relative x position
 		int xPos = (x + 1) * (width / displayWidth)
 				- (width / (2 * displayWidth));
@@ -115,37 +120,39 @@ public class BoardComponent extends AbstractComponent {
 		int yPos = (y + 1) * (height / displayHeight)
 				- (height / (2 * displayHeight));
 
-		shape.setCenterX(this.x + xPos);
-		shape.setCenterY(this.y + yPos);
-		g.fill(shape);
+		rect.setCenterX(xPos);
+		rect.setCenterY(yPos);
+		image.setImageColor(0, 0, 1);
+		g.texture(rect, image, true);
 	}
 
 	public void drawCross(int x, int y, Graphics g) {
-		drawShape(rect, Color.blue, x, y, g);
+		drawShape(cross, x, y, g);
 	}
 
 	public void drawCircle(int x, int y, Graphics g) {
-		drawShape(ellipse, Color.red, x, y, g);
+		drawShape(circle, x, y, g);
 	}
 
 	@Override
 	public void render(GUIContext container, Graphics g) throws SlickException {
 		Color oldColor = g.getColor();
 		g.pushTransform();
+		g.translate(this.x, this.y);
 
 		// draw border
 		g.setColor(Color.green);
-		g.drawRect(x, y, width, height);
+		g.drawRect(0, 0, width, height);
 
 		g.setColor(Color.cyan);
 		// draw grid lines
 		for (int x = 1; x < displayWidth; x++) {
-			int xPos = this.x + x * (width / displayWidth);
-			g.drawLine(xPos, this.y, xPos, this.y + height);
+			int xPos = x * (width / displayWidth);
+			g.drawLine(xPos, 0, xPos, height);
 		}
 		for (int y = 1; y < displayHeight; y++) {
-			int yPos = this.y + y * (height / displayHeight);
-			g.drawLine(this.x, yPos, this.x + width, yPos);
+			int yPos = y * (height / displayHeight);
+			g.drawLine(0, yPos, width, yPos);
 		}
 
 		// draw objects inside the grid lines
@@ -172,7 +179,7 @@ public class BoardComponent extends AbstractComponent {
 
 	public int getMouseXPositionOnBoard(int mouseX) {
 		for (int x = 0; x < displayWidth; x++) {
-			if (mouseX < this.x + (x + 1) * width / displayWidth)
+			if (mouseX < this.x + ((x + 1) * width / displayWidth))
 				return x + leftBorder;
 		}
 		return displayWidth + leftBorder;
@@ -180,7 +187,7 @@ public class BoardComponent extends AbstractComponent {
 
 	public int getMouseYPositionOnBoard(int mouseY) {
 		for (int y = 0; y < displayHeight; y++) {
-			if (mouseY < this.y + (y + 1) * height / displayHeight)
+			if (mouseY < this.y + ((y + 1) * height / displayHeight))
 				return y + topBorder;
 		}
 		return displayHeight + topBorder;
@@ -196,10 +203,8 @@ public class BoardComponent extends AbstractComponent {
 
 	public void setPieceMargin(int margin) {
 		pieceMargin = margin;
-		ellipse.setRadius1((this.width / displayWidth) / 2 - margin);
-		ellipse.setRadius2((this.height / displayHeight) / 2 - margin);
-		rect.setSize(this.width / displayWidth - margin * 2, this.height
-				/ displayHeight - margin * 2);
+		rect.setSize(width / displayWidth - margin * 2, height / displayHeight
+				- margin * 2);
 	}
 
 	public void setDisplaySize(int width, int height) {
