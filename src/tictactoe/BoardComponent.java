@@ -6,6 +6,7 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.geom.Ellipse;
 import org.newdawn.slick.geom.Rectangle;
+import org.newdawn.slick.geom.Shape;
 import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
 
@@ -29,6 +30,7 @@ public class BoardComponent extends AbstractComponent {
 	private Board board;
 
 	private Ellipse ellipse;
+	private Rectangle rect;
 
 	private int xPosOnBoard;
 	private int yPosOnBoard;
@@ -39,7 +41,8 @@ public class BoardComponent extends AbstractComponent {
 	/**
 	 * Create a new board component
 	 *
-	 * @see #BoardComponent(GUIContext, Board, int, int, int, int, int, int, int, int, int)
+	 * @see #BoardComponent(GUIContext, Board, int, int, int, int, int, int,
+	 *      int, int, int)
 	 */
 	public BoardComponent(GUIContext container, Board board, int x, int y,
 			int width, int height, int pieceMargin) {
@@ -83,6 +86,7 @@ public class BoardComponent extends AbstractComponent {
 		this.board = board;
 
 		ellipse = new Ellipse(0, 0, 10, 10);
+		rect = new Rectangle(0, 0, 10, 10);
 
 		xPosOnBoard = 0;
 		yPosOnBoard = 0;
@@ -102,8 +106,31 @@ public class BoardComponent extends AbstractComponent {
 		setPieceMargin(pieceMargin);
 	}
 
+	public void drawShape(Shape shape, Color clr, int x, int y, Graphics g) {
+		g.setColor(clr);
+		// get the relative x position
+		int xPos = (x + 1) * (width / displayWidth)
+				- (width / (2 * displayWidth));
+		// get the relative y position
+		int yPos = (y + 1) * (height / displayHeight)
+				- (height / (2 * displayHeight));
+
+		shape.setCenterX(this.x + xPos);
+		shape.setCenterY(this.y + yPos);
+		g.fill(shape);
+	}
+
+	public void drawCross(int x, int y, Graphics g) {
+		drawShape(rect, Color.blue, x, y, g);
+	}
+
+	public void drawCircle(int x, int y, Graphics g) {
+		drawShape(ellipse, Color.red, x, y, g);
+	}
+
 	@Override
 	public void render(GUIContext container, Graphics g) throws SlickException {
+		Color oldColor = g.getColor();
 		g.pushTransform();
 
 		// draw border
@@ -121,7 +148,6 @@ public class BoardComponent extends AbstractComponent {
 			g.drawLine(this.x, yPos, this.x + width, yPos);
 		}
 
-
 		// draw objects inside the grid lines
 		for (int x = 0; x < displayWidth; x++) {
 			for (int y = 0; y < displayHeight; y++) {
@@ -129,21 +155,11 @@ public class BoardComponent extends AbstractComponent {
 				if (piece == null)
 					continue;
 
-				// get the relative x position
-				int xPos = (x + 1) * (width / displayWidth)
-						- (width / (2 * displayWidth));
-				// get the relative y position
-				int yPos = (y + 1) * (height / displayHeight)
-						- (height / (2 * displayHeight));
-
 				if (piece.getPlayerColor() == Board.REDPLAYER) {
-					g.setColor(Color.red);
+					drawCircle(x, y, g);
 				} else {
-					g.setColor(Color.blue);
+					drawCross(x, y, g);
 				}
-				ellipse.setCenterX(this.x + xPos);
-				ellipse.setCenterY(this.y + yPos);
-				g.fill(ellipse);
 			}
 		}
 
@@ -151,9 +167,7 @@ public class BoardComponent extends AbstractComponent {
 		g.popTransform();
 		g.setColor(Color.white);
 		g.drawString(posOnBoard, 50, container.getHeight() - 30);
-		String borders = "Top: " + topBorder + "Left: " + leftBorder
-				+ "Width: " + displayWidth + "Height: " + displayHeight;
-		g.drawString("Borders: " + borders, 100, 10);
+		g.setColor(oldColor);
 	}
 
 	public int getMouseXPositionOnBoard(int mouseX) {
@@ -184,10 +198,13 @@ public class BoardComponent extends AbstractComponent {
 		pieceMargin = margin;
 		ellipse.setRadius1((this.width / displayWidth) / 2 - margin);
 		ellipse.setRadius2((this.height / displayHeight) / 2 - margin);
+		rect.setSize(this.width / displayWidth - margin * 2, this.height
+				/ displayHeight - margin * 2);
 	}
 
 	public void setDisplaySize(int width, int height) {
-		if (sizeLocked) return;
+		if (sizeLocked)
+			return;
 		if (width > 0 && height > 0) {
 			displayWidth = width;
 			displayHeight = height;
@@ -218,6 +235,7 @@ public class BoardComponent extends AbstractComponent {
 	public int getDisplayWidth() {
 		return displayWidth;
 	}
+
 	public int getDisplayHeight() {
 		return displayHeight;
 	}
@@ -247,11 +265,11 @@ public class BoardComponent extends AbstractComponent {
 		if (c == Input.KEY_ADD) {
 			leftBorder++;
 			topBorder++;
-			setDisplaySize(displayWidth-2, displayHeight-2);
+			setDisplaySize(displayWidth - 2, displayHeight - 2);
 		} else if (c == Input.KEY_MINUS) {
 			leftBorder--;
 			topBorder--;
-			setDisplaySize(displayWidth+2, displayHeight+2);
+			setDisplaySize(displayWidth + 2, displayHeight + 2);
 		} else if (c == Input.KEY_UP) {
 			topBorder--;
 		} else if (c == Input.KEY_DOWN) {
@@ -261,7 +279,8 @@ public class BoardComponent extends AbstractComponent {
 		} else if (c == Input.KEY_RIGHT) {
 			leftBorder++;
 		} else {
-			if (input.isKeyDown(Input.KEY_LCONTROL) || input.isKeyDown(Input.KEY_RCONTROL)) {
+			if (input.isKeyDown(Input.KEY_LCONTROL)
+					|| input.isKeyDown(Input.KEY_RCONTROL)) {
 				if (c == Input.KEY_F) {
 					setDisplaySize(-1, -1);
 				}
