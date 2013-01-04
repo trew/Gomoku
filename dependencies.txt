@@ -1,0 +1,8 @@
+Natives:
+========
+
+Light-Weight Java Game Library - http://lwjgl.org/
+--------------------------------------------------
+The JAR's is needed for development, but most importantly the natives are 
+required.
+http://lwjgl.org/wiki/index.php?title=Downloading_and_Setting_Up_LWJGL
