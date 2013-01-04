@@ -1,18 +1,56 @@
 package tictactoe.net;
 
+/**
+ * A small packet containing a specific request, but doesn't require much data,
+ * so having a specific class for it would overcomplicate it.
+ *
+ * @author Samuel Andersson
+ */
 public class GenericRequestPacket {
 
-	public static class Request {
-		public static int BoardUpdate = 1;
-		public static int ClearBoard  = 2;
-		public static int GetColorAndTurn    = 3;
-		public static int GetTurn 	  = 4;
+	/**
+	 * The request
+	 *
+	 * @see Request
+	 */
+	private int request;
+
+	/** Empty constructor for Kryonet */
+	public GenericRequestPacket() {
 	}
 
-	public int request;
+	/**
+	 * Create a new generic request
+	 *
+	 * @param req
+	 *            The request ID
+	 * @throws IllegalArgumentException
+	 *             Indicates the request ID was faulty
+	 */
+	public GenericRequestPacket(int req) throws IllegalArgumentException {
+		setRequest(req);
+	}
 
-	public GenericRequestPacket() {}
-	public GenericRequestPacket(int req) {
-		request = req;
+	/**
+	 * Get the request ID
+	 * @return The request ID
+	 * @see Request
+	 */
+	public int getRequest() {
+		return request;
+	}
+
+	/**
+	 * Set the request ID
+	 *
+	 * @param req
+	 *            The request ID
+	 * @throws IllegalArgumentException
+	 *             Indicates the request ID was faulty
+	 */
+	public void setRequest(int req) throws IllegalArgumentException {
+		if (!Request.validRequest(req)) {
+			throw new IllegalArgumentException("Bad request: \"" + req + "\"");
+		}
 	}
 }

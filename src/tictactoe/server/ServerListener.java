@@ -6,7 +6,7 @@ import tictactoe.logic.Board;
 import tictactoe.logic.Game;
 import tictactoe.logic.Player;
 import tictactoe.net.*;
-import static tictactoe.net.GenericRequestPacket.Request.*;
+import static tictactoe.net.Request.*;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
@@ -21,7 +21,10 @@ import static com.esotericsoftware.minlog.Log.*;
  */
 public class ServerListener extends Listener {
 
+	/** The server containing this listener */
 	private TTTServer server;
+
+	/** The list of connected players */
 	private HashMap<Integer, Player> playerList;
 
 	/** the same game as in server */
@@ -43,7 +46,6 @@ public class ServerListener extends Listener {
 
 	@Override
 	public void connected(Connection connection) {
-
 		if (!server.redPlayerConnected) {
 			playerList.put(connection.getID(), game.getRed());
 			server.redPlayerConnected = true;
@@ -58,7 +60,6 @@ public class ServerListener extends Listener {
 			debug("TTTServer", "" + connection.toString()
 					+ " received no playercolor ");
 		}
-
 	}
 
 	@Override
@@ -124,7 +125,7 @@ public class ServerListener extends Listener {
 	}
 
 	/**
-	 * Handle a generic request, such as BoardUpdate or ClearBoard
+	 * Handle a generic request, such as BoardUpdate or ClearBoard i.e.
 	 *
 	 * @param conn
 	 *            The connection that sent us the packet
@@ -133,28 +134,28 @@ public class ServerListener extends Listener {
 	 */
 	private void HandleGenericRequestPacket(Connection conn,
 			GenericRequestPacket grp) {
-		if (grp.request == BoardUpdate) {
+		if (grp.getRequest() == BoardUpdate) {
 			BoardPacket bp = new BoardPacket(game.getBoard());
 			conn.sendTCP(bp);
 
-		} else if (grp.request == ClearBoard) {
+		} else if (grp.getRequest() == ClearBoard) {
 			game.reset();
 			BoardPacket bp = new BoardPacket(game.getBoard());
 			server.broadcast(null, bp);
 			server.broadcast(null, new NotifyTurnPacket(game.getTurn()
 					.getColor()));
 
-		} else if (grp.request == GetColorAndTurn) {
+		} else if (grp.getRequest() == GetColorAndTurn) {
 			conn.sendTCP(new SetColorPacket(playerList.get(conn.getID())
 					.getColor()));
 			conn.sendTCP(new NotifyTurnPacket(game.getTurn().getColor()));
 
-		} else if (grp.request == GetTurn) {
+		} else if (grp.getRequest() == GetTurn) {
 			conn.sendTCP(new NotifyTurnPacket(game.getTurn().getColor()));
 
 		} else {
 			error("TTTServer", "GenericRequestPacket of unknown type: "
-					+ grp.request);
+					+ grp.getRequest());
 		}
 	}
 }

@@ -20,7 +20,13 @@ public abstract class TTTGameState extends BasicGameState {
 	}
 
 	/**
-	 * @see #init(GameContainer, StateBasedGame)
+	 * Initialize the state. It should load any resources it needs at this stage
+	 *
+	 * @param container
+	 *            The container holding the game
+	 * @param game
+	 *            The Tictactoe game holding this state
+	 * @see BasicGameState#init(GameContainer, StateBasedGame)
 	 */
 	public abstract void init(GameContainer container, Tictactoe game)
 			throws SlickException;
@@ -35,25 +41,18 @@ public abstract class TTTGameState extends BasicGameState {
 	}
 
 	/**
+	 * Render this state to the game's graphics context
+	 *
+	 * @param container
+	 *            The container holding the game
+	 * @param game
+	 *            The Tictactoe game holding this state
+	 * @param g
+	 *            The graphics context to render to
 	 * @see BasicGameState#render(GameContainer, StateBasedGame, Graphics)
 	 */
 	public abstract void render(GameContainer container, Tictactoe game,
 			Graphics g) throws SlickException;
-
-	/**
-	 * Calculate the left X position for centering something within borders
-	 *
-	 * @param x1
-	 *            The left position of the border
-	 * @param x2
-	 *            The right position of the border
-	 * @param width
-	 *            The width of the object being centered
-	 * @return The left position
-	 */
-	public int center(float x1, float x2, float width) {
-		return (int)(x1 + (x2 - x1) / 2 - width / 2);
-	}
 
 	/**
 	 * @see BasicGameState#update(GameContainer, StateBasedGame, int)
@@ -66,6 +65,15 @@ public abstract class TTTGameState extends BasicGameState {
 	}
 
 	/**
+	 * Update the state's logic based on the amount of time thats passed
+	 *
+	 * @param container
+	 *            The container holding the game
+	 * @param game
+	 *            The Tictactoe game holding this state
+	 * @param delta
+	 *            The amount of time thats passed in millisecond since last
+	 *            update
 	 * @see BasicGameState#update(GameContainer, StateBasedGame, int)
 	 */
 	public abstract void update(GameContainer container, Tictactoe game,
@@ -94,6 +102,21 @@ public abstract class TTTGameState extends BasicGameState {
 	 */
 	public void enter(GameContainer container, Tictactoe game)
 			throws SlickException {
+	}
+
+	/**
+	 * Calculate the left X position for centering something within borders
+	 *
+	 * @param x1
+	 *            The left position of the border
+	 * @param x2
+	 *            The right position of the border
+	 * @param width
+	 *            The width of the object being centered
+	 * @return The left position
+	 */
+	public int center(float x1, float x2, float width) {
+		return (int) (x1 + (x2 - x1) / 2 - width / 2);
 	}
 
 }

@@ -12,20 +12,32 @@ import static com.esotericsoftware.minlog.Log.*;
  */
 public class Board {
 
-	private HashMap2D<Integer, Integer, Piece> board;
-
+	/** The value representing no player */
 	public static final int NOPLAYER = 0;
+
+	/** THe value representing a red player */
 	public static final int REDPLAYER = 1;
+
+	/** The value representing a blue player */
 	public static final int BLUEPLAYER = 2;
 
+	/** The structure containing the board data */
+	private HashMap2D<Integer, Integer, Piece> board;
+
+	/** The utmost left x position on the board of a piece */
 	private int leftBorder;
+
+	/** The utmost top y position on the board of a piece */
 	private int topBorder;
+
+	/** The utmost right x position on the board of a piece */
 	private int rightBorder;
+
+	/** The utmost bottom y position on the board of a piece */
 	private int bottomBorder;
 
-	private boolean leftBorderSet;
-	private boolean topBorderSet;
-
+	/** Indicates whether a piece is placed at all and the borders has been set */
+	private boolean borderSet;
 
 	/**
 	 * Construct a new tic tac toe board
@@ -40,8 +52,7 @@ public class Board {
 	public void reset() {
 		board = new HashMap2D<Integer, Integer, Piece>();
 		leftBorder = topBorder = rightBorder = bottomBorder = 0;
-		leftBorderSet = false;
-		topBorderSet = false;
+		borderSet = false;
 	}
 
 	/**
@@ -56,8 +67,7 @@ public class Board {
 		topBorder = board.topBorder;
 		rightBorder = board.rightBorder;
 		bottomBorder = board.bottomBorder;
-		leftBorderSet = board.leftBorderSet;
-		topBorderSet = board.topBorderSet;
+		borderSet = board.borderSet;
 	}
 
 	/**
@@ -114,13 +124,10 @@ public class Board {
 	 *            The player color for the piece
 	 */
 	private void setPiece(int x, int y, int player) {
-		if (!leftBorderSet) {
+		if (!borderSet) {
 			leftBorder = rightBorder = x;
-			leftBorderSet = true;
-		}
-		if (!topBorderSet) {
 			topBorder = bottomBorder = y;
-			topBorderSet = true;
+			borderSet = true;
 		}
 		if (x < leftBorder) {
 			// update left border and width
@@ -140,18 +147,43 @@ public class Board {
 		board.put(x, y, new Piece(x, y, player));
 	}
 
+	/**
+	 * Get the left border of the board
+	 *
+	 * @return The left border of the board
+	 */
 	public int getLeftBorder() {
 		return leftBorder;
 	}
+
+	/**
+	 * Get the top border of the board
+	 *
+	 * @return The top border of the board
+	 */
 	public int getTopBorder() {
 		return topBorder;
 	}
+
+	/**
+	 * Get the current width of the board
+	 *
+	 * @return The current width of the board
+	 */
 	public int getWidth() {
-		if (board.isEmpty()) return 0;
+		if (!borderSet)
+			return 0;
 		return rightBorder - leftBorder + 1;
 	}
+
+	/**
+	 * Get the current height of the board
+	 *
+	 * @return The current height of the board
+	 */
 	public int getHeight() {
-		if (board.isEmpty()) return 0;
+		if (!borderSet)
+			return 0;
 		return bottomBorder - topBorder + 1;
 	}
 

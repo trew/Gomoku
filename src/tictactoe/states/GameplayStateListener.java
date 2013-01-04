@@ -7,7 +7,7 @@ import tictactoe.net.*;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
-import static tictactoe.net.GenericRequestPacket.Request.*;
+import static tictactoe.net.Request.*;
 import static com.esotericsoftware.minlog.Log.*;
 
 /**
@@ -19,8 +19,15 @@ import static com.esotericsoftware.minlog.Log.*;
  */
 public class GameplayStateListener extends Listener {
 
-	GameplayState state;
+	/** The state holding this listener */
+	private GameplayState state;
 
+	/**
+	 * Create a new listener
+	 *
+	 * @param state
+	 *            The state holding this listener
+	 */
 	public GameplayStateListener(GameplayState state) {
 		this.state = state;
 	}
@@ -45,21 +52,21 @@ public class GameplayStateListener extends Listener {
 		} else if (object instanceof BoardPacket) {
 			// let's update our board with the board of the server
 			BoardPacket bp = (BoardPacket) object;
-			state.game.updateBoard(bp.asBoard());
+			state.game.updateBoard(bp.toBoard());
 			info("GameplayStateListener", "Board updated");
 
 		} else if (object instanceof SetColorPacket) {
 			// set our color as requested by server
 			SetColorPacket scp = (SetColorPacket) object;
-			if (scp.color == Board.REDPLAYER)
+			if (scp.getColor() == Board.REDPLAYER)
 				state.me = state.game.getRed();
-			else if (scp.color == Board.BLUEPLAYER)
+			else if (scp.getColor() == Board.BLUEPLAYER)
 				state.me = state.game.getBlue();
 			info("GameplayStateListener", "Color set to " + state.me.getName());
 
 		} else if (object instanceof NotifyTurnPacket) {
 			NotifyTurnPacket ntp = (NotifyTurnPacket) object;
-			state.game.setTurn(state.game.getPlayer(ntp.color));
+			state.game.setTurn(state.game.getPlayer(ntp.getColor()));
 			info("GameplayStateListener", "Notified about turn: "
 					+ state.game.getTurn().getName());
 		}

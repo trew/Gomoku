@@ -2,7 +2,6 @@ package tictactoe.states;
 
 import java.io.IOException;
 
-
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
@@ -15,9 +14,18 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
+/**
+ * The connecting state of the game. This state's responsibility is to fetch
+ * which server the player wants to connect to and connect to that server.
+ *
+ * @author Samuel Andersson
+ */
 public class ConnectState extends TTTGameState {
 
+	/** Which state we're in */
 	private int connectingState;
+
+	/** The message to be displayed showing the connection state */
 	private String connectMessage;
 
 	@Override
@@ -36,7 +44,8 @@ public class ConnectState extends TTTGameState {
 	public void update(GameContainer container, final Tictactoe game, int delta)
 			throws SlickException {
 
-		if (connectingState == 0 && container.getInput().isKeyPressed(Input.KEY_SPACE)) {
+		if (connectingState == 0
+				&& container.getInput().isKeyPressed(Input.KEY_SPACE)) {
 			connectingState = 1;
 			connectMessage = "Connecting...";
 		} else if (connectingState == 1) {

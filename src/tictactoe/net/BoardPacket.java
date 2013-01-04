@@ -3,12 +3,29 @@ package tictactoe.net;
 import tictactoe.logic.Board;
 import tictactoe.logic.Piece;
 
+/**
+ * A packet containing a board data. More specifically it is a 2D array of
+ * {@link Piece} objects. That way piece positions is preserved because they can
+ * often be negative X or negative Y, which is not possible on a normal 2D
+ * array.
+ *
+ * @author Samuel Andersson
+ */
 public class BoardPacket {
-	public Piece[][] board;
 
+	/** The board data */
+	private Piece[][] board;
+
+	/** Empty constructor for Kryonet */
 	public BoardPacket() {
 	}
 
+	/**
+	 * Create a new board packet from a {@link Board}
+	 *
+	 * @param board
+	 *            The board to get data from
+	 */
 	public BoardPacket(Board board) {
 		int width = board.getWidth();
 		int height = board.getHeight();
@@ -25,7 +42,12 @@ public class BoardPacket {
 		}
 	}
 
-	public Board asBoard() {
+	/**
+	 * Create a {@link Board} from the data in this packet
+	 *
+	 * @return A board from the data in this packet
+	 */
+	public Board toBoard() {
 		Board newBoard = new Board();
 		for (int row = 0; row < board.length; row++) {
 			for (int col = 0; col < board[row].length; col++) {
