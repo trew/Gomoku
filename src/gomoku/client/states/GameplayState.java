@@ -3,6 +3,7 @@ package gomoku.client.states;
 import static gomoku.net.Request.*;
 import gomoku.client.BoardComponent;
 import gomoku.client.GomokuClient;
+import gomoku.logic.Board;
 import gomoku.logic.Player;
 import gomoku.logic.GomokuGame;
 import gomoku.net.*;
@@ -12,6 +13,7 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
+import static com.esotericsoftware.minlog.Log.*;
 
 /**
  * The playing state of the Gomoku game.
@@ -32,16 +34,50 @@ public class GameplayState extends GomokuGameState {
 	/** The Network listener for this state */
 	private GameplayStateListener listener;
 
+	private boolean loading;
+
+	public boolean initialLoading() {
+		return loading;
+	}
+
+	public void setInitialData(Board board, int playerColor, int turn) {
+		// create a new game
+		if (board == null) {
+			error("GameplayState", "Received no information about the board.");
+			return;
+		}
+		game = new GomokuGame(board);
+		game.setTurn(game.getPlayer(turn));
+		setPlayer(playerColor);
+
+		boardComponent.setBoard(board);
+
+		loading = false;
+	}
+
+	public void setPlayer(int playerColor) {
+		if (playerColor == Board.REDPLAYER)
+			me = game.getRed();
+		else if (playerColor == Board.BLUEPLAYER)
+			me = game.getBlue();
+		else {
+			error("GameplayState", "Color couldn't bet set!");
+			return;
+		}
+		info("GameplayState", "Color set to " + me.getName());
+
+	}
+
 	@Override
 	public void init(GameContainer container, final GomokuClient game)
 			throws SlickException {
 
-		// create a new game
-		this.game = new GomokuGame();
+		loading = true; // will be set to false once we receive data from the
+						// server
 
 		// add the board
-		boardComponent = new BoardComponent(container, this.game.getBoard(),
-				100, 50, 400, 400, 0, 0, 15, 15, 4) {
+		boardComponent = new BoardComponent(container, null, 100, 50, 25, 10,
+				10) {
 			@Override
 			public void squareClicked(int x, int y) {
 				if (me == null || !myTurn())
@@ -58,10 +94,7 @@ public class GameplayState extends GomokuGameState {
 	@Override
 	public void enter(GameContainer container, GomokuClient game)
 			throws SlickException {
-		game.client.sendTCP(new GenericRequestPacket(BoardUpdate));
-
-		// turn is received here
-		game.client.sendTCP(new GenericRequestPacket(GetColorAndTurn));
+		game.client.sendTCP(new GenericRequestPacket(InitialData));
 	}
 
 	/**
@@ -88,6 +121,10 @@ public class GameplayState extends GomokuGameState {
 	 */
 	public boolean myTurn() {
 		return me == game.getTurn();
+	}
+
+	public void setBoardSize(int width, int height) {
+		boardComponent.setDisplaySize(width, height, 25);
 	}
 
 	@Override
@@ -121,7 +158,11 @@ public class GameplayState extends GomokuGameState {
 	public void render(GameContainer container, GomokuClient game, Graphics g)
 			throws SlickException {
 		// draw the board
-		boardComponent.render(container, g);
+		if (loading) {
+			g.drawString("Loading...", 200, 200);
+		} else {
+			boardComponent.render(container, g);
+		}
 	}
 
 	@Override

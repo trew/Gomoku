@@ -1,6 +1,6 @@
 package gomoku.net;
 
-import gomoku.logic.Piece;
+import gomoku.logic.Board;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
@@ -24,12 +24,12 @@ public abstract class RegisterPackets {
 	 */
 	public static void register(Kryo kryo) {
 		kryo.register(PlacePiecePacket.class);
-		kryo.register(Piece.class);
-		kryo.register(Piece[].class);
-		kryo.register(Piece[][].class);
+		kryo.register(Board.class);
+		kryo.register(int[].class);
 		kryo.register(BoardPacket.class);
 		kryo.register(GenericRequestPacket.class);
 		kryo.register(SetColorPacket.class);
 		kryo.register(NotifyTurnPacket.class);
+		kryo.register(InitialDataPacket.class);
 	}
 }

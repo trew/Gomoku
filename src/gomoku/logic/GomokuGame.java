@@ -26,8 +26,21 @@ public class GomokuGame {
 	/**
 	 * Create a new game
 	 */
-	public GomokuGame() {
-		board = new Board();
+	public GomokuGame(int width, int height) {
+		board = new Board(width, height);
+		red = new Player("Red", Board.REDPLAYER);
+		blue = new Player("Blue", Board.BLUEPLAYER);
+		turn = red;
+	}
+
+	/**
+	 * Create a new game from a board
+	 *
+	 * @param board
+	 *            The board
+	 */
+	public GomokuGame(Board board) {
+		this.board = board;
 		red = new Player("Red", Board.REDPLAYER);
 		blue = new Player("Blue", Board.BLUEPLAYER);
 		turn = red;
@@ -73,13 +86,10 @@ public class GomokuGame {
 	 * @return The player owning the piece on x, y
 	 */
 	public Player getPieceOwner(int x, int y) {
-		Piece piece = board.getPiece(x, y);
-		if (piece == null)
-			return null;
-		int clr = piece.getPlayerColor();
-		if (clr == Board.REDPLAYER)
+		int piece = board.getPiece(x, y);
+		if (piece == Board.REDPLAYER)
 			return red;
-		if (clr == Board.BLUEPLAYER)
+		if (piece == Board.BLUEPLAYER)
 			return blue;
 		return null;
 	}
@@ -105,6 +115,20 @@ public class GomokuGame {
 			return;
 		debug("GomokuGame", "Turn set to " + turn.getName());
 		turn = player;
+	}
+
+	/**
+	 * Set turn to player with provided color
+	 *
+	 * @param playerColor
+	 *            the provided player color
+	 */
+	public void setTurn(int playerColor) {
+		if (playerColor == Board.REDPLAYER) {
+			turn = red;
+		} else if (playerColor == Board.BLUEPLAYER) {
+			turn = blue;
+		}
 	}
 
 	/**

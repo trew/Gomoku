@@ -74,7 +74,7 @@ public class GomokuServer {
 	 */
 	public GomokuServer() {
 		server = new Server();
-		game = new GomokuGame();
+		game = new GomokuGame(15, 15);
 		listener = new ServerListener(this);
 		frame = null;
 		redPlayerConnected = false;
@@ -157,7 +157,7 @@ public class GomokuServer {
 	public static void parseArgs(String[] args) {
 		JSAP jsap = new JSAP();
 		FlaggedOption swingOpt = new FlaggedOption("swing")
-				.setStringParser(JSAP.BOOLEAN_PARSER).setDefault("true")
+				.setStringParser(JSAP.BOOLEAN_PARSER).setDefault("false")
 				.setLongFlag("swing");
 		FlaggedOption portOpt = new FlaggedOption("port")
 				.setStringParser(JSAP.INTEGER_PARSER).setDefault("9123")

@@ -1,6 +1,5 @@
 package gomoku.client.states;
 
-import gomoku.logic.Board;
 import gomoku.logic.Player;
 import gomoku.net.*;
 
@@ -52,23 +51,24 @@ public class GameplayStateListener extends Listener {
 		} else if (object instanceof BoardPacket) {
 			// let's update our board with the board of the server
 			BoardPacket bp = (BoardPacket) object;
-			state.game.updateBoard(bp.toBoard());
+			state.game.updateBoard(bp.getBoard());
 			info("GameplayStateListener", "Board updated");
 
 		} else if (object instanceof SetColorPacket) {
 			// set our color as requested by server
 			SetColorPacket scp = (SetColorPacket) object;
-			if (scp.getColor() == Board.REDPLAYER)
-				state.me = state.game.getRed();
-			else if (scp.getColor() == Board.BLUEPLAYER)
-				state.me = state.game.getBlue();
-			info("GameplayStateListener", "Color set to " + state.me.getName());
+			state.setPlayer(scp.getColor());
 
 		} else if (object instanceof NotifyTurnPacket) {
 			NotifyTurnPacket ntp = (NotifyTurnPacket) object;
 			state.game.setTurn(state.game.getPlayer(ntp.getColor()));
 			info("GameplayStateListener", "Notified about turn: "
 					+ state.game.getTurn().getName());
+
+		} else if (object instanceof InitialDataPacket) {
+			InitialDataPacket idp = (InitialDataPacket) object;
+			state.setInitialData(idp.getBoard(), idp.getColor(), idp.getTurn());
+			info("GameplayStateListener", "Received initial data from server.");
 		}
 	}
 }

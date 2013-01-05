@@ -7,7 +7,6 @@ import gomoku.net.*;
 
 import java.util.HashMap;
 
-
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
@@ -70,7 +69,8 @@ public class ServerListener extends Listener {
 		else if (playerList.get(connection.getID()) == game.getBlue())
 			server.bluePlayerConnected = false;
 		playerList.remove(connection.getID());
-		debug("GomokuServer", "Removed " + connection.getID() + " from playerlist");
+		debug("GomokuServer", "Removed " + connection.getID()
+				+ " from playerlist");
 	}
 
 	/**
@@ -135,7 +135,15 @@ public class ServerListener extends Listener {
 	 */
 	private void HandleGenericRequestPacket(Connection conn,
 			GenericRequestPacket grp) {
-		if (grp.getRequest() == BoardUpdate) {
+
+		if (grp.getRequest() == InitialData) {
+			InitialDataPacket idp = new InitialDataPacket(
+					game.getBoard(),
+					playerList.get(conn.getID()).getColor(),
+					game.getTurn().getColor());
+			conn.sendTCP(idp);
+
+		} else if (grp.getRequest() == BoardUpdate) {
 			BoardPacket bp = new BoardPacket(game.getBoard());
 			conn.sendTCP(bp);
 

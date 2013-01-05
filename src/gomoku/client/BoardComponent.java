@@ -1,7 +1,6 @@
 package gomoku.client;
 
 import gomoku.logic.Board;
-import gomoku.logic.Piece;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
@@ -12,12 +11,11 @@ import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
 
-
 import static com.esotericsoftware.minlog.Log.*;
 
 /**
- * A component displaying a Gomoku board. The board component handles input
- * and rendering while {@link Board} handles the logic.
+ * A component displaying a Gomoku board. The board component handles input and
+ * rendering while {@link Board} handles the logic.
  *
  * @author Samuel Andersson
  */
@@ -30,14 +28,16 @@ public class BoardComponent extends AbstractComponent {
 	protected int y;
 
 	/**
-	 * The width of this component in pixels (this is currently adjusted to fit
-	 * perfectly with the amount of squares that can fit)
+	 * The width of this component in pixels. This is currently calculated by
+	 * multiplying the provided square-width with the amount of squares to
+	 * display on the width.
 	 */
 	protected int width;
 
 	/**
-	 * The height of this component in pixels (this is currently adjusted to fit
-	 * perfectly with the amount of squares that can fit)
+	 * The height of this component in pixels. This is currently calculated by
+	 * multiplying the provided square-height with the amount of squares to
+	 * display on the height.
 	 */
 	protected int height;
 
@@ -52,12 +52,6 @@ public class BoardComponent extends AbstractComponent {
 
 	/** The amount of squares to display vertically */
 	protected int displayHeight;
-
-	/** Indicates whether the display size of the board is locked */
-	protected boolean sizeLocked;
-
-	/** The margin between pieces and the square edge (in pixels) */
-	protected int pieceMargin;
 
 	/** The board */
 	protected Board board;
@@ -83,14 +77,14 @@ public class BoardComponent extends AbstractComponent {
 	private String posOnBoard;
 
 	/**
-	 * Create a new board component
+	 * Create a new board component with the default width of 5 and height of 5.
 	 *
 	 * @see #BoardComponent(GUIContext, Board, int, int, int, int, int, int,
 	 *      int, int, int)
 	 */
 	public BoardComponent(GUIContext container, Board board, int x, int y,
-			int width, int height, int pieceMargin) {
-		this(container, board, x, y, width, height, -2, -2, 5, 5, pieceMargin);
+			int squareSize) {
+		this(container, board, x, y, squareSize, 5, 5);
 	}
 
 	/**
@@ -120,13 +114,12 @@ public class BoardComponent extends AbstractComponent {
 	 *            The margin between the board piece and the square edge
 	 */
 	public BoardComponent(GUIContext container, Board board, int x, int y,
-			int width, int height, int topBorder, int leftBorder,
-			int displayWidth, int displayHeight, int pieceMargin) {
+			int squareSize, int displayWidth, int displayHeight) {
 		super(container);
 		this.x = x;
 		this.y = y;
-		this.width = width;
-		this.height = height;
+		this.width = squareSize * displayWidth;
+		this.height = squareSize * displayHeight;
 		this.board = board;
 
 		rect = new Rectangle(0, 0, 10, 10);
@@ -144,44 +137,46 @@ public class BoardComponent extends AbstractComponent {
 		yPosOnBoard = 0;
 		posOnBoard = "Pos: ---";
 
-		sizeLocked = false;
-
-		this.leftBorder = leftBorder;
-		this.topBorder = topBorder;
+		this.leftBorder = 0;
+		this.topBorder = 0;
 		this.displayWidth = displayWidth;
 		this.displayHeight = displayHeight;
 
 		this.width -= this.width % displayWidth;
 		this.height -= this.height % displayHeight;
 
-		this.pieceMargin = pieceMargin;
-		setPieceMargin(pieceMargin);
+		rect.setSize(width / displayWidth - 3 * 2, height / displayHeight - 3
+				* 2);
 	}
 
+	/**
+	 * Set the board which this component will represent
+	 *
+	 * @param board
+	 *            the board which this component will represent
+	 */
+	public void setBoard(Board board) {
+		this.board = board;
+	}
+
+	/**
+	 * Used to scroll the board using the arrow keys or VIM keys (HJKL)
+	 */
 	@Override
 	public void keyPressed(int c, char ch) {
-		if (c == Input.KEY_ADD) {
-			leftBorder++;
-			topBorder++;
-			setDisplaySize(displayWidth - 2, displayHeight - 2);
-		} else if (c == Input.KEY_MINUS) {
-			leftBorder--;
-			topBorder--;
-			setDisplaySize(displayWidth + 2, displayHeight + 2);
-		} else if (c == Input.KEY_UP) {
-			topBorder--;
-		} else if (c == Input.KEY_DOWN) {
-			topBorder++;
-		} else if (c == Input.KEY_LEFT) {
-			leftBorder--;
-		} else if (c == Input.KEY_RIGHT) {
-			leftBorder++;
-		} else {
-			if (input.isKeyDown(Input.KEY_LCONTROL)
-					|| input.isKeyDown(Input.KEY_RCONTROL)) {
-				if (c == Input.KEY_F) {
-					setDisplaySize(-1, -1);
-				}
+		if (board != null) {
+			if (c == Input.KEY_UP || c == Input.KEY_K) {
+				if (--topBorder < 0)
+					topBorder = 0;
+			} else if (c == Input.KEY_DOWN || c == Input.KEY_J) {
+				if (topBorder + displayHeight + 1 <= board.getHeight())
+					topBorder++;
+			} else if (c == Input.KEY_LEFT || c == Input.KEY_H) {
+				if (--leftBorder < 0)
+					leftBorder = 0;
+			} else if (c == Input.KEY_RIGHT || c == Input.KEY_L) {
+				if (leftBorder + displayWidth + 1 <= board.getWidth())
+					leftBorder++;
 			}
 		}
 	}
@@ -214,6 +209,48 @@ public class BoardComponent extends AbstractComponent {
 	}
 
 	/**
+	 * Render a border around the whole board. Draw a red border if we're at the
+	 * edge, draw green if the board is scrollable that way
+	 *
+	 * @param g
+	 *            The graphics context to which we'll render this border
+	 */
+	private void renderBorder(Graphics g) {
+		if (board == null) {
+			g.setColor(Color.red);
+			g.drawRect(0, 0, width, height);
+			return;
+		}
+		// left
+		if (leftBorder == 0)
+			g.setColor(Color.red);
+		else
+			g.setColor(Color.green);
+		g.drawLine(0, 0, 0, height);
+
+		// top
+		if (topBorder == 0)
+			g.setColor(Color.red);
+		else
+			g.setColor(Color.green);
+		g.drawLine(0, 0, width, 0);
+
+		// bottom
+		if (topBorder + displayHeight >= board.getHeight())
+			g.setColor(Color.red);
+		else
+			g.setColor(Color.green);
+		g.drawLine(0, height, width, height);
+
+		// right
+		if (leftBorder + displayWidth >= board.getWidth())
+			g.setColor(Color.red);
+		else
+			g.setColor(Color.green);
+		g.drawLine(width, 0, width, height);
+	}
+
+	/**
 	 * @see AbstractComponent#render(GUIContext, Graphics)
 	 */
 	@Override
@@ -221,10 +258,6 @@ public class BoardComponent extends AbstractComponent {
 		Color oldColor = g.getColor();
 		g.pushTransform();
 		g.translate(this.x, this.y);
-
-		// draw border
-		g.setColor(Color.green);
-		g.drawRect(0, 0, width, height);
 
 		g.setColor(Color.cyan);
 		// draw grid lines
@@ -237,20 +270,21 @@ public class BoardComponent extends AbstractComponent {
 			g.drawLine(0, yPos, width, yPos);
 		}
 
-		// draw objects inside the grid lines
-		for (int x = 0; x < displayWidth; x++) {
-			for (int y = 0; y < displayHeight; y++) {
-				Piece piece = board.getPiece(x + leftBorder, y + topBorder);
-				if (piece == null)
-					continue;
-
-				if (piece.getPlayerColor() == Board.REDPLAYER) {
-					drawCircle(x, y, g);
-				} else {
-					drawCross(x, y, g);
+		if (board != null) {
+			// draw objects inside the grid lines
+			for (int x = 0; x < displayWidth; x++) {
+				for (int y = 0; y < displayHeight; y++) {
+					int piece = board.getPiece(x + leftBorder, y + topBorder);
+					if (piece == Board.REDPLAYER) {
+						drawCircle(x, y, g);
+					} else if (piece == Board.BLUEPLAYER) {
+						drawCross(x, y, g);
+					}
 				}
 			}
 		}
+
+		renderBorder(g);
 
 		// print position-on-board information
 		g.popTransform();
@@ -379,26 +413,6 @@ public class BoardComponent extends AbstractComponent {
 	}
 
 	/**
-	 * Set the display width of the board
-	 *
-	 * @param width
-	 *            The display width of the board
-	 */
-	public void setDisplayWidth(int width) {
-		setDisplaySize(width, displayHeight);
-	}
-
-	/**
-	 * Set the display height of the board
-	 *
-	 * @param height
-	 *            The display height of the board
-	 */
-	public void setDisplayHeight(int height) {
-		setDisplaySize(displayWidth, height);
-	}
-
-	/**
 	 * Set the size of the board to display
 	 *
 	 * @param width
@@ -406,66 +420,23 @@ public class BoardComponent extends AbstractComponent {
 	 * @param height
 	 *            The height of the board to display
 	 */
-	public void setDisplaySize(int width, int height) {
-		if (sizeLocked)
+	public void setDisplaySize(int width, int height, int squareSize) {
+		if (squareSize <= 5) {
 			return;
+		}
 		if (width > 0 && height > 0) {
 			displayWidth = width;
 			displayHeight = height;
+		} else if (board != null) {
+			displayWidth = board.getWidth();
+			displayHeight = board.getHeight();
 		} else {
-			// adjust to fit
-			leftBorder = board.getLeftBorder() - 1;
-			topBorder = board.getTopBorder() - 1;
-			displayWidth = board.getWidth() + 2;
-			displayHeight = board.getHeight() + 2;
-			if (displayWidth < 3) {
-				displayWidth = 3;
-			}
-			if (displayHeight < 3) {
-				displayHeight = 3;
-			}
+			// board was null and bad width/height was given, I should really
+			// slap the caller
+			return;
 		}
-		setPieceMargin(pieceMargin);
-	}
-
-	/**
-	 * Get whether the display size is locked
-	 *
-	 * @return True if the display size is locked
-	 */
-	public boolean getSizeLock() {
-		return sizeLocked;
-	}
-
-	/**
-	 * Set whether the display size is locked
-	 *
-	 * @param lock
-	 *            True if the size is to be locked
-	 */
-	public void setSizeLock(boolean lock) {
-		sizeLocked = lock;
-	}
-
-	/**
-	 * Get the margin between pieces and their square edge
-	 *
-	 * @return The margin between pieces and their square edge
-	 */
-	public int getPieceMargin() {
-		return pieceMargin;
-	}
-
-	/**
-	 * Set the margin between pieces and their square edge
-	 *
-	 * @param margin
-	 *            The margin between pieces their square edge
-	 */
-	public void setPieceMargin(int margin) {
-		pieceMargin = margin;
-		rect.setSize(width / displayWidth - margin * 2, height / displayHeight
-				- margin * 2);
+		this.width = squareSize * displayWidth;
+		this.height = squareSize * displayHeight;
 	}
 
 	/**

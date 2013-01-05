@@ -1,9 +1,5 @@
 package gomoku.logic;
 
-import gomoku.util.HashMap2D;
-
-import static com.esotericsoftware.minlog.Log.*;
-
 /**
  * A Board represents a Gomoku board.
  *
@@ -22,27 +18,25 @@ public class Board {
 	public static final int BLUEPLAYER = 2;
 
 	/** The structure containing the board data */
-	private HashMap2D<Integer, Integer, Piece> board;
+	protected int[] board;
 
-	/** The utmost left x position on the board of a piece */
-	private int leftBorder;
+	/** The width of the board */
+	protected int width;
 
-	/** The utmost top y position on the board of a piece */
-	private int topBorder;
+	/** The height of the board */
+	protected int height;
 
-	/** The utmost right x position on the board of a piece */
-	private int rightBorder;
-
-	/** The utmost bottom y position on the board of a piece */
-	private int bottomBorder;
-
-	/** Indicates whether a piece is placed at all and the borders has been set */
-	private boolean borderSet;
+	/** Empty constructor for Kryonet */
+	@SuppressWarnings("unused")
+	private Board() {
+	}
 
 	/**
 	 * Construct a new Gomoku board
 	 */
-	public Board() {
+	public Board(int width, int height) {
+		this.width = width;
+		this.height = height;
 		reset();
 	}
 
@@ -50,9 +44,7 @@ public class Board {
 	 * Reset the board, making it all empty spaces
 	 */
 	public void reset() {
-		board = new HashMap2D<Integer, Integer, Piece>();
-		leftBorder = topBorder = rightBorder = bottomBorder = 0;
-		borderSet = false;
+		board = new int[width * height];
 	}
 
 	/**
@@ -63,11 +55,8 @@ public class Board {
 	 */
 	public void updateBoard(Board board) {
 		this.board = board.board;
-		leftBorder = board.leftBorder;
-		topBorder = board.topBorder;
-		rightBorder = board.rightBorder;
-		bottomBorder = board.bottomBorder;
-		borderSet = board.borderSet;
+		width = board.width;
+		height = board.height;
 	}
 
 	/**
@@ -92,7 +81,7 @@ public class Board {
 	 * @return True if piece was placed
 	 */
 	public boolean placePiece(int player, int x, int y) {
-		if (getPiece(x, y) != null)
+		if (getPiece(x, y) != Board.NOPLAYER)
 			return false;
 
 		setPiece(x, y, player);
@@ -100,7 +89,9 @@ public class Board {
 	}
 
 	/**
-	 * Get the player color for given position on the board
+	 * Returns the player color for given position on the board. If either of
+	 * the arguments is invalid, i.e. "x" being larger than board width, the
+	 * function will return 0.
 	 *
 	 * @param x
 	 *            The x location
@@ -109,8 +100,11 @@ public class Board {
 	 * @return The player color for the given position. 0 = Empty, 1 = Player 1,
 	 *         2 = Player 2.
 	 */
-	public Piece getPiece(int x, int y) {
-		return board.get(x, y);
+	public int getPiece(int x, int y) {
+		if (x < 0 || x > width || y < 0 || y > height) {
+			return 0;
+		}
+		return board[x + width * y];
 	}
 
 	/**
@@ -122,69 +116,49 @@ public class Board {
 	 *            The y location for the piece
 	 * @param player
 	 *            The player color for the piece
+	 * @throws IllegalArgumentException
+	 *             Indicates that the piece was out of bounds or the player
+	 *             color wasn't valid.
 	 */
-	private void setPiece(int x, int y, int player) {
-		if (!borderSet) {
-			leftBorder = rightBorder = x;
-			topBorder = bottomBorder = y;
-			borderSet = true;
+	private void setPiece(int x, int y, int player)
+			throws IllegalArgumentException {
+		if (x < 0 || x > width || y < 0 || y > height) {
+			throw new IllegalArgumentException("Position out of bounds. X: "
+					+ x + ", Y: " + y);
 		}
-		if (x < leftBorder) {
-			// update left border and width
-			leftBorder = x;
-			info("Board", "left border set to " + x);
-		} else if (x > rightBorder) {
-			rightBorder = x;
-			info("Board", "right border set to " + x);
+		if (player != Board.REDPLAYER && player != Board.BLUEPLAYER) {
+			throw new IllegalArgumentException("Unknown value of player: \""
+					+ player + "\".");
 		}
-		if (y < topBorder) {
-			topBorder = y;
-			info("Board", "top border set to " + y);
-		} else if (y > bottomBorder) {
-			bottomBorder = y;
-			info("Board", "bottom border set to " + y);
-		}
-		board.put(x, y, new Piece(x, y, player));
+
+		board[x + width * y] = player;
 	}
 
 	/**
-	 * Get the left border of the board
+	 * Returns the current width of the board
 	 *
-	 * @return The left border of the board
-	 */
-	public int getLeftBorder() {
-		return leftBorder;
-	}
-
-	/**
-	 * Get the top border of the board
-	 *
-	 * @return The top border of the board
-	 */
-	public int getTopBorder() {
-		return topBorder;
-	}
-
-	/**
-	 * Get the current width of the board
-	 *
-	 * @return The current width of the board
+	 * @return the current width of the board
 	 */
 	public int getWidth() {
-		if (!borderSet)
-			return 0;
-		return rightBorder - leftBorder + 1;
+		return width;
 	}
 
 	/**
-	 * Get the current height of the board
+	 * Returns the current height of the board
 	 *
-	 * @return The current height of the board
+	 * @return the current height of the board
 	 */
 	public int getHeight() {
-		if (!borderSet)
-			return 0;
-		return bottomBorder - topBorder + 1;
+		return height;
+	}
+
+	/**
+	 * Returns the integer array containing the data of the board
+	 *
+	 * @return the integer array containing the data of the board
+	 */
+	public int[] getBoard() {
+		return board;
 	}
 
 }
