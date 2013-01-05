@@ -1,7 +1,7 @@
-package tictactoe.logic;
+package gomoku.logic;
 
 /**
- * Represents a player in a tic tac toe game
+ * Represents a player in a Gomoku game
  *
  * @author Samuel Andersson
  */

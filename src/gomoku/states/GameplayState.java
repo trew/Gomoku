@@ -1,27 +1,27 @@
-package tictactoe.states;
+package gomoku.states;
 
-import static tictactoe.net.Request.*;
+import static gomoku.net.Request.*;
+import gomoku.client.BoardComponent;
+import gomoku.client.GomokuClient;
+import gomoku.logic.Player;
+import gomoku.logic.GomokuGame;
+import gomoku.net.*;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
-import tictactoe.client.BoardComponent;
-import tictactoe.client.TTTClient;
-import tictactoe.logic.TictactoeGame;
-import tictactoe.logic.Player;
-import tictactoe.net.*;
 
 /**
- * The playing state of the tic tac toe game.
+ * The playing state of the Gomoku game.
  *
  * @author Samuel Andersson
  */
-public class GameplayState extends TTTGameState {
+public class GameplayState extends GomokuGameState {
 
 	/** Contains the game logic */
-	public TictactoeGame game;
+	public GomokuGame game;
 
 	/** The player */
 	public Player me;
@@ -33,11 +33,11 @@ public class GameplayState extends TTTGameState {
 	private GameplayStateListener listener;
 
 	@Override
-	public void init(GameContainer container, final TTTClient game)
+	public void init(GameContainer container, final GomokuClient game)
 			throws SlickException {
 
 		// create a new game
-		this.game = new TictactoeGame();
+		this.game = new GomokuGame();
 
 		// add the board
 		boardComponent = new BoardComponent(container, this.game.getBoard(),
@@ -56,7 +56,7 @@ public class GameplayState extends TTTGameState {
 	}
 
 	@Override
-	public void enter(GameContainer container, TTTClient game)
+	public void enter(GameContainer container, GomokuClient game)
 			throws SlickException {
 		game.client.sendTCP(new GenericRequestPacket(BoardUpdate));
 
@@ -75,7 +75,7 @@ public class GameplayState extends TTTGameState {
 	 * @param y
 	 *            The y location for the new piece
 	 */
-	public void placePiece(TTTClient game, int x, int y) {
+	public void placePiece(GomokuClient game, int x, int y) {
 		if (this.game.placePiece(x, y, me)) {
 			game.client.sendTCP(new PlacePiecePacket(x, y, me));
 		}
@@ -91,7 +91,7 @@ public class GameplayState extends TTTGameState {
 	}
 
 	@Override
-	public void update(GameContainer container, TTTClient game, int delta)
+	public void update(GameContainer container, GomokuClient game, int delta)
 			throws SlickException {
 
 		if (container.getInput().isKeyPressed(Input.KEY_ESCAPE)) {
@@ -118,7 +118,7 @@ public class GameplayState extends TTTGameState {
 	}
 
 	@Override
-	public void render(GameContainer container, TTTClient game, Graphics g)
+	public void render(GameContainer container, GomokuClient game, Graphics g)
 			throws SlickException {
 		// draw the board
 		boardComponent.render(container, g);

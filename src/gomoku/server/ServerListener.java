@@ -1,17 +1,18 @@
-package tictactoe.server;
+package gomoku.server;
+
+import gomoku.logic.Board;
+import gomoku.logic.Player;
+import gomoku.logic.GomokuGame;
+import gomoku.net.*;
 
 import java.util.HashMap;
 
-import tictactoe.logic.Board;
-import tictactoe.logic.TictactoeGame;
-import tictactoe.logic.Player;
-import tictactoe.net.*;
-import static tictactoe.net.Request.*;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
 import static com.esotericsoftware.minlog.Log.*;
+import static gomoku.net.Request.*;
 
 /**
  * The listener for connections to the server. It contains the server and the
@@ -22,13 +23,13 @@ import static com.esotericsoftware.minlog.Log.*;
 public class ServerListener extends Listener {
 
 	/** The server containing this listener */
-	private TTTServer server;
+	private GomokuServer server;
 
 	/** The list of connected players */
 	private HashMap<Integer, Player> playerList;
 
 	/** the same game as in server */
-	private TictactoeGame game;
+	private GomokuGame game;
 
 	/**
 	 * Create a listener for the server
@@ -38,7 +39,7 @@ public class ServerListener extends Listener {
 	 * @param board
 	 *            The board we'll manipulate
 	 */
-	public ServerListener(TTTServer server) {
+	public ServerListener(GomokuServer server) {
 		this.server = server;
 		game = server.game;
 		playerList = new HashMap<Integer, Player>();
@@ -49,15 +50,15 @@ public class ServerListener extends Listener {
 		if (!server.redPlayerConnected) {
 			playerList.put(connection.getID(), game.getRed());
 			server.redPlayerConnected = true;
-			debug("TTTServer", "" + connection.toString()
+			debug("GomokuServer", "" + connection.toString()
 					+ " received playercolor " + Board.REDPLAYER);
 		} else if (!server.bluePlayerConnected) {
 			playerList.put(connection.getID(), game.getBlue());
 			server.bluePlayerConnected = true;
-			debug("TTTServer", "" + connection.toString()
+			debug("GomokuServer", "" + connection.toString()
 					+ " received playercolor " + Board.BLUEPLAYER);
 		} else {
-			debug("TTTServer", "" + connection.toString()
+			debug("GomokuServer", "" + connection.toString()
 					+ " received no playercolor ");
 		}
 	}
@@ -69,7 +70,7 @@ public class ServerListener extends Listener {
 		else if (playerList.get(connection.getID()) == game.getBlue())
 			server.bluePlayerConnected = false;
 		playerList.remove(connection.getID());
-		debug("TTTServer", "Removed " + connection.getID() + " from playerlist");
+		debug("GomokuServer", "Removed " + connection.getID() + " from playerlist");
 	}
 
 	/**
@@ -113,13 +114,13 @@ public class ServerListener extends Listener {
 		}
 
 		if (game.placePiece(ppp.x, ppp.y, playerList.get(conn.getID()))) {
-			debug("TTTServer", playerList.get(conn.getID()).getName()
+			debug("GomokuServer", playerList.get(conn.getID()).getName()
 					+ " placed a piece on " + ppp.x + ", " + ppp.y);
 			server.broadcast(conn, ppp);
 		} else {
 			// placement was not possible, update the board at client
 			conn.sendTCP(new BoardPacket(game.getBoard()));
-			info("TTTServer", "Couldn't place there! Pos: " + ppp.x + ", "
+			info("GomokuServer", "Couldn't place there! Pos: " + ppp.x + ", "
 					+ ppp.y);
 		}
 	}
@@ -154,7 +155,7 @@ public class ServerListener extends Listener {
 			conn.sendTCP(new NotifyTurnPacket(game.getTurn().getColor()));
 
 		} else {
-			error("TTTServer", "GenericRequestPacket of unknown type: "
+			error("GomokuServer", "GenericRequestPacket of unknown type: "
 					+ grp.getRequest());
 		}
 	}

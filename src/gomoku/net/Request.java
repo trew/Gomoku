@@ -1,4 +1,4 @@
-package tictactoe.net;
+package gomoku.net;
 
 /**
  * Contains possible requests mapped to integers

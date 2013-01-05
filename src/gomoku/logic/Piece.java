@@ -1,7 +1,7 @@
-package tictactoe.logic;
+package gomoku.logic;
 
 /**
- * A Tic tac toe piece on the board
+ * A Gomoku piece on the board
  *
  * @author Samuel Andersson
  *

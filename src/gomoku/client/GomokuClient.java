@@ -1,12 +1,13 @@
-package tictactoe.client;
+package gomoku.client;
+
+import gomoku.states.ConnectState;
+import gomoku.states.GameplayState;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
-import tictactoe.states.ConnectState;
-import tictactoe.states.GameplayState;
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.minlog.Log;
@@ -15,12 +16,12 @@ import com.martiansoftware.jsap.*;
 import static com.esotericsoftware.minlog.Log.*;
 
 /**
- * The main entry class for the Tic-tac-toe client.
+ * The main entry class for the Gomoku client.
  *
  * @author Samuel Andersson
  *
  */
-public class TTTClient extends StateBasedGame {
+public class GomokuClient extends StateBasedGame {
 
 	/* ********** STATIC ********** */
 	/** The width of the screen */
@@ -49,8 +50,8 @@ public class TTTClient extends StateBasedGame {
 	/**
 	 * Create a new game client
 	 */
-	public TTTClient() {
-		super("Tic tac toe");
+	public GomokuClient() {
+		super("Gomoku");
 		client = new Client();
 	}
 
@@ -83,9 +84,9 @@ public class TTTClient extends StateBasedGame {
 
 		JSAPResult result = jsap.parse(args);
 		ADDRESS = result.getString("address");
-		info("Tictactoe", "Using \"" + ADDRESS + "\" as remote address");
+		info("GomokuClient", "Using \"" + ADDRESS + "\" as remote address");
 		PORT = result.getInt("port");
-		info("Tictactoe", "Using \"" + PORT + "\" as port number");
+		info("GomokuClient", "Using \"" + PORT + "\" as port number");
 	}
 
 	/**
@@ -99,7 +100,7 @@ public class TTTClient extends StateBasedGame {
 			parseArgs(args);
 
 			// create the StateBasedGame to be passed to the container
-			TTTClient game = new TTTClient();
+			GomokuClient game = new GomokuClient();
 
 			// create the container
 			AppGameContainer container = new AppGameContainer(game);
@@ -115,11 +116,11 @@ public class TTTClient extends StateBasedGame {
 			game.client.stop();
 
 		} catch (SlickException e) {
-			if (TRACE) trace("Tictactoe", e);
-			else error("Tictactoe", e.getMessage());
+			if (TRACE) trace("GomokuClient", e);
+			else error("GomokuClient", e.getMessage());
 		} catch (JSAPException e) {
-			if (TRACE) trace("Tictactoe", e);
-			else error("Tictactoe", "Error parsing commandline arguments");
+			if (TRACE) trace("GomokuClient", e);
+			else error("GomokuClient", "Error parsing commandline arguments");
 		}
 	}
 }

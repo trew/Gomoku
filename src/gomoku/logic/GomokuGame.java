@@ -1,16 +1,15 @@
-package tictactoe.logic;
+package gomoku.logic;
 
 import static com.esotericsoftware.minlog.Log.*;
 
 /**
- * Contains game logic for a different version of tictactoe The board is
- * infinite, and a player needs 5 in a row to win. The game keeps track of the
- * board, the players and whose turn it is. It will also have methods indicating
- * victory or defeat.
+ * Contains game logic for Gomoku game. The game keeps track of the board, the
+ * players and whose turn it is. It will also have methods indicating victory or
+ * defeat.
  *
  * @author Samuel Andersson
  */
-public class TictactoeGame {
+public class GomokuGame {
 
 	/** The board */
 	private Board board;
@@ -27,7 +26,7 @@ public class TictactoeGame {
 	/**
 	 * Create a new game
 	 */
-	public TictactoeGame() {
+	public GomokuGame() {
 		board = new Board();
 		red = new Player("Red", Board.REDPLAYER);
 		blue = new Player("Blue", Board.BLUEPLAYER);
@@ -57,10 +56,10 @@ public class TictactoeGame {
 				switchTurn();
 				return true;
 			}
-			info("Game", "Couldn't place on " + x + ", " + y);
+			info("GomokuGame", "Couldn't place on " + x + ", " + y);
 			return false;
 		}
-		debug("Game", "Not " + player.getName() + "'s turn!");
+		debug("GomokuGame", "Not " + player.getName() + "'s turn!");
 		return false;
 	}
 
@@ -104,7 +103,7 @@ public class TictactoeGame {
 	public void setTurn(Player player) {
 		if (player != red && player != blue)
 			return;
-		debug("Game", "Turn set to " + turn.getName());
+		debug("GomokuGame", "Turn set to " + turn.getName());
 		turn = player;
 	}
 
@@ -162,7 +161,7 @@ public class TictactoeGame {
 	 *            The board to replace the current one
 	 */
 	public void updateBoard(Board board) {
-		debug("Game", "Updating board");
+		debug("GomokuGame", "Updating board");
 		this.board.updateBoard(board);
 	}
 

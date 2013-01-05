@@ -1,4 +1,7 @@
-package tictactoe.states;
+package gomoku.states;
+
+import gomoku.client.GomokuClient;
+import gomoku.net.*;
 
 import java.io.IOException;
 
@@ -7,8 +10,6 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
-import tictactoe.client.TTTClient;
-import tictactoe.net.*;
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
@@ -20,7 +21,7 @@ import com.esotericsoftware.kryonet.Listener;
  *
  * @author Samuel Andersson
  */
-public class ConnectState extends TTTGameState {
+public class ConnectState extends GomokuGameState {
 
 	/** Which state we're in */
 	private int connectingState;
@@ -29,7 +30,7 @@ public class ConnectState extends TTTGameState {
 	private String connectMessage;
 
 	@Override
-	public void init(GameContainer container, TTTClient game)
+	public void init(GameContainer container, GomokuClient game)
 			throws SlickException {
 
 		game.client = new Client();
@@ -41,7 +42,7 @@ public class ConnectState extends TTTGameState {
 	}
 
 	@Override
-	public void update(GameContainer container, final TTTClient game, int delta)
+	public void update(GameContainer container, final GomokuClient game, int delta)
 			throws SlickException {
 
 		if (connectingState == 0
@@ -60,7 +61,7 @@ public class ConnectState extends TTTGameState {
 				};
 				connectingState = 2;
 				game.client.addListener(listener);
-				game.client.connect(5000, TTTClient.ADDRESS, TTTClient.PORT);
+				game.client.connect(5000, GomokuClient.ADDRESS, GomokuClient.PORT);
 			} catch (IOException e) {
 				connectingState = 4;
 				connectMessage = e.getMessage();
@@ -78,7 +79,7 @@ public class ConnectState extends TTTGameState {
 	}
 
 	@Override
-	public void render(GameContainer container, TTTClient game, Graphics g)
+	public void render(GameContainer container, GomokuClient game, Graphics g)
 			throws SlickException {
 		int w = container.getDefaultFont().getWidth(connectMessage);
 		g.drawString(connectMessage, center(0, container.getWidth(), w), 30);

@@ -1,11 +1,11 @@
-package tictactoe.logic;
+package gomoku.logic;
 
-import tictactoe.util.HashMap2D;
+import gomoku.util.HashMap2D;
 
 import static com.esotericsoftware.minlog.Log.*;
 
 /**
- * A Board represents a tic tac toe board.
+ * A Board represents a Gomoku board.
  *
  * @author Samuel Andersson
  *
@@ -40,7 +40,7 @@ public class Board {
 	private boolean borderSet;
 
 	/**
-	 * Construct a new tic tac toe board
+	 * Construct a new Gomoku board
 	 */
 	public Board() {
 		reset();

@@ -1,6 +1,6 @@
-package tictactoe.net;
+package gomoku.net;
 
-import tictactoe.logic.Board;
+import gomoku.logic.Board;
 
 /**
  * Set the player color

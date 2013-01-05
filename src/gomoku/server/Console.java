@@ -1,4 +1,4 @@
-package tictactoe.server;
+package gomoku.server;
 
 import java.io.IOException;
 import java.io.OutputStream;

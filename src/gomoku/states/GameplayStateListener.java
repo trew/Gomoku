@@ -1,14 +1,14 @@
-package tictactoe.states;
+package gomoku.states;
 
-import tictactoe.logic.Board;
-import tictactoe.logic.Player;
-import tictactoe.net.*;
+import gomoku.logic.Board;
+import gomoku.logic.Player;
+import gomoku.net.*;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
-import static tictactoe.net.Request.*;
 import static com.esotericsoftware.minlog.Log.*;
+import static gomoku.net.Request.*;
 
 /**
  * The listener towards the server for the GamePlayState. This will update the

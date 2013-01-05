@@ -1,6 +1,6 @@
-package tictactoe.net;
+package gomoku.net;
 
-import tictactoe.logic.Player;
+import gomoku.logic.Player;
 
 /**
  * A packet requesting to place a piece on a certain location on the board

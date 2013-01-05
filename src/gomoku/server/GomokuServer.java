@@ -1,4 +1,7 @@
-package tictactoe.server;
+package gomoku.server;
+
+import gomoku.logic.GomokuGame;
+import gomoku.net.*;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -7,9 +10,6 @@ import java.io.PrintStream;
 
 import javax.swing.*;
 
-import tictactoe.logic.TictactoeGame;
-import tictactoe.net.*;
-
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
@@ -17,7 +17,7 @@ import static com.esotericsoftware.minlog.Log.*;
 import com.martiansoftware.jsap.*;
 
 /**
- * Server of the Tic-tac-toe game<br />
+ * Server of the Gomoku game<br />
  * <br />
  * Possible arguments<br />
  * <b>--port</b> <i>PORT</i> - The port number which we'll run the server on<br />
@@ -26,7 +26,7 @@ import com.martiansoftware.jsap.*;
  *
  * @author Samuel Andersson
  */
-public class TTTServer {
+public class GomokuServer {
 
 	/**
 	 * The port which this server is listening on. Can be set by providing
@@ -57,7 +57,7 @@ public class TTTServer {
 	/**
 	 * The game that the server runs
 	 */
-	public TictactoeGame game;
+	public GomokuGame game;
 
 	public boolean redPlayerConnected;
 	public boolean bluePlayerConnected;
@@ -67,14 +67,14 @@ public class TTTServer {
 	 */
 	private JFrame frame;
 
-	private static TTTServer tttserver = null;
+	private static GomokuServer gomokuserver = null;
 
 	/**
 	 * Create a new TTTServer
 	 */
-	public TTTServer() {
+	public GomokuServer() {
 		server = new Server();
-		game = new TictactoeGame();
+		game = new GomokuGame();
 		listener = new ServerListener(this);
 		frame = null;
 		redPlayerConnected = false;
@@ -104,9 +104,9 @@ public class TTTServer {
 			server.bind(PORT);
 		} catch (IOException e) {
 			if (TRACE)
-				trace("TTTServer", e);
+				trace("GomokuServer", e);
 			else
-				error("TTTServer", "Error: " + e.getMessage());
+				error("GomokuServer", "Error: " + e.getMessage());
 		}
 	}
 
@@ -114,7 +114,7 @@ public class TTTServer {
 	 * Stop the server and exit cleanly.
 	 */
 	public void exit() {
-		info("TTTServer", "Exiting server");
+		info("GomokuServer", "Exiting server");
 		server.stop();
 		System.exit(0);
 	}
@@ -125,7 +125,7 @@ public class TTTServer {
 	public void resetGame() {
 		game.reset();
 		broadcast(null, new BoardPacket(game.getBoard()));
-		debug("TTTServer", "Board was reset");
+		debug("GomokuServer", "Board was reset");
 	}
 
 	/**
@@ -139,7 +139,7 @@ public class TTTServer {
 	 *            The object that will be broadcasted
 	 */
 	public void broadcast(Connection sourceConnection, Object object) {
-		debug("TTTServer", "Broadcasting " + object.getClass().getSimpleName());
+		debug("GomokuServer", "Broadcasting " + object.getClass().getSimpleName());
 		if (sourceConnection == null) {
 			server.sendToAllTCP(object);
 		} else {
@@ -171,9 +171,9 @@ public class TTTServer {
 			PORT = config.getInt("port");
 		} catch (JSAPException e) {
 			if (TRACE)
-				trace("TTTServer", e);
+				trace("GomokuServer", e);
 			else
-				error("TTTServer", "Error parsing arguments: " + e.getMessage());
+				error("GomokuServer", "Error parsing arguments: " + e.getMessage());
 			System.exit(-1);
 		}
 	}
@@ -191,14 +191,14 @@ public class TTTServer {
 
 		// override if using windows
 		if (System.getProperty("os.name").startsWith("Windows")) {
-			//SWING = true;
+			// SWING = true;
 		}
 
-		tttserver = new TTTServer();
+		gomokuserver = new GomokuServer();
 		if (SWING) {
-			tttserver.frame = new JFrame();
-			tttserver.frame.setAutoRequestFocus(true);
-			tttserver.frame.add(new JLabel(" Output "), BorderLayout.NORTH);
+			gomokuserver.frame = new JFrame();
+			gomokuserver.frame.setAutoRequestFocus(true);
+			gomokuserver.frame.add(new JLabel(" Output "), BorderLayout.NORTH);
 
 			JTextArea ta = new JTextArea();
 			Console co = new Console(ta);
@@ -206,9 +206,9 @@ public class TTTServer {
 			System.setOut(ps);
 			System.setErr(ps);
 
-			tttserver.frame.add(new JScrollPane(ta));
+			gomokuserver.frame.add(new JScrollPane(ta));
 
-			tttserver.frame.setMinimumSize(new Dimension(350, 300));
+			gomokuserver.frame.setMinimumSize(new Dimension(350, 300));
 
 			TrayIcon icon = null;
 			if (SystemTray.isSupported()) {
@@ -216,21 +216,21 @@ public class TTTServer {
 				Image image = Toolkit
 						.getDefaultToolkit()
 						.getImage(
-								"C:/Users/samuel/Documents/dev/tictactoe_multi/src/res/tray.gif");
+								"C:/Users/samuel/Documents/dev/gomoku/src/res/tray.gif");
 
 				PopupMenu menu = new PopupMenu();
 				MenuItem exitItem = new MenuItem("Exit server");
 				exitItem.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						tttserver.exit();
+						gomokuserver.exit();
 					}
 				});
 				MenuItem resetItem = new MenuItem("Reset board");
 				resetItem.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent e) {
-						tttserver.resetGame();
+						gomokuserver.resetGame();
 					}
 				});
 				menu.add(resetItem);
@@ -239,9 +239,9 @@ public class TTTServer {
 				icon.addActionListener(new ActionListener() {
 					@Override
 					public void actionPerformed(ActionEvent ae) {
-						tttserver.frame.setExtendedState(Frame.NORMAL);
-						tttserver.frame.setVisible(true);
-						tttserver.frame.toFront();
+						gomokuserver.frame.setExtendedState(Frame.NORMAL);
+						gomokuserver.frame.setVisible(true);
+						gomokuserver.frame.toFront();
 					}
 				});
 				try {
@@ -250,24 +250,24 @@ public class TTTServer {
 					e1.printStackTrace();
 				}
 			}
-			tttserver.frame.addWindowListener(new WindowAdapter() {
+			gomokuserver.frame.addWindowListener(new WindowAdapter() {
 				@Override
 				public void windowClosing(WindowEvent e) {
-					tttserver.exit();
+					gomokuserver.exit();
 					System.exit(0);
 				}
 
 				@Override
 				public void windowIconified(WindowEvent e) {
-					tttserver.frame.setVisible(false);
+					gomokuserver.frame.setVisible(false);
 				}
 			});
-			tttserver.frame.pack();
-			tttserver.frame.setVisible(true);
+			gomokuserver.frame.pack();
+			gomokuserver.frame.setVisible(true);
 		}
 
-		tttserver.init();
-		tttserver.start();
+		gomokuserver.init();
+		gomokuserver.start();
 	}
 
 }

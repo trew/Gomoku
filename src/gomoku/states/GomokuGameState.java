@@ -1,4 +1,6 @@
-package tictactoe.states;
+package gomoku.states;
+
+import gomoku.client.GomokuClient;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -6,9 +8,8 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
-import tictactoe.client.TTTClient;
 
-public abstract class TTTGameState extends BasicGameState {
+public abstract class GomokuGameState extends BasicGameState {
 
 	/**
 	 * @see BasicGameState#init(GameContainer, StateBasedGame)
@@ -16,7 +17,7 @@ public abstract class TTTGameState extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		init(container, (TTTClient) game);
+		init(container, (GomokuClient) game);
 	}
 
 	/**
@@ -25,10 +26,10 @@ public abstract class TTTGameState extends BasicGameState {
 	 * @param container
 	 *            The container holding the game
 	 * @param game
-	 *            The Tictactoe game holding this state
+	 *            The Gomoku game holding this state
 	 * @see BasicGameState#init(GameContainer, StateBasedGame)
 	 */
-	public abstract void init(GameContainer container, TTTClient game)
+	public abstract void init(GameContainer container, GomokuClient game)
 			throws SlickException;
 
 	/**
@@ -37,7 +38,7 @@ public abstract class TTTGameState extends BasicGameState {
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
-		render(container, (TTTClient) game, g);
+		render(container, (GomokuClient) game, g);
 	}
 
 	/**
@@ -46,12 +47,12 @@ public abstract class TTTGameState extends BasicGameState {
 	 * @param container
 	 *            The container holding the game
 	 * @param game
-	 *            The Tictactoe game holding this state
+	 *            The Gomoku game holding this state
 	 * @param g
 	 *            The graphics context to render to
 	 * @see BasicGameState#render(GameContainer, StateBasedGame, Graphics)
 	 */
-	public abstract void render(GameContainer container, TTTClient game,
+	public abstract void render(GameContainer container, GomokuClient game,
 			Graphics g) throws SlickException;
 
 	/**
@@ -60,7 +61,7 @@ public abstract class TTTGameState extends BasicGameState {
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		update(container, (TTTClient) game, delta);
+		update(container, (GomokuClient) game, delta);
 
 	}
 
@@ -70,13 +71,13 @@ public abstract class TTTGameState extends BasicGameState {
 	 * @param container
 	 *            The container holding the game
 	 * @param game
-	 *            The Tictactoe game holding this state
+	 *            The Gomoku game holding this state
 	 * @param delta
 	 *            The amount of time thats passed in millisecond since last
 	 *            update
 	 * @see BasicGameState#update(GameContainer, StateBasedGame, int)
 	 */
-	public abstract void update(GameContainer container, TTTClient game,
+	public abstract void update(GameContainer container, GomokuClient game,
 			int delta) throws SlickException;
 
 	/**
@@ -85,7 +86,7 @@ public abstract class TTTGameState extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		enter(container, (TTTClient) game);
+		enter(container, (GomokuClient) game);
 	}
 
 	/**
@@ -94,13 +95,13 @@ public abstract class TTTGameState extends BasicGameState {
 	 * @param container
 	 *            The container holding the game
 	 * @param game
-	 *            The Tictactoe game holding this state
+	 *            The Gomoku game holding this state
 	 * @throws SlickException
 	 *             Indicates an internal error that will be reported through the
 	 *             standard framework mechanism
 	 * @see #enter(GameContainer, StateBasedGame)
 	 */
-	public void enter(GameContainer container, TTTClient game)
+	public void enter(GameContainer container, GomokuClient game)
 			throws SlickException {
 	}
 

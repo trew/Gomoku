@@ -1,4 +1,4 @@
-Tic-tac-toe Multiplayer
+Gomoku Multiplayer
 ====
 
-A multiplayer game of tic-tac-toe over the network.
+A multiplayer game of Gomoku over the network.

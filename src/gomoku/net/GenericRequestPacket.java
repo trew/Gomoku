@@ -1,4 +1,4 @@
-package tictactoe.net;
+package gomoku.net;
 
 /**
  * A small packet containing a specific request, but doesn't require much data,

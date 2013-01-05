@@ -1,6 +1,6 @@
-package tictactoe.net;
+package gomoku.net;
 
-import tictactoe.logic.Piece;
+import gomoku.logic.Piece;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;

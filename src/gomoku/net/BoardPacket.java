@@ -1,7 +1,7 @@
-package tictactoe.net;
+package gomoku.net;
 
-import tictactoe.logic.Board;
-import tictactoe.logic.Piece;
+import gomoku.logic.Board;
+import gomoku.logic.Piece;
 
 /**
  * A packet containing a board data. More specifically it is a 2D array of

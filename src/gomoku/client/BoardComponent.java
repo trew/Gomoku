@@ -1,4 +1,7 @@
-package tictactoe.client;
+package gomoku.client;
+
+import gomoku.logic.Board;
+import gomoku.logic.Piece;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
@@ -9,13 +12,11 @@ import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
 
-import tictactoe.logic.Board;
-import tictactoe.logic.Piece;
 
 import static com.esotericsoftware.minlog.Log.*;
 
 /**
- * A component displaying a tic tac toe board. The board component handles input
+ * A component displaying a Gomoku board. The board component handles input
  * and rendering while {@link Board} handles the logic.
  *
  * @author Samuel Andersson
