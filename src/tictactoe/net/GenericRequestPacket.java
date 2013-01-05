@@ -52,5 +52,6 @@ public class GenericRequestPacket {
 		if (!Request.validRequest(req)) {
 			throw new IllegalArgumentException("Bad request: \"" + req + "\"");
 		}
+		request = req;
 	}
 }

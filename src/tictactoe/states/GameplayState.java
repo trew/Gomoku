@@ -7,9 +7,9 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
-import tictactoe.BoardComponent;
-import tictactoe.Tictactoe;
-import tictactoe.logic.Game;
+import tictactoe.client.BoardComponent;
+import tictactoe.client.TTTClient;
+import tictactoe.logic.TictactoeGame;
 import tictactoe.logic.Player;
 import tictactoe.net.*;
 
@@ -21,7 +21,7 @@ import tictactoe.net.*;
 public class GameplayState extends TTTGameState {
 
 	/** Contains the game logic */
-	public Game game;
+	public TictactoeGame game;
 
 	/** The player */
 	public Player me;
@@ -33,11 +33,11 @@ public class GameplayState extends TTTGameState {
 	private GameplayStateListener listener;
 
 	@Override
-	public void init(GameContainer container, final Tictactoe game)
+	public void init(GameContainer container, final TTTClient game)
 			throws SlickException {
 
 		// create a new game
-		this.game = new Game();
+		this.game = new TictactoeGame();
 
 		// add the board
 		boardComponent = new BoardComponent(container, this.game.getBoard(),
@@ -56,7 +56,7 @@ public class GameplayState extends TTTGameState {
 	}
 
 	@Override
-	public void enter(GameContainer container, Tictactoe game)
+	public void enter(GameContainer container, TTTClient game)
 			throws SlickException {
 		game.client.sendTCP(new GenericRequestPacket(BoardUpdate));
 
@@ -75,7 +75,7 @@ public class GameplayState extends TTTGameState {
 	 * @param y
 	 *            The y location for the new piece
 	 */
-	public void placePiece(Tictactoe game, int x, int y) {
+	public void placePiece(TTTClient game, int x, int y) {
 		if (this.game.placePiece(x, y, me)) {
 			game.client.sendTCP(new PlacePiecePacket(x, y, me));
 		}
@@ -91,7 +91,7 @@ public class GameplayState extends TTTGameState {
 	}
 
 	@Override
-	public void update(GameContainer container, Tictactoe game, int delta)
+	public void update(GameContainer container, TTTClient game, int delta)
 			throws SlickException {
 
 		if (container.getInput().isKeyPressed(Input.KEY_ESCAPE)) {
@@ -118,7 +118,7 @@ public class GameplayState extends TTTGameState {
 	}
 
 	@Override
-	public void render(GameContainer container, Tictactoe game, Graphics g)
+	public void render(GameContainer container, TTTClient game, Graphics g)
 			throws SlickException {
 		// draw the board
 		boardComponent.render(container, g);

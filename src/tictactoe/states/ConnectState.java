@@ -7,7 +7,7 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
-import tictactoe.Tictactoe;
+import tictactoe.client.TTTClient;
 import tictactoe.net.*;
 
 import com.esotericsoftware.kryonet.Client;
@@ -29,7 +29,7 @@ public class ConnectState extends TTTGameState {
 	private String connectMessage;
 
 	@Override
-	public void init(GameContainer container, Tictactoe game)
+	public void init(GameContainer container, TTTClient game)
 			throws SlickException {
 
 		game.client = new Client();
@@ -41,7 +41,7 @@ public class ConnectState extends TTTGameState {
 	}
 
 	@Override
-	public void update(GameContainer container, final Tictactoe game, int delta)
+	public void update(GameContainer container, final TTTClient game, int delta)
 			throws SlickException {
 
 		if (connectingState == 0
@@ -60,7 +60,7 @@ public class ConnectState extends TTTGameState {
 				};
 				connectingState = 2;
 				game.client.addListener(listener);
-				game.client.connect(5000, Tictactoe.ADDRESS, Tictactoe.PORT);
+				game.client.connect(5000, TTTClient.ADDRESS, TTTClient.PORT);
 			} catch (IOException e) {
 				connectingState = 4;
 				connectMessage = e.getMessage();
@@ -78,7 +78,7 @@ public class ConnectState extends TTTGameState {
 	}
 
 	@Override
-	public void render(GameContainer container, Tictactoe game, Graphics g)
+	public void render(GameContainer container, TTTClient game, Graphics g)
 			throws SlickException {
 		int w = container.getDefaultFont().getWidth(connectMessage);
 		g.drawString(connectMessage, center(0, container.getWidth(), w), 30);

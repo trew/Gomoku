@@ -6,7 +6,7 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
-import tictactoe.Tictactoe;
+import tictactoe.client.TTTClient;
 
 public abstract class TTTGameState extends BasicGameState {
 
@@ -16,7 +16,7 @@ public abstract class TTTGameState extends BasicGameState {
 	@Override
 	public void init(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		init(container, (Tictactoe) game);
+		init(container, (TTTClient) game);
 	}
 
 	/**
@@ -28,7 +28,7 @@ public abstract class TTTGameState extends BasicGameState {
 	 *            The Tictactoe game holding this state
 	 * @see BasicGameState#init(GameContainer, StateBasedGame)
 	 */
-	public abstract void init(GameContainer container, Tictactoe game)
+	public abstract void init(GameContainer container, TTTClient game)
 			throws SlickException;
 
 	/**
@@ -37,7 +37,7 @@ public abstract class TTTGameState extends BasicGameState {
 	@Override
 	public void render(GameContainer container, StateBasedGame game, Graphics g)
 			throws SlickException {
-		render(container, (Tictactoe) game, g);
+		render(container, (TTTClient) game, g);
 	}
 
 	/**
@@ -51,7 +51,7 @@ public abstract class TTTGameState extends BasicGameState {
 	 *            The graphics context to render to
 	 * @see BasicGameState#render(GameContainer, StateBasedGame, Graphics)
 	 */
-	public abstract void render(GameContainer container, Tictactoe game,
+	public abstract void render(GameContainer container, TTTClient game,
 			Graphics g) throws SlickException;
 
 	/**
@@ -60,7 +60,7 @@ public abstract class TTTGameState extends BasicGameState {
 	@Override
 	public void update(GameContainer container, StateBasedGame game, int delta)
 			throws SlickException {
-		update(container, (Tictactoe) game, delta);
+		update(container, (TTTClient) game, delta);
 
 	}
 
@@ -76,7 +76,7 @@ public abstract class TTTGameState extends BasicGameState {
 	 *            update
 	 * @see BasicGameState#update(GameContainer, StateBasedGame, int)
 	 */
-	public abstract void update(GameContainer container, Tictactoe game,
+	public abstract void update(GameContainer container, TTTClient game,
 			int delta) throws SlickException;
 
 	/**
@@ -85,7 +85,7 @@ public abstract class TTTGameState extends BasicGameState {
 	@Override
 	public void enter(GameContainer container, StateBasedGame game)
 			throws SlickException {
-		enter(container, (Tictactoe) game);
+		enter(container, (TTTClient) game);
 	}
 
 	/**
@@ -100,7 +100,7 @@ public abstract class TTTGameState extends BasicGameState {
 	 *             standard framework mechanism
 	 * @see #enter(GameContainer, StateBasedGame)
 	 */
-	public void enter(GameContainer container, Tictactoe game)
+	public void enter(GameContainer container, TTTClient game)
 			throws SlickException {
 	}
 

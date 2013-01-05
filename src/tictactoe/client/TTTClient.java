@@ -1,4 +1,4 @@
-package tictactoe;
+package tictactoe.client;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;
@@ -20,7 +20,7 @@ import static com.esotericsoftware.minlog.Log.*;
  * @author Samuel Andersson
  *
  */
-public class Tictactoe extends StateBasedGame {
+public class TTTClient extends StateBasedGame {
 
 	/* ********** STATIC ********** */
 	/** The width of the screen */
@@ -49,7 +49,7 @@ public class Tictactoe extends StateBasedGame {
 	/**
 	 * Create a new game client
 	 */
-	public Tictactoe() {
+	public TTTClient() {
 		super("Tic tac toe");
 		client = new Client();
 	}
@@ -99,7 +99,7 @@ public class Tictactoe extends StateBasedGame {
 			parseArgs(args);
 
 			// create the StateBasedGame to be passed to the container
-			Tictactoe game = new Tictactoe();
+			TTTClient game = new TTTClient();
 
 			// create the container
 			AppGameContainer container = new AppGameContainer(game);

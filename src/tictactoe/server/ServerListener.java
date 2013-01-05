@@ -3,7 +3,7 @@ package tictactoe.server;
 import java.util.HashMap;
 
 import tictactoe.logic.Board;
-import tictactoe.logic.Game;
+import tictactoe.logic.TictactoeGame;
 import tictactoe.logic.Player;
 import tictactoe.net.*;
 import static tictactoe.net.Request.*;
@@ -28,7 +28,7 @@ public class ServerListener extends Listener {
 	private HashMap<Integer, Player> playerList;
 
 	/** the same game as in server */
-	private Game game;
+	private TictactoeGame game;
 
 	/**
 	 * Create a listener for the server

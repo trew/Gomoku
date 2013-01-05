@@ -7,7 +7,7 @@ import java.io.PrintStream;
 
 import javax.swing.*;
 
-import tictactoe.logic.Game;
+import tictactoe.logic.TictactoeGame;
 import tictactoe.net.*;
 
 import com.esotericsoftware.kryonet.Connection;
@@ -57,7 +57,7 @@ public class TTTServer {
 	/**
 	 * The game that the server runs
 	 */
-	public Game game;
+	public TictactoeGame game;
 
 	public boolean redPlayerConnected;
 	public boolean bluePlayerConnected;
@@ -74,7 +74,7 @@ public class TTTServer {
 	 */
 	public TTTServer() {
 		server = new Server();
-		game = new Game();
+		game = new TictactoeGame();
 		listener = new ServerListener(this);
 		frame = null;
 		redPlayerConnected = false;

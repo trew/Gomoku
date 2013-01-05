@@ -1,4 +1,4 @@
-package tictactoe;
+package tictactoe.client;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;

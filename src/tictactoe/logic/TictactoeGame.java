@@ -10,7 +10,7 @@ import static com.esotericsoftware.minlog.Log.*;
  *
  * @author Samuel Andersson
  */
-public class Game {
+public class TictactoeGame {
 
 	/** The board */
 	private Board board;
@@ -27,7 +27,7 @@ public class Game {
 	/**
 	 * Create a new game
 	 */
-	public Game() {
+	public TictactoeGame() {
 		board = new Board();
 		red = new Player("Red", Board.REDPLAYER);
 		blue = new Player("Blue", Board.BLUEPLAYER);
