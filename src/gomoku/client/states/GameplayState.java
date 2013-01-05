@@ -1,4 +1,4 @@
-package gomoku.states;
+package gomoku.client.states;
 
 import static gomoku.net.Request.*;
 import gomoku.client.BoardComponent;

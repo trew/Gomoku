@@ -1,7 +1,7 @@
 package gomoku.client;
 
-import gomoku.states.ConnectState;
-import gomoku.states.GameplayState;
+import gomoku.client.states.ConnectState;
+import gomoku.client.states.GameplayState;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;

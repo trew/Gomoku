@@ -1,4 +1,4 @@
-package gomoku.states;
+package gomoku.client.states;
 
 import gomoku.client.GomokuClient;
 import gomoku.net.*;
