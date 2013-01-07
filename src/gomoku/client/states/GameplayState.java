@@ -1,6 +1,7 @@
 package gomoku.client.states;
 
 import static gomoku.net.Request.*;
+
 import gomoku.client.BoardComponent;
 import gomoku.client.GomokuClient;
 import gomoku.logic.Board;
@@ -23,7 +24,7 @@ import static com.esotericsoftware.minlog.Log.*;
 public class GameplayState extends GomokuGameState {
 
 	/** Contains the game logic */
-	public GomokuGame game;
+	public GomokuGame gomokuGame;
 
 	/** The player */
 	public Player me;
@@ -42,12 +43,8 @@ public class GameplayState extends GomokuGameState {
 
 	public void setInitialData(Board board, int playerColor, int turn) {
 		// create a new game
-		if (board == null) {
-			error("GameplayState", "Received no information about the board.");
-			return;
-		}
-		game = new GomokuGame(board);
-		game.setTurn(game.getPlayer(turn));
+		gomokuGame = new GomokuGame(board);
+		gomokuGame.setTurn(gomokuGame.getPlayer(turn));
 		setPlayer(playerColor);
 
 		boardComponent.setBoard(board);
@@ -56,10 +53,10 @@ public class GameplayState extends GomokuGameState {
 	}
 
 	public void setPlayer(int playerColor) {
-		if (playerColor == Board.REDPLAYER)
-			me = game.getRed();
-		else if (playerColor == Board.BLUEPLAYER)
-			me = game.getBlue();
+		if (playerColor == Board.BLACKPLAYER)
+			me = gomokuGame.getBlack();
+		else if (playerColor == Board.WHITEPLAYER)
+			me = gomokuGame.getWhite();
 		else {
 			error("GameplayState", "Color couldn't bet set!");
 			return;
@@ -69,48 +66,52 @@ public class GameplayState extends GomokuGameState {
 	}
 
 	@Override
-	public void init(GameContainer container, final GomokuClient game)
+	public void init(GameContainer container, final GomokuClient gomokuClient)
 			throws SlickException {
 
 		loading = true; // will be set to false once we receive data from the
 						// server
 
 		// add the board
-		boardComponent = new BoardComponent(container, null, 100, 50, 25, 10,
-				10) {
+		boardComponent = new BoardComponent(container, null, 100, 50, 30, 15,
+				15) {
 			@Override
 			public void squareClicked(int x, int y) {
 				if (me == null || !myTurn())
 					return;
-				placePiece(game, x, y);
+				placePiece(gomokuClient, x, y);
 			}
 		};
 
 		// add network listener
 		listener = new GameplayStateListener(this);
-		game.client.addListener(listener);
+		gomokuClient.client.addListener(listener);
 	}
 
+	/**
+	 * When entering this game state, request initial data from the server such
+	 * as the board, our player color and the current turn
+	 */
 	@Override
-	public void enter(GameContainer container, GomokuClient game)
+	public void enter(GameContainer container, GomokuClient gomokuClient)
 			throws SlickException {
-		game.client.sendTCP(new GenericRequestPacket(InitialData));
+		gomokuClient.client.sendTCP(new GenericRequestPacket(InitialData));
 	}
 
 	/**
 	 * Try to place a new piece on provided position. If successful client-side,
 	 * send a packet to server trying to do the same thing.
 	 *
-	 * @param game
+	 * @param gomokuClient
 	 *            The game which we place the piece in
 	 * @param x
 	 *            The x location for the new piece
 	 * @param y
 	 *            The y location for the new piece
 	 */
-	public void placePiece(GomokuClient game, int x, int y) {
-		if (this.game.placePiece(x, y, me)) {
-			game.client.sendTCP(new PlacePiecePacket(x, y, me));
+	public void placePiece(GomokuClient gomokuClient, int x, int y) {
+		if (this.gomokuGame.placePiece(x, y, me)) {
+			gomokuClient.client.sendTCP(new PlacePiecePacket(x, y, me));
 		}
 	}
 
@@ -120,7 +121,7 @@ public class GameplayState extends GomokuGameState {
 	 * @return True if it's our turn
 	 */
 	public boolean myTurn() {
-		return me == game.getTurn();
+		return me == gomokuGame.getTurn();
 	}
 
 	public void setBoardSize(int width, int height) {
@@ -128,17 +129,18 @@ public class GameplayState extends GomokuGameState {
 	}
 
 	@Override
-	public void update(GameContainer container, GomokuClient game, int delta)
-			throws SlickException {
+	public void update(GameContainer container, GomokuClient gomokuClient,
+			int delta) throws SlickException {
 
 		if (container.getInput().isKeyPressed(Input.KEY_ESCAPE)) {
 			container.exit();
 		}
 
 		/* *** NETWORK RELATED INPUT *** */
-		if (game.client.isConnected()) {
+		if (gomokuClient.client.isConnected()) {
 			if (container.getInput().isKeyPressed(Input.KEY_F5)) {
-				game.client.sendTCP(new GenericRequestPacket(BoardUpdate));
+				gomokuClient.client.sendTCP(new GenericRequestPacket(
+						BoardUpdate));
 			}
 
 			// ctrl is pressed
@@ -147,7 +149,8 @@ public class GameplayState extends GomokuGameState {
 
 				// clear board
 				if (container.getInput().isKeyPressed(Input.KEY_C)) {
-					game.client.sendTCP(new GenericRequestPacket(ClearBoard));
+					gomokuClient.client.sendTCP(new GenericRequestPacket(
+							ClearBoard));
 				}
 			}
 		}
@@ -155,13 +158,33 @@ public class GameplayState extends GomokuGameState {
 	}
 
 	@Override
-	public void render(GameContainer container, GomokuClient game, Graphics g)
-			throws SlickException {
+	public void render(GameContainer container, GomokuClient gomokuClient,
+			Graphics g) throws SlickException {
+		g.setFont(container.getDefaultFont());
+
 		// draw the board
 		if (loading) {
 			g.drawString("Loading...", 200, 200);
 		} else {
 			boardComponent.render(container, g);
+
+			// draw game info
+			int xPos = 600;
+			g.drawString("Your name: " + me.getName(), xPos, 20);
+			g.drawString("Your color: " + me.getColorName(), xPos, 40);
+			g.drawString("Turn: " + gomokuGame.getTurn().getName(), xPos, 60);
+			g.drawString("Board size: " + gomokuGame.getBoard().getWidth()
+					+ "x" + gomokuGame.getBoard().getHeight(), xPos, 80);
+			g.drawString("Displaysize: " + boardComponent.getDisplayWidth()
+					+ "x" + boardComponent.getDisplayHeight(), xPos, 100);
+			String status = "Status: ";
+			if (!myTurn()) {
+				status += "waiting for opponent";
+			} else {
+				status += "waiting for move";
+			}
+			g.drawString(status, xPos, 120);
+
 		}
 	}
 

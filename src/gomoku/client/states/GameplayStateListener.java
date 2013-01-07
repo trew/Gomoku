@@ -38,11 +38,12 @@ public class GameplayStateListener extends Listener {
 		if (object instanceof PlacePiecePacket) {
 			PlacePiecePacket ppp = (PlacePiecePacket) object;
 
-			Player player = state.game.getPlayer(ppp.playerColor);
-			if (!state.game.placePiece(ppp.x, ppp.y, player)) {
+			Player player = state.gomokuGame.getPlayer(ppp.playerColor);
+			if (!state.gomokuGame.placePiece(ppp.x, ppp.y, player)) {
 				warn("GameplayStateListener",
 						"Piece couldn't be placed, requesting board update");
 				connection.sendTCP(new GenericRequestPacket(BoardUpdate));
+
 			} else {
 				info("GameplayStateListener", player.getName()
 						+ " piece placed on " + ppp.x + ", " + ppp.y);
@@ -51,7 +52,7 @@ public class GameplayStateListener extends Listener {
 		} else if (object instanceof BoardPacket) {
 			// let's update our board with the board of the server
 			BoardPacket bp = (BoardPacket) object;
-			state.game.updateBoard(bp.getBoard());
+			state.gomokuGame.replaceBoard(bp.getBoard());
 			info("GameplayStateListener", "Board updated");
 
 		} else if (object instanceof SetColorPacket) {
@@ -61,9 +62,9 @@ public class GameplayStateListener extends Listener {
 
 		} else if (object instanceof NotifyTurnPacket) {
 			NotifyTurnPacket ntp = (NotifyTurnPacket) object;
-			state.game.setTurn(state.game.getPlayer(ntp.getColor()));
+			state.gomokuGame.setTurn(state.gomokuGame.getPlayer(ntp.getColor()));
 			info("GameplayStateListener", "Notified about turn: "
-					+ state.game.getTurn().getName());
+					+ state.gomokuGame.getTurn().getName());
 
 		} else if (object instanceof InitialDataPacket) {
 			InitialDataPacket idp = (InitialDataPacket) object;

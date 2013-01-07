@@ -11,11 +11,11 @@ public class Board {
 	/** The value representing no player */
 	public static final int NOPLAYER = 0;
 
-	/** THe value representing a red player */
-	public static final int REDPLAYER = 1;
+	/** THe value representing a black player */
+	public static final int BLACKPLAYER = 1;
 
-	/** The value representing a blue player */
-	public static final int BLUEPLAYER = 2;
+	/** The value representing a white player */
+	public static final int WHITEPLAYER = 2;
 
 	/** The structure containing the board data */
 	protected int[] board;
@@ -48,12 +48,12 @@ public class Board {
 	}
 
 	/**
-	 * Replace all pieces on this board with the pieces of the provided board
+	 * Replace the current board with a new board
 	 *
 	 * @param board
-	 *            The source board we update this board with
+	 *            The source board which will replace the current board
 	 */
-	public void updateBoard(Board board) {
+	public void replaceBoard(Board board) {
 		this.board = board.board;
 		width = board.width;
 		height = board.height;
@@ -126,7 +126,7 @@ public class Board {
 			throw new IllegalArgumentException("Position out of bounds. X: "
 					+ x + ", Y: " + y);
 		}
-		if (player != Board.REDPLAYER && player != Board.BLUEPLAYER) {
+		if (player != Board.BLACKPLAYER && player != Board.WHITEPLAYER) {
 			throw new IllegalArgumentException("Unknown value of player: \""
 					+ player + "\".");
 		}

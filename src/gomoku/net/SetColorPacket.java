@@ -38,11 +38,11 @@ public class SetColorPacket {
 	 * @param color
 	 *            The color being set to the player
 	 * @throws IllegalArgumentException
-	 *             Indicates a player color not being {@link Board#REDPLAYER} or
-	 *             {@link Board#BLUEPLAYER}
+	 *             Indicates a player color not being {@link Board#BLACKPLAYER} or
+	 *             {@link Board#WHITEPLAYER}
 	 */
 	public void setColor(int color) throws IllegalArgumentException {
-		if (color == Board.REDPLAYER || color == Board.BLUEPLAYER) {
+		if (color == Board.BLACKPLAYER || color == Board.WHITEPLAYER) {
 			this.color = color;
 		} else {
 			throw new IllegalArgumentException("Player color cannot be: \""

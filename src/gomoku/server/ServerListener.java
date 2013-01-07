@@ -47,15 +47,15 @@ public class ServerListener extends Listener {
 	@Override
 	public void connected(Connection connection) {
 		if (!server.redPlayerConnected) {
-			playerList.put(connection.getID(), game.getRed());
+			playerList.put(connection.getID(), game.getBlack());
 			server.redPlayerConnected = true;
 			debug("GomokuServer", "" + connection.toString()
-					+ " received playercolor " + Board.REDPLAYER);
+					+ " received playercolor " + Board.BLACKPLAYER);
 		} else if (!server.bluePlayerConnected) {
-			playerList.put(connection.getID(), game.getBlue());
+			playerList.put(connection.getID(), game.getWhite());
 			server.bluePlayerConnected = true;
 			debug("GomokuServer", "" + connection.toString()
-					+ " received playercolor " + Board.BLUEPLAYER);
+					+ " received playercolor " + Board.WHITEPLAYER);
 		} else {
 			debug("GomokuServer", "" + connection.toString()
 					+ " received no playercolor ");
@@ -64,9 +64,9 @@ public class ServerListener extends Listener {
 
 	@Override
 	public void disconnected(Connection connection) {
-		if (playerList.get(connection.getID()) == game.getRed())
+		if (playerList.get(connection.getID()) == game.getBlack())
 			server.redPlayerConnected = false;
-		else if (playerList.get(connection.getID()) == game.getBlue())
+		else if (playerList.get(connection.getID()) == game.getWhite())
 			server.bluePlayerConnected = false;
 		playerList.remove(connection.getID());
 		debug("GomokuServer", "Removed " + connection.getID()

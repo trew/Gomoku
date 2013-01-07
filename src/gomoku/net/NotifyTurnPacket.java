@@ -46,7 +46,7 @@ public class NotifyTurnPacket {
 	 *             Indicates an invalid turncolor
 	 */
 	public void setColor(int color) throws IllegalArgumentException {
-		if (color == Board.REDPLAYER || color == Board.BLUEPLAYER) {
+		if (color == Board.BLACKPLAYER || color == Board.WHITEPLAYER) {
 			this.color = color;
 		} else {
 			throw new IllegalArgumentException("Turn color cannot be: \""

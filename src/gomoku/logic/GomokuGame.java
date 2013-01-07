@@ -17,20 +17,25 @@ public class GomokuGame {
 	/** Whose turn it is */
 	private Player turn;
 
-	/** The red player */
-	private Player red;
+	/** The black player */
+	private Player black;
 
-	/** The blue player */
-	private Player blue;
+	/** The white player */
+	private Player white;
 
 	/**
-	 * Create a new game
+	 * Create a new game with set width and height
+	 *
+	 * @param width
+	 *            the width of the board
+	 * @param height
+	 *            the height of the board
 	 */
 	public GomokuGame(int width, int height) {
 		board = new Board(width, height);
-		red = new Player("Red", Board.REDPLAYER);
-		blue = new Player("Blue", Board.BLUEPLAYER);
-		turn = red;
+		black = new Player("Black", Board.BLACKPLAYER);
+		white = new Player("White", Board.WHITEPLAYER);
+		turn = black;
 	}
 
 	/**
@@ -41,9 +46,9 @@ public class GomokuGame {
 	 */
 	public GomokuGame(Board board) {
 		this.board = board;
-		red = new Player("Red", Board.REDPLAYER);
-		blue = new Player("Blue", Board.BLUEPLAYER);
-		turn = red;
+		black = new Player("Black", Board.BLACKPLAYER);
+		white = new Player("White", Board.WHITEPLAYER);
+		turn = black;
 	}
 
 	/**
@@ -51,7 +56,7 @@ public class GomokuGame {
 	 */
 	public void reset() {
 		board.reset();
-		turn = red;
+		turn = black;
 	}
 
 	/**
@@ -61,8 +66,7 @@ public class GomokuGame {
 	 */
 	public boolean placePiece(int x, int y, Player player) {
 		// not possible to compare "turn == player" because it is a reference
-		// comparison. it would've been possible in C++ with operator
-		// overloading, but here we must rely on comparison by value, which is
+		// comparison. We must rely on comparison by value, which is
 		// possible using the colors.
 		if (turn.getColor() == player.getColor()) {
 			if (board.placePiece(player, x, y)) {
@@ -87,21 +91,21 @@ public class GomokuGame {
 	 */
 	public Player getPieceOwner(int x, int y) {
 		int piece = board.getPiece(x, y);
-		if (piece == Board.REDPLAYER)
-			return red;
-		if (piece == Board.BLUEPLAYER)
-			return blue;
+		if (piece == Board.BLACKPLAYER)
+			return black;
+		if (piece == Board.WHITEPLAYER)
+			return white;
 		return null;
 	}
 
 	/**
-	 * Swap turns between red and blue
+	 * Swap turns between black and white
 	 */
 	public void switchTurn() {
-		if (turn == red)
-			setTurn(blue);
+		if (turn == black)
+			setTurn(white);
 		else
-			setTurn(red);
+			setTurn(black);
 	}
 
 	/**
@@ -111,7 +115,7 @@ public class GomokuGame {
 	 *            The player who is going to get the turn
 	 */
 	public void setTurn(Player player) {
-		if (player != red && player != blue)
+		if (player != black && player != white)
 			return;
 		debug("GomokuGame", "Turn set to " + turn.getName());
 		turn = player;
@@ -124,10 +128,12 @@ public class GomokuGame {
 	 *            the provided player color
 	 */
 	public void setTurn(int playerColor) {
-		if (playerColor == Board.REDPLAYER) {
-			turn = red;
-		} else if (playerColor == Board.BLUEPLAYER) {
-			turn = blue;
+		if (playerColor == Board.BLACKPLAYER) {
+			turn = black;
+			debug("GomokuGame", "Turn set to " + turn.getName());
+		} else if (playerColor == Board.WHITEPLAYER) {
+			turn = white;
+			debug("GomokuGame", "Turn set to " + turn.getName());
 		}
 	}
 
@@ -141,21 +147,21 @@ public class GomokuGame {
 	}
 
 	/**
-	 * Get the red player
+	 * Returns the black player
 	 *
-	 * @return The red player
+	 * @return the black player
 	 */
-	public Player getRed() {
-		return red;
+	public Player getBlack() {
+		return black;
 	}
 
 	/**
-	 * Get the blue player
+	 * Returns the white player
 	 *
-	 * @return The blue player
+	 * @return the white player
 	 */
-	public Player getBlue() {
-		return blue;
+	public Player getWhite() {
+		return white;
 	}
 
 	/**
@@ -163,17 +169,17 @@ public class GomokuGame {
 	 *
 	 * @param color
 	 *            The player color
-	 * @return Red if provided color is {@link Board#REDPLAYER}, Blue if
-	 *         provided color is {@link Board#BLUEPLAYER}
+	 * @return Black if provided color is {@link Board#BLACKPLAYER}, white if
+	 *         provided color is {@link Board#WHITEPLAYER}
 	 * @throws IllegalArgumentException
-	 *             Indicates a value other than {@link Board#REDPLAYER} or
-	 *             {@link Board#BLUEPLAYER}
+	 *             Indicates a value other than {@link Board#BLACKPLAYER} or
+	 *             {@link Board#WHITEPLAYER}
 	 */
 	public Player getPlayer(int color) throws IllegalArgumentException {
-		if (color == Board.REDPLAYER)
-			return red;
-		if (color == Board.BLUEPLAYER)
-			return blue;
+		if (color == Board.BLACKPLAYER)
+			return black;
+		if (color == Board.WHITEPLAYER)
+			return white;
 		throw new IllegalArgumentException("No player with this color: \""
 				+ color + "\".");
 	}
@@ -184,9 +190,9 @@ public class GomokuGame {
 	 * @param board
 	 *            The board to replace the current one
 	 */
-	public void updateBoard(Board board) {
-		debug("GomokuGame", "Updating board");
-		this.board.updateBoard(board);
+	public void replaceBoard(Board board) {
+		debug("GomokuGame", "Replacing board");
+		this.board.replaceBoard(board);
 	}
 
 	/**

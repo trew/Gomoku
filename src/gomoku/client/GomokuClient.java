@@ -8,7 +8,6 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
-
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.minlog.Log;
 import com.martiansoftware.jsap.*;
@@ -25,10 +24,10 @@ public class GomokuClient extends StateBasedGame {
 
 	/* ********** STATIC ********** */
 	/** The width of the screen */
-	private static final int WIDTH = 640;
+	private static final int WIDTH = 800;
 
 	/** The height of the screen */
-	private static final int HEIGHT = 480;
+	private static final int HEIGHT = 600;
 
 	/** Fullscreen or not? */
 	private static final boolean FULLSCREEN = false;
@@ -91,7 +90,9 @@ public class GomokuClient extends StateBasedGame {
 
 	/**
 	 * The main entry point of the game client
-	 * @param args The arguments passed to the application
+	 *
+	 * @param args
+	 *            The arguments passed to the application
 	 * @see #parseArgs(String[])
 	 */
 	public static void main(String[] args) {
@@ -116,11 +117,15 @@ public class GomokuClient extends StateBasedGame {
 			game.client.stop();
 
 		} catch (SlickException e) {
-			if (TRACE) trace("GomokuClient", e);
-			else error("GomokuClient", e.getMessage());
+			if (TRACE)
+				trace("GomokuClient", e);
+			else
+				error("GomokuClient", e.getMessage());
 		} catch (JSAPException e) {
-			if (TRACE) trace("GomokuClient", e);
-			else error("GomokuClient", "Error parsing commandline arguments");
+			if (TRACE)
+				trace("GomokuClient", e);
+			else
+				error("GomokuClient", e.getMessage());
 		}
 	}
 }

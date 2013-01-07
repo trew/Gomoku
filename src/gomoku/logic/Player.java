@@ -10,7 +10,7 @@ public class Player {
 	/**
 	 * The player color
 	 *
-	 * @see {@link Board#REDPLAYER}, {@link Board#BLUEPLAYER}
+	 * @see {@link Board#BLACKPLAYER}, {@link Board#WHITEPLAYER}
 	 */
 	private int color;
 
@@ -27,14 +27,14 @@ public class Player {
 	 * @param name
 	 *            The player name
 	 * @param color
-	 *            The player color. {@link Board#REDPLAYER} or
-	 *            {@link Board#BLUEPLAYER}
+	 *            The player color. {@link Board#BLACKPLAYER} or
+	 *            {@link Board#WHITEPLAYER}
 	 * @throws IllegalArgumentException
 	 *             Indicates that the provided player color was wrong
 	 */
 	public Player(String name, int color) throws IllegalArgumentException {
 		this.name = name;
-		if (color == Board.REDPLAYER || color == Board.BLUEPLAYER)
+		if (color == Board.BLACKPLAYER || color == Board.WHITEPLAYER)
 			this.color = color;
 		else
 			throw new IllegalArgumentException("Color cannot be this color: \""
@@ -42,12 +42,21 @@ public class Player {
 	}
 
 	/**
-	 * Get the player color
+	 * Returns the player color
 	 *
-	 * @return The player color
+	 * @return the player color
 	 */
 	public int getColor() {
 		return color;
+	}
+
+	/**
+	 * Returns a string representing the color of the player
+	 *
+	 * @return a string representing the color of the player
+	 */
+	public String getColorName() {
+		return color == Board.BLACKPLAYER ? "Black" : "White";
 	}
 
 	/**

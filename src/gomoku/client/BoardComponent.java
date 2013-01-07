@@ -56,25 +56,20 @@ public class BoardComponent extends AbstractComponent {
 	/** The board */
 	protected Board board;
 
-	/** The cross image */
-	protected Image cross;
+	/** The black piece image */
+	protected Image black;
 
-	/** The circle image */
-	protected Image circle;
+	/** The white piece image */
+	protected Image white;
+
+	/** The board square image */
+	protected Image squareImage;
 
 	/** The rectangle used to bind images to */
 	private Rectangle rect;
 
-	/** The current position of the mouse on the board (in squares) */
-	private int xPosOnBoard;
-
-	/** The current position of the mouse on the board (in squares) */
-	private int yPosOnBoard;
-
-	/**
-	 * The string used to display the current position of the mouse on the board
-	 */
-	private String posOnBoard;
+	/** The rectangle used to create the board background */
+	private Rectangle bgRect;
 
 	/**
 	 * Create a new board component with the default width of 5 and height of 5.
@@ -123,9 +118,11 @@ public class BoardComponent extends AbstractComponent {
 		this.board = board;
 
 		rect = new Rectangle(0, 0, 10, 10);
+		bgRect = new Rectangle(0, 0, squareSize, squareSize);
 		try {
-			cross = new Image("res/cross.png");
-			circle = new Image("res/circle.png");
+			black = new Image("res/black.png");
+			white = new Image("res/white.png");
+			squareImage = new Image("res/boardsquare.png");
 		} catch (SlickException e) {
 			if (TRACE)
 				trace("BoardComponent", e);
@@ -133,10 +130,6 @@ public class BoardComponent extends AbstractComponent {
 				error("BoardComponent",
 						"Image couldn't be loaded! " + e.getMessage());
 		}
-		xPosOnBoard = 0;
-		yPosOnBoard = 0;
-		posOnBoard = "Pos: ---";
-
 		this.leftBorder = 0;
 		this.topBorder = 0;
 		this.displayWidth = displayWidth;
@@ -182,14 +175,6 @@ public class BoardComponent extends AbstractComponent {
 	}
 
 	@Override
-	public void mouseMoved(int oldx, int oldy, int newx, int newy) {
-		if (Rectangle.contains(newx, newy, this.x, this.y, width, height)) {
-			setPositionOnBoard(getMouseXPositionOnBoard(newx),
-					getMouseYPositionOnBoard(newy));
-		}
-	}
-
-	@Override
 	public void mouseReleased(int button, int x, int y) {
 		if (Rectangle.contains(x, y, this.x, this.y, width, height)) {
 			squareClicked(getMouseXPositionOnBoard(x),
@@ -217,34 +202,34 @@ public class BoardComponent extends AbstractComponent {
 	 */
 	private void renderBorder(Graphics g) {
 		if (board == null) {
-			g.setColor(Color.red);
+			g.setColor(Color.black);
 			g.drawRect(0, 0, width, height);
 			return;
 		}
 		// left
 		if (leftBorder == 0)
-			g.setColor(Color.red);
+			g.setColor(Color.black);
 		else
 			g.setColor(Color.green);
 		g.drawLine(0, 0, 0, height);
 
 		// top
 		if (topBorder == 0)
-			g.setColor(Color.red);
+			g.setColor(Color.black);
 		else
 			g.setColor(Color.green);
 		g.drawLine(0, 0, width, 0);
 
 		// bottom
 		if (topBorder + displayHeight >= board.getHeight())
-			g.setColor(Color.red);
+			g.setColor(Color.black);
 		else
 			g.setColor(Color.green);
 		g.drawLine(0, height, width, height);
 
 		// right
 		if (leftBorder + displayWidth >= board.getWidth())
-			g.setColor(Color.red);
+			g.setColor(Color.black);
 		else
 			g.setColor(Color.green);
 		g.drawLine(width, 0, width, height);
@@ -259,7 +244,16 @@ public class BoardComponent extends AbstractComponent {
 		g.pushTransform();
 		g.translate(this.x, this.y);
 
-		g.setColor(Color.cyan);
+		g.setColor(Color.white);
+		for (int x = 0; x < displayWidth; x++) {
+			for (int y = 0; y < displayHeight; y++) {
+				bgRect.setLocation(x * bgRect.getWidth(),
+						y * bgRect.getHeight());
+				g.texture(bgRect, squareImage, true);
+			}
+		}
+
+		g.setColor(Color.black);
 		// draw grid lines
 		for (int x = 1; x < displayWidth; x++) {
 			int xPos = x * (width / displayWidth);
@@ -275,10 +269,10 @@ public class BoardComponent extends AbstractComponent {
 			for (int x = 0; x < displayWidth; x++) {
 				for (int y = 0; y < displayHeight; y++) {
 					int piece = board.getPiece(x + leftBorder, y + topBorder);
-					if (piece == Board.REDPLAYER) {
-						drawCircle(x, y, g);
-					} else if (piece == Board.BLUEPLAYER) {
-						drawCross(x, y, g);
+					if (piece == Board.BLACKPLAYER) {
+						drawBlackPiece(x, y, g);
+					} else if (piece == Board.WHITEPLAYER) {
+						drawWhitePiece(x, y, g);
 					}
 				}
 			}
@@ -288,34 +282,32 @@ public class BoardComponent extends AbstractComponent {
 
 		// print position-on-board information
 		g.popTransform();
-		g.setColor(Color.white);
-		g.drawString(posOnBoard, 50, container.getHeight() - 30);
 		g.setColor(oldColor);
 	}
 
 	/**
-	 * Draw a circle on the provided position on the board
+	 * Draw a black piece on the provided position on the board
 	 *
-	 * @see #drawImage(Image, int, int, Graphics)
+	 * @see #drawPiece(Image, int, int, Graphics)
 	 */
-	private void drawCircle(int x, int y, Graphics g) {
-		drawImage(circle, x, y, g);
+	private void drawBlackPiece(int x, int y, Graphics g) {
+		drawPiece(black, x, y, g);
 	}
 
 	/**
-	 * Draw a cross on the provided position on the board
+	 * Draw a white piece on the provided position on the board
 	 *
-	 * @see #drawImage(Image, int, int, Graphics)
+	 * @see #drawPiece(Image, int, int, Graphics)
 	 */
-	private void drawCross(int x, int y, Graphics g) {
-		drawImage(cross, x, y, g);
+	private void drawWhitePiece(int x, int y, Graphics g) {
+		drawPiece(white, x, y, g);
 	}
 
 	/**
-	 * Draw an image to a location on the board
+	 * Draw a piece to a location on the board
 	 *
 	 * @param image
-	 *            The image to be drawn
+	 *            The piece image to be drawn
 	 * @param x
 	 *            The x location on the board
 	 * @param y
@@ -323,7 +315,7 @@ public class BoardComponent extends AbstractComponent {
 	 * @param g
 	 *            The graphics context to draw on
 	 */
-	private void drawImage(Image image, int x, int y, Graphics g) {
+	private void drawPiece(Image image, int x, int y, Graphics g) {
 		g.setColor(Color.white);
 		// get the relative x position
 		int xPos = (x + 1) * (width / displayWidth)
@@ -437,21 +429,6 @@ public class BoardComponent extends AbstractComponent {
 		}
 		this.width = squareSize * displayWidth;
 		this.height = squareSize * displayHeight;
-	}
-
-	/**
-	 * If the mouse position on the board changed, update
-	 *
-	 * @param x
-	 *            The x location on the board
-	 * @param y
-	 *            The y location on the board
-	 */
-	private void setPositionOnBoard(int x, int y) {
-		if (x != xPosOnBoard || y != yPosOnBoard) {
-			xPosOnBoard = x;
-			yPosOnBoard = y;
-			posOnBoard = "Pos: " + x + ", " + y;
-		}
+		bgRect.setSize(squareSize, squareSize);
 	}
 }

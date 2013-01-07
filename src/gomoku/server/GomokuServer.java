@@ -157,7 +157,7 @@ public class GomokuServer {
 	public static void parseArgs(String[] args) {
 		JSAP jsap = new JSAP();
 		FlaggedOption swingOpt = new FlaggedOption("swing")
-				.setStringParser(JSAP.BOOLEAN_PARSER).setDefault("false")
+				.setStringParser(JSAP.BOOLEAN_PARSER).setDefault("true")
 				.setLongFlag("swing");
 		FlaggedOption portOpt = new FlaggedOption("port")
 				.setStringParser(JSAP.INTEGER_PARSER).setDefault("9123")

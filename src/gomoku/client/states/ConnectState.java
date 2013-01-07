@@ -5,11 +5,12 @@ import gomoku.net.*;
 
 import java.io.IOException;
 
+import org.newdawn.slick.AngelCodeFont;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
@@ -33,6 +34,11 @@ public class ConnectState extends GomokuGameState {
 	public void init(GameContainer container, GomokuClient game)
 			throws SlickException {
 
+		// setup game default font
+		AngelCodeFont acf = new AngelCodeFont("res/fonts/Monda.fnt", new Image(
+				"res/fonts/Monda_0.png"));
+		container.setDefaultFont(acf);
+
 		game.client = new Client();
 		game.client.start();
 
@@ -42,8 +48,8 @@ public class ConnectState extends GomokuGameState {
 	}
 
 	@Override
-	public void update(GameContainer container, final GomokuClient game, int delta)
-			throws SlickException {
+	public void update(GameContainer container, final GomokuClient game,
+			int delta) throws SlickException {
 
 		if (connectingState == 0
 				&& container.getInput().isKeyPressed(Input.KEY_SPACE)) {
@@ -61,7 +67,8 @@ public class ConnectState extends GomokuGameState {
 				};
 				connectingState = 2;
 				game.client.addListener(listener);
-				game.client.connect(5000, GomokuClient.ADDRESS, GomokuClient.PORT);
+				game.client.connect(5000, GomokuClient.ADDRESS,
+						GomokuClient.PORT);
 			} catch (IOException e) {
 				connectingState = 4;
 				connectMessage = e.getMessage();
@@ -81,6 +88,8 @@ public class ConnectState extends GomokuGameState {
 	@Override
 	public void render(GameContainer container, GomokuClient game, Graphics g)
 			throws SlickException {
+		g.setFont(container.getDefaultFont());
+
 		int w = container.getDefaultFont().getWidth(connectMessage);
 		g.drawString(connectMessage, center(0, container.getWidth(), w), 30);
 	}
