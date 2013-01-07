@@ -157,7 +157,7 @@ public class BoardComponent extends AbstractComponent {
 	 */
 	@Override
 	public void keyPressed(int c, char ch) {
-		if (board != null) {
+		if (hasFocus() && board != null) {
 			if (c == Input.KEY_UP || c == Input.KEY_K) {
 				if (--topBorder < 0)
 					topBorder = 0;
@@ -177,8 +177,13 @@ public class BoardComponent extends AbstractComponent {
 	@Override
 	public void mouseReleased(int button, int x, int y) {
 		if (Rectangle.contains(x, y, this.x, this.y, width, height)) {
-			squareClicked(getMouseXPositionOnBoard(x),
-					getMouseYPositionOnBoard(y));
+			if (hasFocus())
+				squareClicked(getMouseXPositionOnBoard(x),
+						getMouseYPositionOnBoard(y));
+			else
+				setFocus(true);
+		} else {
+			setFocus(false);
 		}
 	}
 

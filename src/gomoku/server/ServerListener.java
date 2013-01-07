@@ -44,6 +44,10 @@ public class ServerListener extends Listener {
 		playerList = new HashMap<Integer, Player>();
 	}
 
+	/**
+	 * The server will reserve a spot in the game when the client connects, and
+	 * add the player to player list.
+	 */
 	@Override
 	public void connected(Connection connection) {
 		if (!server.redPlayerConnected) {
@@ -137,10 +141,9 @@ public class ServerListener extends Listener {
 			GenericRequestPacket grp) {
 
 		if (grp.getRequest() == InitialData) {
-			InitialDataPacket idp = new InitialDataPacket(
-					game.getBoard(),
-					playerList.get(conn.getID()).getColor(),
-					game.getTurn().getColor());
+			InitialDataPacket idp = new InitialDataPacket(game.getBoard(),
+					playerList.get(conn.getID()).getColor(), game.getTurn()
+							.getColor());
 			conn.sendTCP(idp);
 
 		} else if (grp.getRequest() == BoardUpdate) {

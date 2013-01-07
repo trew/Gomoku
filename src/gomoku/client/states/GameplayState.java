@@ -73,8 +73,8 @@ public class GameplayState extends GomokuGameState {
 						// server
 
 		// add the board
-		boardComponent = new BoardComponent(container, null, 100, 50, 30, 15,
-				15) {
+		boardComponent = new BoardComponent(container, null, 100, 50, 30, 10,
+				10) {
 			@Override
 			public void squareClicked(int x, int y) {
 				if (me == null || !myTurn())
@@ -172,7 +172,7 @@ public class GameplayState extends GomokuGameState {
 			int xPos = 600;
 			g.drawString("Your name: " + me.getName(), xPos, 20);
 			g.drawString("Your color: " + me.getColorName(), xPos, 40);
-			g.drawString("Turn: " + gomokuGame.getTurn().getName(), xPos, 60);
+			g.drawString("Turn: " + (myTurn() ? "You" : "Opponent"), xPos, 60);
 			g.drawString("Board size: " + gomokuGame.getBoard().getWidth()
 					+ "x" + gomokuGame.getBoard().getHeight(), xPos, 80);
 			g.drawString("Displaysize: " + boardComponent.getDisplayWidth()

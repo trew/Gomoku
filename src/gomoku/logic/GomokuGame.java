@@ -76,7 +76,7 @@ public class GomokuGame {
 			info("GomokuGame", "Couldn't place on " + x + ", " + y);
 			return false;
 		}
-		debug("GomokuGame", "Not " + player.getName() + "'s turn!");
+		debug("GomokuGame", "Not " + player.getColorName() + "'s turn!");
 		return false;
 	}
 
@@ -117,7 +117,7 @@ public class GomokuGame {
 	public void setTurn(Player player) {
 		if (player != black && player != white)
 			return;
-		debug("GomokuGame", "Turn set to " + turn.getName());
+		debug("GomokuGame", "Turn set to " + turn.getColorName());
 		turn = player;
 	}
 
@@ -130,10 +130,10 @@ public class GomokuGame {
 	public void setTurn(int playerColor) {
 		if (playerColor == Board.BLACKPLAYER) {
 			turn = black;
-			debug("GomokuGame", "Turn set to " + turn.getName());
+			debug("GomokuGame", "Turn set to " + turn.getColorName());
 		} else if (playerColor == Board.WHITEPLAYER) {
 			turn = white;
-			debug("GomokuGame", "Turn set to " + turn.getName());
+			debug("GomokuGame", "Turn set to " + turn.getColorName());
 		}
 	}
 
