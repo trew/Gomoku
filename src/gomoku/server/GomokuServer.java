@@ -59,9 +59,6 @@ public class GomokuServer {
      */
     public GomokuGame game;
 
-    public boolean redPlayerConnected;
-    public boolean bluePlayerConnected;
-
     /**
      * The JFrame if we're using Swing console
      */
@@ -77,9 +74,6 @@ public class GomokuServer {
         game = new GomokuGame(15, 15);
         listener = new ServerListener(this);
         frame = null;
-        redPlayerConnected = false;
-        bluePlayerConnected = false;
-
     }
 
     /**

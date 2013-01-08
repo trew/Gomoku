@@ -2,13 +2,14 @@ package gomoku.client.states;
 
 import static gomoku.net.Request.*;
 
-import gomoku.client.BoardComponent;
 import gomoku.client.GomokuClient;
+import gomoku.client.gui.BoardComponent;
 import gomoku.logic.Board;
 import gomoku.logic.Player;
 import gomoku.logic.GomokuGame;
 import gomoku.net.*;
 
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
@@ -37,32 +38,75 @@ public class GameplayState extends GomokuGameState {
 
     private boolean loading;
 
+    private String playerName;
+
+    private String[] playerList;
+
     public boolean initialLoading() {
         return loading;
     }
 
-    public void setInitialData(Board board, int playerColor, int turn) {
+    public void setInitialData(Board board, int playerColor, int turn,
+            String[] playerList) {
         // create a new game
+        this.playerList = playerList;
         gomokuGame = new GomokuGame(board);
         gomokuGame.setTurn(gomokuGame.getPlayer(turn));
-        setPlayer(playerColor);
+        setupPlayers(playerColor);
 
         boardComponent.setBoard(board);
 
         loading = false;
     }
 
-    public void setPlayer(int playerColor) {
-        if (playerColor == Board.BLACKPLAYER)
+    public void setPlayerName(String name) {
+        playerName = name;
+    }
+
+    public String getPlayerName() {
+        return playerName;
+    }
+
+    /**
+     * Setup names and values for players. If this client receives black, makes
+     * sure the white player receives the correct name.
+     * 
+     * @param playerColor
+     *            The player color being given to this client
+     */
+    public void setupPlayers(int playerColor) {
+
+        if (playerColor == Board.BLACKPLAYER) {
             me = gomokuGame.getBlack();
-        else if (playerColor == Board.WHITEPLAYER)
+            playerList[0] = playerName;
+            gomokuGame.getWhite().setName(playerList[1]);
+
+        } else if (playerColor == Board.WHITEPLAYER) {
             me = gomokuGame.getWhite();
-        else {
+            playerList[1] = playerName;
+            gomokuGame.getBlack().setName(playerList[0]);
+
+        } else {
             error("GameplayState", "Color couldn't bet set!");
             return;
         }
-        info("GameplayState", "Color set to " + me.getName());
 
+        me.setName(playerName);
+        info("GameplayState", "Color set to " + me.getColorName());
+    }
+
+    public String[] getPlayerList() {
+        return playerList;
+    }
+
+    public void setPlayerList(String[] playerList) {
+        this.playerList = playerList;
+
+        if (me.getColor() == Board.BLACKPLAYER) {
+            gomokuGame.getWhite().setName(playerList[1]);
+        } else if (me.getColor() == Board.WHITEPLAYER) {
+            gomokuGame.getBlack().setName(playerList[0]);
+        }
     }
 
     @Override
@@ -71,6 +115,8 @@ public class GameplayState extends GomokuGameState {
 
         loading = true; // will be set to false once we receive data from the
                         // server
+
+        playerName = "(none)";
 
         // add the board
         boardComponent = new BoardComponent(container, null, 100, 50, 30, 15,
@@ -95,7 +141,7 @@ public class GameplayState extends GomokuGameState {
     @Override
     public void enter(GameContainer container, GomokuClient gomokuClient)
             throws SlickException {
-        gomokuClient.client.sendTCP(new GenericRequestPacket(InitialData));
+        gomokuClient.client.sendTCP(new InitialClientDataPacket(playerName));
     }
 
     /**
@@ -110,8 +156,9 @@ public class GameplayState extends GomokuGameState {
      *            The y location for the new piece
      */
     public void placePiece(GomokuClient gomokuClient, int x, int y) {
-        if (this.gomokuGame.placePiece(x, y, me)) {
-            gomokuClient.client.sendTCP(new PlacePiecePacket(x, y, me));
+        if (this.gomokuGame.placePiece(x, y, me.getColor())) {
+            gomokuClient.client.sendTCP(new PlacePiecePacket(x, y, me
+                    .getColor()));
         }
     }
 
@@ -177,13 +224,30 @@ public class GameplayState extends GomokuGameState {
                     + "x" + gomokuGame.getBoard().getHeight(), xPos, 80);
             g.drawString("Displaysize: " + boardComponent.getDisplayWidth()
                     + "x" + boardComponent.getDisplayHeight(), xPos, 100);
-            String status = "Status: ";
+
+            g.drawString("Connected players", xPos, 120);
+            g.drawString("-----------------", xPos, 140);
+            int yPos = 160;
+            for (String p : this.playerList) {
+                if (p == "(none)")
+                    return;
+                g.drawString(p, xPos, yPos);
+                yPos += 20;
+            }
+            String versus = gomokuGame.getBlack().getName() + " vs "
+                    + gomokuGame.getWhite().getName();
+            g.drawString(versus, 250, 10);
+
+            String status = "";
             if (!myTurn()) {
+                g.setColor(Color.red);
                 status += "waiting for opponent";
             } else {
-                status += "waiting for move";
+                g.setColor(Color.green);
+                status += "Your turn!";
             }
-            g.drawString(status, xPos, 120);
+            g.drawString(status, 250, 550);
+            g.setColor(Color.white);
 
         }
     }

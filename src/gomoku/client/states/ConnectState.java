@@ -1,9 +1,11 @@
 package gomoku.client.states;
 
 import gomoku.client.GomokuClient;
+import gomoku.client.gui.Button;
 import gomoku.net.*;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
@@ -37,6 +39,12 @@ public class ConnectState extends GomokuGameState {
     private int barTimer;
 
     private TextField nameField;
+    private TextField addressField;
+
+    private String address;
+    private int port;
+
+    private Button connectButton;
 
     /** Which state we're in */
     private CONNECTSTATE connectingState;
@@ -46,7 +54,7 @@ public class ConnectState extends GomokuGameState {
 
     @SuppressWarnings("unchecked")
     @Override
-    public void init(GameContainer container, GomokuClient game)
+    public void init(GameContainer container, final GomokuClient game)
             throws SlickException {
 
         // setup game default font
@@ -57,19 +65,49 @@ public class ConnectState extends GomokuGameState {
         ucf.loadGlyphs();
         container.setDefaultFont(ucf);
 
-        nameField = new TextField(container, container.getDefaultFont(), 250,
-                30, 275, 30);
+        nameField = new TextField(container, container.getDefaultFont(), 300,
+                50, 300, 30);
         nameField.setBorderColor(Color.white);
         nameField.setBackgroundColor(Color.darkGray);
+
+        addressField = new TextField(container, container.getDefaultFont(),
+                300, 100, 300, 30);
+        addressField.setBorderColor(Color.white);
+        addressField.setBackgroundColor(Color.darkGray);
+        addressField.setText("127.0.0.1");
+        port = 9123;
+
+        connectButton = new Button(container, "Connect", 340, 350, 120, 35) {
+            @Override
+            public void buttonClicked(int button, int x, int y) {
+                connect(game);
+            }
+        };
 
         game.client = new Client();
         game.client.start();
 
         RegisterPackets.register(game.client.getKryo());
 
-        connectMessage = "Press space to connect";
+        connectMessage = "";
         connectingState = CONNECTSTATE.IDLE;
         barString = ".";
+    }
+
+    public boolean parseAddress(String address) {
+        String[] parts = address.split(":", 2);
+        if (parts.length == 1) {
+            this.address = parts[0];
+            return true;
+        }
+
+        try {
+            port = Integer.parseInt(parts[1]);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        this.address = parts[0];
+        return true;
     }
 
     /**
@@ -80,8 +118,17 @@ public class ConnectState extends GomokuGameState {
      *            The client that till connect to the server
      */
     public void connect(final GomokuClient game) {
+        if (!parseAddress(addressField.getText())) {
+            return;
+        }
+        if (nameField.getText() == "") {
+            return;
+        }
+        connectMessage = "Connecting...";
+        connectButton.disable();
         // lock all settings
         nameField.deactivate();
+        ((GameplayState) game.getState(1)).setPlayerName(nameField.getText());
 
         connectingState = CONNECTSTATE.CONNECTING;
         Listener listener = new Listener() {
@@ -90,6 +137,7 @@ public class ConnectState extends GomokuGameState {
                 connectingState = CONNECTSTATE.CONNECTED;
                 connectMessage = "Connected.";
                 game.client.removeListener(this);
+                game.enterState(1); // gameplaystate
             }
         };
         game.client.addListener(listener);
@@ -99,13 +147,19 @@ public class ConnectState extends GomokuGameState {
             @Override
             public void run() {
                 try {
-                    game.client.connect(5000, GomokuClient.ADDRESS,
-                            GomokuClient.PORT);
+                    game.client.connect(5000, address, port);
+                } catch (UnknownHostException e) {
+                    connectingState = CONNECTSTATE.CONNECTIONFAILED;
+                    if (TRACE)
+                        trace("ConnectState", e);
+                    connectMessage = "Unkown host";
+                    connectButton.enable();
                 } catch (IOException e) {
                     connectingState = CONNECTSTATE.CONNECTIONFAILED;
                     if (TRACE)
                         trace("ConnectState", e);
                     connectMessage = e.getMessage();
+                    connectButton.enable();
                 }
             }
         }).start();
@@ -120,11 +174,7 @@ public class ConnectState extends GomokuGameState {
             container.exit();
         }
 
-        if (connectingState == CONNECTSTATE.IDLE
-                && container.getInput().isKeyPressed(Input.KEY_SPACE)) {
-            connectMessage = "Connecting...";
-            connect(game);
-        } else if (connectingState == CONNECTSTATE.CONNECTING) {
+        if (connectingState == CONNECTSTATE.CONNECTING) {
             // display a little bar while waiting for server response
             // increase the length of it every 0.1 seconds
             barTimer += delta;
@@ -134,10 +184,6 @@ public class ConnectState extends GomokuGameState {
                 if (barString.length() > 10) {
                     barString = ".";
                 }
-            }
-        } else if (connectingState == CONNECTSTATE.CONNECTED) {
-            if (container.getInput().isKeyPressed(Input.KEY_SPACE)) {
-                game.enterState(1); // gameplaystate
             }
         } else if (connectingState == CONNECTSTATE.CONNECTIONFAILED) {
             if (container.getInput().isKeyPressed(Input.KEY_SPACE)) {
@@ -152,12 +198,18 @@ public class ConnectState extends GomokuGameState {
         g.setFont(container.getDefaultFont());
 
         int w = container.getDefaultFont().getWidth(connectMessage);
-        g.drawString(connectMessage, center(0, container.getWidth(), w), 500);
+        g.drawString(connectMessage, center(0, container.getWidth(), w), 400);
         if (connectingState == CONNECTSTATE.CONNECTING) {
-            g.drawString(barString, 350, 530);
+            g.drawString(barString, 350, 430);
         }
 
+        g.drawString("Enter your name", 300, 25);
         nameField.render(container, g);
+
+        g.drawString("Address", 300, 75);
+        addressField.render(container, g);
+
+        connectButton.render(container, g);
     }
 
     @Override

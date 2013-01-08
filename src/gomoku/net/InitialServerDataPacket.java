@@ -10,7 +10,7 @@ import gomoku.logic.Board;
  * 
  * @author Samuel Andersson
  */
-public class InitialDataPacket {
+public class InitialServerDataPacket {
 
     /** The board of the game */
     private Board board;
@@ -21,11 +21,11 @@ public class InitialDataPacket {
     /** The current turn */
     private int turn;
 
-    /** The opponent name */
-    private String opponentName;
+    /** The currently connected players */
+    private String[] playerList;
 
     /** Empty constructor for Kryonet */
-    public InitialDataPacket() {
+    public InitialServerDataPacket() {
     }
 
     /**
@@ -40,12 +40,12 @@ public class InitialDataPacket {
      * @param opponentName
      *            The name of the opponent
      */
-    public InitialDataPacket(Board board, int playerColor, int turn,
-            String opponentName) {
+    public InitialServerDataPacket(Board board, int playerColor, int turn,
+            String[] playerList) {
         this.board = board;
         this.playerColor = playerColor;
         this.turn = turn;
-        this.opponentName = opponentName;
+        this.playerList = playerList;
     }
 
     /**
@@ -76,11 +76,11 @@ public class InitialDataPacket {
     }
 
     /**
-     * Returns the opponent name
+     * Returns the currently connected players
      * 
-     * @return the opponent name
+     * @return the currently connected players
      */
-    public String getOpponentName() {
-        return opponentName;
+    public String[] getPlayerList() {
+        return playerList;
     }
 }

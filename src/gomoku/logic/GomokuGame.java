@@ -62,13 +62,19 @@ public class GomokuGame {
     /**
      * Place a piece and switch player turn
      * 
-     * @see Board#placePiece(int, int, int)
+     * @param x
+     *            the x location of the piece
+     * @param y
+     *            the y location of the piece
+     * @param player
+     *            the player placing the piece
+     * @return true if piece was placed
      */
-    public boolean placePiece(int x, int y, Player player) {
+    public boolean placePiece(int x, int y, int player) {
         // not possible to compare "turn == player" because it is a reference
         // comparison. We must rely on comparison by value, which is
         // possible using the colors.
-        if (turn.getColor() == player.getColor()) {
+        if (turn.getColor() == player) {
             if (board.placePiece(player, x, y)) {
                 switchTurn();
                 return true;
@@ -76,7 +82,8 @@ public class GomokuGame {
             info("GomokuGame", "Couldn't place on " + x + ", " + y);
             return false;
         }
-        debug("GomokuGame", "Not " + player.getColorName() + "'s turn!");
+        debug("GomokuGame", "Not " + getPlayer(player).getColorName()
+                + "'s turn!");
         return false;
     }
 

@@ -1,7 +1,6 @@
 package gomoku.server;
 
 import gomoku.logic.Board;
-import gomoku.logic.Player;
 import gomoku.logic.GomokuGame;
 import gomoku.net.*;
 
@@ -24,8 +23,17 @@ public class ServerListener extends Listener {
     /** The server containing this listener */
     private GomokuServer server;
 
+    /** The black player connection ID */
+    private int blackID;
+
+    /** The white player connection ID */
+    private int whiteID;
+
     /** The list of connected players */
-    private HashMap<Integer, Player> playerList;
+    private HashMap<Integer, String> playerList;
+
+    /** The list of all spectators */
+    private HashMap<Integer, String> spectators;
 
     /** the same game as in server */
     private GomokuGame game;
@@ -41,40 +49,64 @@ public class ServerListener extends Listener {
     public ServerListener(GomokuServer server) {
         this.server = server;
         game = server.game;
-        playerList = new HashMap<Integer, Player>();
+        playerList = new HashMap<Integer, String>();
+        spectators = new HashMap<Integer, String>();
+        blackID = 0;
+        whiteID = 0;
     }
 
     /**
-     * The server will reserve a spot in the game when the client connects, and
-     * add the player to player list.
+     * Returns a list of connected players. The first position is reserved for
+     * the black player. If no black player is connected the first spot will
+     * contain "(none)". The second position is reserved for the white player.
+     * If no white player is connected the second spot will contain "(none)".
+     * The rest of the list will be spectators.
+     * 
+     * @return a list of connected players
      */
-    @Override
-    public void connected(Connection connection) {
-        if (!server.redPlayerConnected) {
-            playerList.put(connection.getID(), game.getBlack());
-            server.redPlayerConnected = true;
-            debug("GomokuServer", "" + connection.toString()
-                    + " received playercolor " + Board.BLACKPLAYER);
-        } else if (!server.bluePlayerConnected) {
-            playerList.put(connection.getID(), game.getWhite());
-            server.bluePlayerConnected = true;
-            debug("GomokuServer", "" + connection.toString()
-                    + " received playercolor " + Board.WHITEPLAYER);
-        } else {
-            debug("GomokuServer", "" + connection.toString()
-                    + " received no playercolor ");
+    public String[] getPlayerList() {
+        String[] players = new String[spectators.size() + 2];
+
+        // add black to the first position
+        if (blackID == 0)
+            players[0] = "(none)";
+        else
+            players[0] = playerList.get(blackID);
+        if (whiteID == 0)
+            players[1] = "(none)";
+        else
+            players[1] = playerList.get(whiteID);
+
+        int x = 2;
+        for (String p : spectators.values()) {
+            players[x++] = p;
         }
+        return players;
     }
 
     @Override
+    public void connected(Connection connection) {
+    }
+
+    /**
+     * Notification that a connection has disconnected. Remove any connected
+     * players from our player lists.
+     */
+    @Override
     public void disconnected(Connection connection) {
-        if (playerList.get(connection.getID()) == game.getBlack())
-            server.redPlayerConnected = false;
-        else if (playerList.get(connection.getID()) == game.getWhite())
-            server.bluePlayerConnected = false;
-        playerList.remove(connection.getID());
-        debug("GomokuServer", "Removed " + connection.getID()
-                + " from playerlist");
+        if (connection.getID() == blackID)
+            blackID = 0;
+        else if (connection.getID() == whiteID)
+            whiteID = 0;
+        else
+            spectators.remove(connection.getID());
+
+        // if we actually removed a player, broadcast change to rest
+        if (playerList.remove(connection.getID()) != null) {
+            debug("GomokuServer", "Removed " + connection.getID()
+                    + " from playerlist");
+            server.broadcast(connection, new PlayerListPacket(getPlayerList()));
+        }
     }
 
     /**
@@ -86,19 +118,21 @@ public class ServerListener extends Listener {
      *            The connection that sent us the packet
      * @param obj
      *            The packet to process
-     * @see #HandlePlacePiecePacket(Connection, PlacePiecePacket)
+     * @see #handlePlacePiece(Connection, PlacePiecePacket)
      * @see #HandleMovePiecePacket(Connection, MovePiecePacket)
-     * @see #HandleGenericRequestPacket(Connection, GenericRequestPacket)
+     * @see #handleGenericRequest(Connection, GenericRequestPacket)
      */
     @Override
     public void received(Connection conn, Object obj) {
 
         if (obj instanceof PlacePiecePacket) {
-            HandlePlacePiecePacket(conn, (PlacePiecePacket) obj);
+            handlePlacePiece(conn, (PlacePiecePacket) obj);
 
         } else if (obj instanceof GenericRequestPacket) {
-            HandleGenericRequestPacket(conn, (GenericRequestPacket) obj);
+            handleGenericRequest(conn, (GenericRequestPacket) obj);
 
+        } else if (obj instanceof InitialClientDataPacket) {
+            handleInitialClientData(conn, (InitialClientDataPacket) obj);
         }
     }
 
@@ -110,15 +144,25 @@ public class ServerListener extends Listener {
      * @param ppp
      *            The packet to process
      */
-    private void HandlePlacePiecePacket(Connection conn, PlacePiecePacket ppp) {
+    private void handlePlacePiece(Connection conn, PlacePiecePacket ppp) {
 
-        if (playerList.get(conn.getID()) != game.getTurn()) {
+        int playerColor = Board.NOPLAYER;
+        if (blackID == conn.getID()) {
+            playerColor = Board.BLACKPLAYER;
+        } else if (whiteID == conn.getID()) {
+            playerColor = Board.WHITEPLAYER;
+        } else { // player is a spectator. he cannot place
+            return;
+        }
+
+        // not the players turn
+        if (playerColor != game.getTurn().getColor()) {
             conn.sendTCP(new NotifyTurnPacket(game.getTurn().getColor()));
             return;
         }
 
-        if (game.placePiece(ppp.x, ppp.y, playerList.get(conn.getID()))) {
-            debug("GomokuServer", playerList.get(conn.getID()).getName()
+        if (game.placePiece(ppp.x, ppp.y, playerColor)) {
+            debug("GomokuServer", playerList.get(conn.getID())
                     + " placed a piece on " + ppp.x + ", " + ppp.y);
             server.broadcast(conn, ppp);
         } else {
@@ -130,6 +174,49 @@ public class ServerListener extends Listener {
     }
 
     /**
+     * This packet is treated as the confirmation that the client has connected
+     * and wants to play. This function will delegate a player spot in the game
+     * to the client if there is one free, otherwise the client will be told to
+     * spectate.
+     * 
+     * @param conn
+     *            The connection that sent us the packet
+     * @param icdp
+     *            The initial data from the client
+     */
+    private void handleInitialClientData(Connection conn,
+            InitialClientDataPacket icdp) {
+        String playerName = icdp.getName();
+        int playerColor = Board.NOPLAYER;
+
+        if (blackID == 0) {
+            // tell player to receive black
+            game.getBlack().setName(playerName);
+            playerColor = Board.BLACKPLAYER;
+            blackID = conn.getID();
+
+        } else if (whiteID == 0) {
+            // tell player to receive white
+            game.getWhite().setName(playerName);
+            playerColor = Board.WHITEPLAYER;
+            whiteID = conn.getID();
+
+        } else {
+            // tell player to spectate
+            spectators.put(conn.getID(), playerName);
+        }
+        playerList.put(conn.getID(), playerName);
+
+        int turnColor = game.getTurn().getColor();
+
+        InitialServerDataPacket isdp = new InitialServerDataPacket(
+                game.getBoard(), playerColor, turnColor, getPlayerList());
+        conn.sendTCP(isdp);
+
+        server.broadcast(conn, new PlayerListPacket(getPlayerList()));
+    }
+
+    /**
      * Handle a generic request, such as BoardUpdate or ClearBoard i.e.
      * 
      * @param conn
@@ -137,24 +224,9 @@ public class ServerListener extends Listener {
      * @param grp
      *            The packet to process
      */
-    private void HandleGenericRequestPacket(Connection conn,
-            GenericRequestPacket grp) {
+    private void handleGenericRequest(Connection conn, GenericRequestPacket grp) {
 
-        if (grp.getRequest() == InitialData) {
-            int playerColor = playerList.get(conn.getID()).getColor();
-            int turnColor = game.getTurn().getColor();
-            String opponentName = "Nobody";
-            if (playerColor == Board.BLACKPLAYER) {
-                opponentName = game.getWhite().getName();
-            } else if (playerColor == Board.WHITEPLAYER) {
-                opponentName = game.getBlack().getName();
-            }
-
-            InitialDataPacket idp = new InitialDataPacket(game.getBoard(),
-                    playerColor, turnColor, opponentName);
-            conn.sendTCP(idp);
-
-        } else if (grp.getRequest() == BoardUpdate) {
+        if (grp.getRequest() == BoardUpdate) {
             BoardPacket bp = new BoardPacket(game.getBoard());
             conn.sendTCP(bp);
 
@@ -165,13 +237,11 @@ public class ServerListener extends Listener {
             server.broadcast(null, new NotifyTurnPacket(game.getTurn()
                     .getColor()));
 
-        } else if (grp.getRequest() == GetColorAndTurn) {
-            conn.sendTCP(new SetColorPacket(playerList.get(conn.getID())
-                    .getColor()));
-            conn.sendTCP(new NotifyTurnPacket(game.getTurn().getColor()));
-
         } else if (grp.getRequest() == GetTurn) {
             conn.sendTCP(new NotifyTurnPacket(game.getTurn().getColor()));
+
+        } else if (grp.getRequest() == PlayerList) {
+            conn.sendTCP(new PlayerListPacket(getPlayerList()));
 
         } else {
             error("GomokuServer", "GenericRequestPacket of unknown type: "

@@ -28,8 +28,10 @@ public abstract class RegisterPackets {
         kryo.register(int[].class);
         kryo.register(BoardPacket.class);
         kryo.register(GenericRequestPacket.class);
-        kryo.register(SetColorPacket.class);
         kryo.register(NotifyTurnPacket.class);
-        kryo.register(InitialDataPacket.class);
+        kryo.register(InitialClientDataPacket.class);
+        kryo.register(InitialServerDataPacket.class);
+        kryo.register(PlayerListPacket.class);
+        kryo.register(String[].class);
     }
 }

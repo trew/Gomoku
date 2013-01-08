@@ -1,4 +1,4 @@
-package gomoku.client;
+package gomoku.client.gui;
 
 import gomoku.logic.Board;
 
@@ -21,25 +21,12 @@ import static com.esotericsoftware.minlog.Log.*;
  */
 public class BoardComponent extends AbstractComponent {
 
-    /** The x location of this component in pixels */
-    protected int x;
-
-    /** The y location of this component in pixels */
-    protected int y;
-
     /**
-     * The width of this component in pixels. This is currently calculated by
-     * multiplying the provided square-width with the amount of squares to
-     * display on the width.
+     * This area is currently calculated by multiplying the provided
+     * square-width/height with the amount of squares to display on the
+     * width/height.
      */
-    protected int width;
-
-    /**
-     * The height of this component in pixels. This is currently calculated by
-     * multiplying the provided square-height with the amount of squares to
-     * display on the height.
-     */
-    protected int height;
+    protected Rectangle area;
 
     /** The left border of the board to display */
     protected int leftBorder;
@@ -66,7 +53,7 @@ public class BoardComponent extends AbstractComponent {
     protected Image squareImage;
 
     /** The rectangle used to bind images to */
-    private Rectangle rect;
+    private Rectangle pieceRect;
 
     /** The rectangle used to create the board background */
     private Rectangle bgRect;
@@ -111,13 +98,11 @@ public class BoardComponent extends AbstractComponent {
     public BoardComponent(GUIContext container, Board board, int x, int y,
             int squareSize, int displayWidth, int displayHeight) {
         super(container);
-        this.x = x;
-        this.y = y;
-        this.width = squareSize * displayWidth;
-        this.height = squareSize * displayHeight;
+        this.area = new Rectangle(x, y, squareSize * displayWidth, squareSize
+                * displayHeight);
         this.board = board;
 
-        rect = new Rectangle(0, 0, 10, 10);
+        pieceRect = new Rectangle(0, 0, 10, 10);
         bgRect = new Rectangle(0, 0, squareSize, squareSize);
         try {
             black = new Image("res/black.png");
@@ -135,11 +120,8 @@ public class BoardComponent extends AbstractComponent {
         this.displayWidth = displayWidth;
         this.displayHeight = displayHeight;
 
-        this.width -= this.width % displayWidth;
-        this.height -= this.height % displayHeight;
-
-        rect.setSize(width / displayWidth - 3 * 2, height / displayHeight - 3
-                * 2);
+        pieceRect.setSize(getWidth() / displayWidth - 3 * 2, getHeight()
+                / displayHeight - 3 * 2);
     }
 
     /**
@@ -176,7 +158,7 @@ public class BoardComponent extends AbstractComponent {
 
     @Override
     public void mouseReleased(int button, int x, int y) {
-        if (Rectangle.contains(x, y, this.x, this.y, width, height)) {
+        if (area.contains(x, y)) {
             squareClicked(getMouseXPositionOnBoard(x),
                     getMouseYPositionOnBoard(y));
         }
@@ -203,7 +185,7 @@ public class BoardComponent extends AbstractComponent {
     private void renderBorder(Graphics g) {
         if (board == null) {
             g.setColor(Color.black);
-            g.drawRect(0, 0, width, height);
+            g.drawRect(0, 0, area.getWidth(), area.getHeight());
             return;
         }
         // left
@@ -211,28 +193,28 @@ public class BoardComponent extends AbstractComponent {
             g.setColor(Color.black);
         else
             g.setColor(Color.green);
-        g.drawLine(0, 0, 0, height);
+        g.drawLine(0, 0, 0, getHeight());
 
         // top
         if (topBorder == 0)
             g.setColor(Color.black);
         else
             g.setColor(Color.green);
-        g.drawLine(0, 0, width, 0);
+        g.drawLine(0, 0, getWidth(), 0);
 
         // bottom
         if (topBorder + displayHeight >= board.getHeight())
             g.setColor(Color.black);
         else
             g.setColor(Color.green);
-        g.drawLine(0, height, width, height);
+        g.drawLine(0, getHeight(), getWidth(), getHeight());
 
         // right
         if (leftBorder + displayWidth >= board.getWidth())
             g.setColor(Color.black);
         else
             g.setColor(Color.green);
-        g.drawLine(width, 0, width, height);
+        g.drawLine(getWidth(), 0, getWidth(), getHeight());
     }
 
     /**
@@ -242,7 +224,7 @@ public class BoardComponent extends AbstractComponent {
     public void render(GUIContext container, Graphics g) throws SlickException {
         Color oldColor = g.getColor();
         g.pushTransform();
-        g.translate(this.x, this.y);
+        g.translate(area.getX(), area.getY());
 
         g.setColor(Color.white);
         for (int x = 0; x < displayWidth; x++) {
@@ -256,12 +238,12 @@ public class BoardComponent extends AbstractComponent {
         g.setColor(Color.black);
         // draw grid lines
         for (int x = 1; x < displayWidth; x++) {
-            int xPos = x * (width / displayWidth);
-            g.drawLine(xPos, 0, xPos, height);
+            int xPos = x * (getWidth() / displayWidth);
+            g.drawLine(xPos, 0, xPos, getHeight());
         }
         for (int y = 1; y < displayHeight; y++) {
-            int yPos = y * (height / displayHeight);
-            g.drawLine(0, yPos, width, yPos);
+            int yPos = y * (getHeight() / displayHeight);
+            g.drawLine(0, yPos, getWidth(), yPos);
         }
 
         if (board != null) {
@@ -318,16 +300,16 @@ public class BoardComponent extends AbstractComponent {
     private void drawPiece(Image image, int x, int y, Graphics g) {
         g.setColor(Color.white);
         // get the relative x position
-        int xPos = (x + 1) * (width / displayWidth)
-                - (width / (2 * displayWidth));
+        int xPos = (x + 1) * (getWidth() / displayWidth)
+                - (getWidth() / (2 * displayWidth));
         // get the relative y position
-        int yPos = (y + 1) * (height / displayHeight)
-                - (height / (2 * displayHeight));
+        int yPos = (y + 1) * (getHeight() / displayHeight)
+                - (getHeight() / (2 * displayHeight));
 
-        rect.setCenterX(xPos);
-        rect.setCenterY(yPos);
+        pieceRect.setCenterX(xPos);
+        pieceRect.setCenterY(yPos);
         image.setImageColor(0, 0, 1);
-        g.texture(rect, image, true);
+        g.texture(pieceRect, image, true);
     }
 
     /**
@@ -339,7 +321,7 @@ public class BoardComponent extends AbstractComponent {
      */
     public int getMouseXPositionOnBoard(int mouseX) {
         for (int x = 0; x < displayWidth; x++) {
-            if (mouseX < this.x + ((x + 1) * width / displayWidth))
+            if (mouseX < getX() + ((x + 1) * getWidth() / displayWidth))
                 return x + leftBorder;
         }
         return displayWidth + leftBorder;
@@ -354,7 +336,7 @@ public class BoardComponent extends AbstractComponent {
      */
     public int getMouseYPositionOnBoard(int mouseY) {
         for (int y = 0; y < displayHeight; y++) {
-            if (mouseY < this.y + ((y + 1) * height / displayHeight))
+            if (mouseY < getY() + ((y + 1) * getHeight() / displayHeight))
                 return y + topBorder;
         }
         return displayHeight + topBorder;
@@ -362,28 +344,28 @@ public class BoardComponent extends AbstractComponent {
 
     @Override
     public int getX() {
-        return x;
+        return (int) area.getX();
     }
 
     @Override
     public int getY() {
-        return y;
+        return (int) area.getY();
     }
 
     @Override
     public void setLocation(int x, int y) {
-        this.x = x;
-        this.y = y;
+        if (area != null)
+            area.setLocation(x, y);
     }
 
     @Override
     public int getWidth() {
-        return width;
+        return (int) area.getWidth();
     }
 
     @Override
     public int getHeight() {
-        return height;
+        return (int) area.getHeight();
     }
 
     /**
@@ -427,8 +409,8 @@ public class BoardComponent extends AbstractComponent {
             // slap the caller
             return;
         }
-        this.width = squareSize * displayWidth;
-        this.height = squareSize * displayHeight;
+        area.setWidth(squareSize * displayWidth);
+        area.setHeight(squareSize * displayHeight);
         bgRect.setSize(squareSize, squareSize);
     }
 }
