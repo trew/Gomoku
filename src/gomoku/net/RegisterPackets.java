@@ -33,5 +33,8 @@ public abstract class RegisterPackets {
         kryo.register(InitialServerDataPacket.class);
         kryo.register(PlayerListPacket.class);
         kryo.register(String[].class);
+        kryo.register(CreateGamePacket.class);
+        kryo.register(JoinGamePacket.class);
+        kryo.register(GameListPacket.class);
     }
 }

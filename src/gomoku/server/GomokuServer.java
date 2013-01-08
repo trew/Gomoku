@@ -1,12 +1,21 @@
 package gomoku.server;
 
-import gomoku.logic.GomokuGame;
 import gomoku.net.*;
 
-import java.awt.*;
+import java.awt.AWTException;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Frame;
+import java.awt.Image;
+import java.awt.MenuItem;
+import java.awt.PopupMenu;
+import java.awt.SystemTray;
+import java.awt.Toolkit;
+import java.awt.TrayIcon;
 import java.awt.event.*;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.HashMap;
 
 import javax.swing.*;
 
@@ -55,9 +64,9 @@ public class GomokuServer {
     private ServerListener listener;
 
     /**
-     * The game that the server runs
+     * The games that the server runs
      */
-    public GomokuGame game;
+    public HashMap<Integer, GomokuNetworkGame> games;
 
     /**
      * The JFrame if we're using Swing console
@@ -67,13 +76,21 @@ public class GomokuServer {
     private static GomokuServer gomokuserver = null;
 
     /**
-     * Create a new TTTServer
+     * Create a new GomokuServer
      */
     public GomokuServer() {
         server = new Server();
-        game = new GomokuGame(15, 15);
         listener = new ServerListener(this);
+        games = new HashMap<Integer, GomokuNetworkGame>();
         frame = null;
+    }
+
+    public Server getServer() {
+        return server;
+    }
+
+    public void endGame(GomokuNetworkGame game) {
+        games.remove(game.getID());
     }
 
     /**
@@ -111,15 +128,6 @@ public class GomokuServer {
         info("GomokuServer", "Exiting server");
         server.stop();
         System.exit(0);
-    }
-
-    /**
-     * Reset the board and broadcast change to all connections
-     */
-    public void resetGame() {
-        game.reset();
-        broadcast(null, new BoardPacket(game.getBoard()));
-        debug("GomokuServer", "Board was reset");
     }
 
     /**
@@ -222,14 +230,6 @@ public class GomokuServer {
                         gomokuserver.exit();
                     }
                 });
-                MenuItem resetItem = new MenuItem("Reset board");
-                resetItem.addActionListener(new ActionListener() {
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        gomokuserver.resetGame();
-                    }
-                });
-                menu.add(resetItem);
                 menu.add(exitItem);
                 icon = new TrayIcon(image, "Server", menu);
                 icon.addActionListener(new ActionListener() {

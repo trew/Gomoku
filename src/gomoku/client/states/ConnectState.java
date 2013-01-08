@@ -125,10 +125,11 @@ public class ConnectState extends GomokuGameState {
             return;
         }
         connectMessage = "Connecting...";
-        connectButton.disable();
+
         // lock all settings
+        connectButton.disable();
         nameField.deactivate();
-        ((GameplayState) game.getState(1)).setPlayerName(nameField.getText());
+        game.setPlayerName(nameField.getText());
 
         connectingState = CONNECTSTATE.CONNECTING;
         Listener listener = new Listener() {
@@ -137,7 +138,7 @@ public class ConnectState extends GomokuGameState {
                 connectingState = CONNECTSTATE.CONNECTED;
                 connectMessage = "Connected.";
                 game.client.removeListener(this);
-                game.enterState(1); // gameplaystate
+                game.enterState(1); // choosegamestate
             }
         };
         game.client.addListener(listener);

@@ -20,6 +20,9 @@ public final class Request {
     /** Request the list of connected players */
     public static int PlayerList = 4;
 
+    /** Request to start a new game */
+    public static int CreateGame = 5;
+
     /**
      * Check a value if it's a valid request
      * 
@@ -28,6 +31,6 @@ public final class Request {
      * @return True if it is a valid request
      */
     public static boolean validRequest(int request) {
-        return request > 0 && request < 5;
+        return request > 0 && request < 6;
     }
 }

@@ -27,6 +27,8 @@ public class GameplayState extends GomokuGameState {
     /** Contains the game logic */
     public GomokuGame gomokuGame;
 
+    public GomokuClient client;
+
     /** The player */
     public Player me;
 
@@ -37,8 +39,6 @@ public class GameplayState extends GomokuGameState {
     private GameplayStateListener listener;
 
     private boolean loading;
-
-    private String playerName;
 
     private String[] playerList;
 
@@ -59,14 +59,6 @@ public class GameplayState extends GomokuGameState {
         loading = false;
     }
 
-    public void setPlayerName(String name) {
-        playerName = name;
-    }
-
-    public String getPlayerName() {
-        return playerName;
-    }
-
     /**
      * Setup names and values for players. If this client receives black, makes
      * sure the white player receives the correct name.
@@ -78,12 +70,12 @@ public class GameplayState extends GomokuGameState {
 
         if (playerColor == Board.BLACKPLAYER) {
             me = gomokuGame.getBlack();
-            playerList[0] = playerName;
+            playerList[0] = client.getPlayerName();
             gomokuGame.getWhite().setName(playerList[1]);
 
         } else if (playerColor == Board.WHITEPLAYER) {
             me = gomokuGame.getWhite();
-            playerList[1] = playerName;
+            playerList[1] = client.getPlayerName();
             gomokuGame.getBlack().setName(playerList[0]);
 
         } else {
@@ -91,7 +83,7 @@ public class GameplayState extends GomokuGameState {
             return;
         }
 
-        me.setName(playerName);
+        me.setName(client.getPlayerName());
         info("GameplayState", "Color set to " + me.getColorName());
     }
 
@@ -116,7 +108,8 @@ public class GameplayState extends GomokuGameState {
         loading = true; // will be set to false once we receive data from the
                         // server
 
-        playerName = "(none)";
+        client = gomokuClient;
+        client.setPlayerName("(none)");
 
         // add the board
         boardComponent = new BoardComponent(container, null, 100, 50, 30, 15,
@@ -129,19 +122,20 @@ public class GameplayState extends GomokuGameState {
             }
         };
 
-        // add network listener
         listener = new GameplayStateListener(this);
-        gomokuClient.client.addListener(listener);
     }
 
-    /**
-     * When entering this game state, request initial data from the server such
-     * as the board, our player color and the current turn
-     */
     @Override
     public void enter(GameContainer container, GomokuClient gomokuClient)
             throws SlickException {
-        gomokuClient.client.sendTCP(new InitialClientDataPacket(playerName));
+        // add network listener
+        gomokuClient.client.addListener(listener);
+    }
+
+    @Override
+    public void leave(GameContainer container, GomokuClient gomokuClient)
+            throws SlickException {
+        gomokuClient.client.removeListener(listener);
     }
 
     /**
@@ -254,7 +248,7 @@ public class GameplayState extends GomokuGameState {
 
     @Override
     public int getID() {
-        return 1;
+        return 2;
     }
 
 }

@@ -8,6 +8,8 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.StateBasedGame;
 
+import com.esotericsoftware.kryonet.Connection;
+
 public abstract class GomokuGameState extends BasicGameState {
 
     /**
@@ -104,6 +106,16 @@ public abstract class GomokuGameState extends BasicGameState {
             throws SlickException {
     }
 
+    @Override
+    public void leave(GameContainer container, StateBasedGame game)
+            throws SlickException {
+        leave(container, (GomokuClient) game);
+    }
+
+    public void leave(GameContainer container, GomokuClient game)
+            throws SlickException {
+    }
+
     /**
      * Calculate the left X position for centering something within borders
      * 
@@ -117,6 +129,18 @@ public abstract class GomokuGameState extends BasicGameState {
      */
     public int center(float x1, float x2, float width) {
         return (int) (x1 + (x2 - x1) / 2 - width / 2);
+    }
+
+    public void connected(Connection connection) {
+    }
+
+    public void disconnected(Connection connection) {
+    }
+
+    public void received(Connection connection, Object object) {
+    }
+
+    public void idle(Connection connection) {
     }
 
 }

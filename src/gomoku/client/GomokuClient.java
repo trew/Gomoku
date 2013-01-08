@@ -1,5 +1,6 @@
 package gomoku.client;
 
+import gomoku.client.states.ChooseGameState;
 import gomoku.client.states.ConnectState;
 import gomoku.client.states.GameplayState;
 
@@ -39,6 +40,16 @@ public class GomokuClient extends StateBasedGame {
     /** The network client */
     public Client client;
 
+    private String playerName;
+
+    public void setPlayerName(String name) {
+        playerName = name;
+    }
+
+    public String getPlayerName() {
+        return playerName;
+    }
+
     /**
      * Create a new game client
      */
@@ -53,7 +64,8 @@ public class GomokuClient extends StateBasedGame {
     @Override
     public void initStatesList(GameContainer container) throws SlickException {
         this.addState(new ConnectState()); // stateID: 0
-        this.addState(new GameplayState()); // stateID: 1
+        this.addState(new ChooseGameState()); // stateID: 1
+        this.addState(new GameplayState()); // stateID: 2
     }
 
     /**
