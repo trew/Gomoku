@@ -64,7 +64,7 @@ public class Button extends AbstractComponent {
     public Button(GUIContext container, Image image, int x, int y, int width,
             int height) {
         super(container);
-        constructorHack("", image, new Rectangle(x, y, width, height));
+        constructorHack(null, image, new Rectangle(x, y, width, height));
     }
 
     /**
@@ -110,8 +110,11 @@ public class Button extends AbstractComponent {
      * to-be-the-first-statement-in-a-constructor
      * 
      * @param text
+     *            the text to be displayed on the button
      * @param image
+     *            the image background
      * @param area
+     *            the area which the button occupies
      */
     private void constructorHack(String text, Image image, Rectangle area) {
         this.area = area;
@@ -144,7 +147,7 @@ public class Button extends AbstractComponent {
             g.setColor(currentColor);
             g.fill(area);
         }
-        if (text != "") {
+        if (text != null) {
             font.drawString(area.getX() + textWidthPadding, area.getY()
                     + textHeightPadding + textYModifier, text, Color.black);
         }

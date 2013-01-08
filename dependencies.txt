@@ -6,3 +6,8 @@ Light-Weight Java Game Library - http://lwjgl.org/
 The JAR's is needed for development, but most importantly the natives are 
 required.
 http://lwjgl.org/wiki/index.php?title=Downloading_and_Setting_Up_LWJGL
+
+Code Libraries:
+http://www.slick2d.org - Slick2D
+http://www.martiansoftware.com/jsap/ - JSAP 2.1
+http://code.google.com/p/kryonet/ - KryoNet 2.18
