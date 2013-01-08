@@ -10,7 +10,6 @@ import org.newdawn.slick.state.StateBasedGame;
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.minlog.Log;
-import com.martiansoftware.jsap.*;
 
 import static com.esotericsoftware.minlog.Log.*;
 
@@ -35,12 +34,6 @@ public class GomokuClient extends StateBasedGame {
     /** The target max frame rate */
     private static final int TARGET_FPS = 60;
 
-    /** The address to the server */
-    public static String ADDRESS;
-
-    /** The port of the server */
-    public static int PORT;
-
     /* ********** END STATIC ********** */
 
     /** The network client */
@@ -64,31 +57,6 @@ public class GomokuClient extends StateBasedGame {
     }
 
     /**
-     * Parse the arguments passed to the application
-     * 
-     * @param args
-     *            The arguments
-     * @throws JSAPException
-     *             if command line couldn't be parsed correctly
-     */
-    public static void parseArgs(String[] args) throws JSAPException {
-        JSAP jsap = new JSAP();
-        FlaggedOption addrOpt = new FlaggedOption("address").setDefault(
-                "127.0.0.1").setLongFlag("address");
-        FlaggedOption portOpt = new FlaggedOption("port")
-                .setStringParser(JSAP.INTEGER_PARSER).setDefault("9123")
-                .setLongFlag("port");
-        jsap.registerParameter(addrOpt);
-        jsap.registerParameter(portOpt);
-
-        JSAPResult result = jsap.parse(args);
-        ADDRESS = result.getString("address");
-        info("GomokuClient", "Using \"" + ADDRESS + "\" as remote address");
-        PORT = result.getInt("port");
-        info("GomokuClient", "Using \"" + PORT + "\" as port number");
-    }
-
-    /**
      * The main entry point of the game client
      * 
      * @param args
@@ -98,7 +66,6 @@ public class GomokuClient extends StateBasedGame {
     public static void main(String[] args) {
         try {
             Log.set(LEVEL_DEBUG);
-            parseArgs(args);
 
             // create the StateBasedGame to be passed to the container
             GomokuClient game = new GomokuClient();
@@ -117,11 +84,6 @@ public class GomokuClient extends StateBasedGame {
             game.client.stop();
 
         } catch (SlickException e) {
-            if (TRACE)
-                trace("GomokuClient", e);
-            else
-                error("GomokuClient", e.getMessage());
-        } catch (JSAPException e) {
             if (TRACE)
                 trace("GomokuClient", e);
             else
