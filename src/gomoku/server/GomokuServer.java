@@ -1,6 +1,6 @@
 package gomoku.server;
 
-import gomoku.net.*;
+import gomoku.net.RegisterPackets;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
@@ -12,19 +12,28 @@ import java.awt.PopupMenu;
 import java.awt.SystemTray;
 import java.awt.Toolkit;
 import java.awt.TrayIcon;
-import java.awt.event.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashMap;
 
-import javax.swing.*;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
-import static com.esotericsoftware.minlog.Log.*;
-import com.martiansoftware.jsap.*;
+import com.martiansoftware.jsap.FlaggedOption;
+import com.martiansoftware.jsap.JSAP;
+import com.martiansoftware.jsap.JSAPException;
+import com.martiansoftware.jsap.JSAPResult;
 
+import static com.esotericsoftware.minlog.Log.*;
 /**
  * Server of the Gomoku game<br />
  * <br />
@@ -116,6 +125,7 @@ public class GomokuServer {
         server.start();
         try {
             server.bind(PORT);
+            info("GomokuServer", "Server running on *:" + PORT);
         } catch (IOException e) {
             if (TRACE)
                 trace("GomokuServer", e);
@@ -180,15 +190,15 @@ public class GomokuServer {
             SWING = config.getBoolean("swing");
             PORT = config.getInt("port");
             String loglevel = config.getString("loglevel").toLowerCase();
-            if (loglevel == "trace" || loglevel == "1")
+            if (loglevel.equals("trace") || loglevel.equals("1"))
                 LOGLEVEL = Log.LEVEL_TRACE;
-            else if (loglevel == "debug" || loglevel == "2")
+            else if (loglevel.equals("debug") || loglevel.equals("2"))
                 LOGLEVEL = Log.LEVEL_DEBUG;
-            else if (loglevel == "warn" || loglevel == "4")
+            else if (loglevel.equals("warn") || loglevel.equals("4"))
                 LOGLEVEL = Log.LEVEL_WARN;
-            else if (loglevel == "error" || loglevel == "5")
+            else if (loglevel.equals("error") || loglevel.equals("5"))
                 LOGLEVEL = Log.LEVEL_ERROR;
-            else if (loglevel == "none" || loglevel == "0")
+            else if (loglevel.equals("none") || loglevel.equals("0"))
                 LOGLEVEL = Log.LEVEL_NONE;
         } catch (JSAPException e) {
             if (TRACE)
@@ -208,7 +218,6 @@ public class GomokuServer {
      */
     public static void main(String[] args) {
         Log.set(LOGLEVEL);
-
         parseArgs(args);
 
         // override if using windows
@@ -279,6 +288,15 @@ public class GomokuServer {
             gomokuserver.frame.pack();
             gomokuserver.frame.setVisible(true);
         }
+
+        Log.set(LOGLEVEL);
+
+        String logName = "info";
+        if (LOGLEVEL == 1)
+            logName = "trace";
+        else if (LOGLEVEL == 2)
+            logName = "debug";
+        info("GomokuServer", "Logging level set to \"" + logName + "\".");
 
         gomokuserver.init();
         gomokuserver.start();
