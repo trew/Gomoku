@@ -81,8 +81,9 @@ public class GameplayState extends GomokuGameState {
             gomokuGame.getBlack().setName(playerList[0]);
 
         } else {
-            error("GameplayState", "Color couldn't bet set!");
-            return;
+            me = new Player("", Board.NOPLAYER);
+            gomokuGame.getBlack().setName(playerList[0]);
+            gomokuGame.getWhite().setName(playerList[1]);
         }
 
         me.setName(client.getPlayerName());
@@ -100,6 +101,9 @@ public class GameplayState extends GomokuGameState {
             gomokuGame.getWhite().setName(playerList[1]);
         } else if (me.getColor() == Board.WHITEPLAYER) {
             gomokuGame.getBlack().setName(playerList[0]);
+        } else {
+            gomokuGame.getBlack().setName(playerList[0]);
+            gomokuGame.getWhite().setName(playerList[1]);
         }
     }
 
@@ -200,6 +204,12 @@ public class GameplayState extends GomokuGameState {
         /* *** END NETWORK RELATED INPUT *** */
     }
 
+    private static int rowYPos = 20;
+    private void drawRow(String str, int x, Graphics g) {
+        int textHeight = g.getFont().getHeight(str);
+        g.drawString(str, x, rowYPos);
+        rowYPos += textHeight + 1;
+    }
     @Override
     public void render(GameContainer container, GomokuClient gomokuClient,
             Graphics g) throws SlickException {
@@ -213,36 +223,43 @@ public class GameplayState extends GomokuGameState {
 
             // draw game info
             int xPos = 600;
-            g.drawString("Your name: " + me.getName(), xPos, 20);
-            g.drawString("Your color: " + me.getColorName(), xPos, 40);
-            g.drawString("Turn: " + (myTurn() ? "You" : "Opponent"), xPos, 60);
-            g.drawString("Board size: " + gomokuGame.getBoard().getWidth()
-                    + "x" + gomokuGame.getBoard().getHeight(), xPos, 80);
-            g.drawString("Displaysize: " + boardComponent.getDisplayWidth()
-                    + "x" + boardComponent.getDisplayHeight(), xPos, 100);
+            rowYPos = 20;
+            drawRow("Your name: " + me.getName(), xPos, g);
+            if (me.getColor() != Board.NOPLAYER) {
+                drawRow("Your color: " + me.getColorName(), xPos, g);
+                drawRow("Turn: " + (myTurn() ? "You" : "Opponent"), xPos, g);
+            }
+            drawRow("Board size: " + gomokuGame.getBoard().getWidth()
+                    + "x" + gomokuGame.getBoard().getHeight(), xPos, g);
+            drawRow("Displaysize: " + boardComponent.getDisplayWidth()
+                    + "x" + boardComponent.getDisplayHeight(), xPos, g);
 
-            g.drawString("Connected players", xPos, 120);
-            g.drawString("-----------------", xPos, 140);
-            int yPos = 160;
+            drawRow("Connected players", xPos, g);
+            drawRow("-----------------", xPos, g);
             for (String p : this.playerList) {
                 if (p == "(none)")
-                    return;
-                g.drawString(p, xPos, yPos);
-                yPos += 20;
+                    break;
+                drawRow(p, xPos, g);
             }
+
             String versus = gomokuGame.getBlack().getName() + " vs "
                     + gomokuGame.getWhite().getName();
             g.drawString(versus, 250, 10);
 
-            String status = "";
-            if (!myTurn()) {
-                g.setColor(Color.red);
-                status += "waiting for opponent";
+            if (me.getColor() == Board.NOPLAYER) {
+
             } else {
-                g.setColor(Color.green);
-                status += "Your turn!";
+                String status = "";
+                if (!myTurn()) {
+                    g.setColor(Color.red);
+                    status += "waiting for opponent";
+                } else {
+                    g.setColor(Color.green);
+                    status += "Your turn!";
+                }
+                g.drawString(status, 250, 550);
             }
-            g.drawString(status, 250, 550);
+
             g.setColor(Color.white);
 
         }

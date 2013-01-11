@@ -16,7 +16,7 @@ import static com.esotericsoftware.minlog.Log.*;
 /**
  * A component displaying a Gomoku board. The board component handles input and
  * rendering while {@link Board} handles the logic.
- * 
+ *
  * @author Samuel Andersson
  */
 public class BoardComponent extends AbstractComponent {
@@ -40,6 +40,8 @@ public class BoardComponent extends AbstractComponent {
     /** The amount of squares to display vertically */
     protected int displayHeight;
 
+    protected int squareSize;
+
     /** The board */
     protected Board board;
 
@@ -60,7 +62,7 @@ public class BoardComponent extends AbstractComponent {
 
     /**
      * Create a new board component with the default width of 5 and height of 5.
-     * 
+     *
      * @see #BoardComponent(GUIContext, Board, int, int, int, int, int, int,
      *      int, int, int)
      */
@@ -71,7 +73,7 @@ public class BoardComponent extends AbstractComponent {
 
     /**
      * Create a new board component
-     * 
+     *
      * @param container
      *            The container holding this component
      * @param board
@@ -102,6 +104,7 @@ public class BoardComponent extends AbstractComponent {
                 * displayHeight);
         this.board = board;
 
+        this.squareSize = squareSize;
         pieceRect = new Rectangle(0, 0, 10, 10);
         bgRect = new Rectangle(0, 0, squareSize, squareSize);
         try {
@@ -126,11 +129,23 @@ public class BoardComponent extends AbstractComponent {
 
     /**
      * Set the board which this component will represent
-     * 
+     *
      * @param board
      *            the board which this component will represent
      */
     public void setBoard(Board board) {
+        boolean changed = false;
+        if (board.getWidth() < displayWidth) {
+            displayWidth = board.getWidth();
+            changed = true;
+        }
+        if (board.getHeight() < displayHeight) {
+            displayHeight = board.getHeight();
+            changed = true;
+        }
+        if (changed) {
+            setDisplaySize(displayWidth, displayHeight, squareSize);
+        }
         this.board = board;
     }
 
@@ -166,7 +181,7 @@ public class BoardComponent extends AbstractComponent {
 
     /**
      * Notification that a square was clicked on the board
-     * 
+     *
      * @param x
      *            The x location on the board
      * @param y
@@ -178,7 +193,7 @@ public class BoardComponent extends AbstractComponent {
     /**
      * Render a border around the whole board. Draw a red border if we're at the
      * edge, draw green if the board is scrollable that way
-     * 
+     *
      * @param g
      *            The graphics context to which we'll render this border
      */
@@ -269,7 +284,7 @@ public class BoardComponent extends AbstractComponent {
 
     /**
      * Draw a black piece on the provided position on the board
-     * 
+     *
      * @see #drawPiece(Image, int, int, Graphics)
      */
     private void drawBlackPiece(int x, int y, Graphics g) {
@@ -278,7 +293,7 @@ public class BoardComponent extends AbstractComponent {
 
     /**
      * Draw a white piece on the provided position on the board
-     * 
+     *
      * @see #drawPiece(Image, int, int, Graphics)
      */
     private void drawWhitePiece(int x, int y, Graphics g) {
@@ -287,7 +302,7 @@ public class BoardComponent extends AbstractComponent {
 
     /**
      * Draw a piece to a location on the board
-     * 
+     *
      * @param image
      *            The piece image to be drawn
      * @param x
@@ -314,7 +329,7 @@ public class BoardComponent extends AbstractComponent {
 
     /**
      * Get the x position on the board where the mouse is
-     * 
+     *
      * @param mouseX
      *            The mouse X location (in pixels)
      * @return The corresponding x position on the board
@@ -329,7 +344,7 @@ public class BoardComponent extends AbstractComponent {
 
     /**
      * Get the y position on the board where the mouse is
-     * 
+     *
      * @param mouseY
      *            The mouse Y location (in pixels)
      * @return The corresponding y position on the board
@@ -370,7 +385,7 @@ public class BoardComponent extends AbstractComponent {
 
     /**
      * Get the display height of the board
-     * 
+     *
      * @return The display height of the board
      */
     public int getDisplayHeight() {
@@ -379,7 +394,7 @@ public class BoardComponent extends AbstractComponent {
 
     /**
      * Get the display width of the board
-     * 
+     *
      * @return The display width of the board
      */
     public int getDisplayWidth() {
@@ -388,7 +403,7 @@ public class BoardComponent extends AbstractComponent {
 
     /**
      * Set the size of the board to display
-     * 
+     *
      * @param width
      *            The width of the board to display
      * @param height

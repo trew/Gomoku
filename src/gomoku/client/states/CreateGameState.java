@@ -3,12 +3,15 @@ package gomoku.client.states;
 import gomoku.client.GomokuClient;
 import gomoku.client.gui.Button;
 import gomoku.net.CreateGamePacket;
+import gomoku.net.InitialServerDataPacket;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.gui.TextField;
+
+import com.esotericsoftware.kryonet.Connection;
 
 public class CreateGameState extends GomokuGameState {
 
@@ -63,21 +66,34 @@ public class CreateGameState extends GomokuGameState {
         try {
             w = Integer.parseInt(widthField.getText());
             if (w < 3 || w > 127) {
-                throw new IllegalArgumentException("Width must be between 3-127");
+                throw new IllegalArgumentException(
+                        "Width must be between 3-127");
             }
             h = Integer.parseInt(heightField.getText());
             if (h < 3 || h > 127) {
-                throw new IllegalArgumentException("Height must be between 3-127");
+                throw new IllegalArgumentException(
+                        "Height must be between 3-127");
             }
-        } catch (NumberFormatException e){
-            throw new IllegalArgumentException("Width or height must be valid numbers");
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(
+                    "Width or height must be valid numbers");
         }
         if (gameNameField.getText() == "") {
             throw new IllegalArgumentException("You must provide a game name");
         }
 
         confirmButton.disable();
-        gomokuClient.client.sendTCP(new CreateGamePacket(gameNameField.getText(), w, h, true));
+        gomokuClient.client.sendTCP(new CreateGamePacket(gameNameField
+                .getText(), w, h, true));
+    }
+
+    @Override
+    protected void handleInitialServerData(Connection connection,
+            InitialServerDataPacket isdp) {
+        ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE)).setInitialData(
+                isdp.getBoard(), isdp.getColor(), isdp.getTurn(),
+                isdp.getPlayerList());
+        gomokuClient.enterState(GAMEPLAYSTATE);
     }
 
     @Override

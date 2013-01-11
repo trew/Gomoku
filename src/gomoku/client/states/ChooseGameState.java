@@ -9,9 +9,11 @@ import gomoku.net.InitialClientDataPacket;
 import gomoku.net.InitialServerDataPacket;
 import gomoku.net.JoinGamePacket;
 
+import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.gui.TextField;
 
 import com.esotericsoftware.kryonet.Connection;
 
@@ -20,6 +22,7 @@ import static com.esotericsoftware.minlog.Log.*;
 public class ChooseGameState extends GomokuGameState {
 
     private GameList gameList;
+    private TextField selectedGameIDField;
 
     private Button createNewGameButton;
     private Button joinGameButton;
@@ -56,6 +59,11 @@ public class ChooseGameState extends GomokuGameState {
         gomokuClient = game;
 
         gameList = new GameList(container, 100, 50, 600, 400);
+        selectedGameIDField = new TextField(container,
+                container.getDefaultFont(), 530, 460, 30, 25);
+        selectedGameIDField.setBackgroundColor(Color.darkGray);
+        selectedGameIDField.setBorderColor(Color.white);
+        selectedGameIDField.setMaxLength(2);
 
         createNewGameButton = new Button(container, "Create new game", 100, 460) {
             @Override
@@ -63,7 +71,7 @@ public class ChooseGameState extends GomokuGameState {
                 gomokuClient.enterState(CREATEGAMESTATE);
             }
         };
-        joinGameButton = new Button(container, "Join Game", 300, 460) {
+        joinGameButton = new Button(container, "Join Game", 330, 460) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 joinGame();
@@ -72,8 +80,14 @@ public class ChooseGameState extends GomokuGameState {
     }
 
     public void joinGame() {
-        int selectedID = gameList.getSelectedID();
-        if (selectedID > 0) {
+        // int selectedID = gameList.getSelectedID();
+        int selectedID = -1;
+        try {
+            selectedID = Integer.parseInt(selectedGameIDField.getText());
+        } catch (NumberFormatException e) {
+            return;
+        }
+        if (gameList.validID(selectedID)) {
             gomokuClient.client.sendTCP(new JoinGamePacket(selectedID));
         }
     }
@@ -85,6 +99,8 @@ public class ChooseGameState extends GomokuGameState {
         gameList.render(container, g);
         createNewGameButton.render(container, g);
         joinGameButton.render(container, g);
+        g.drawString("GameID:", 460, 465);
+        selectedGameIDField.render(container, g);
     }
 
     public void addGame(String gameName, int gameID) {

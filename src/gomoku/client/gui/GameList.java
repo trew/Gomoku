@@ -1,6 +1,7 @@
 package gomoku.client.gui;
 
 import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 
 import org.newdawn.slick.Color;
 import org.newdawn.slick.Graphics;
@@ -21,7 +22,7 @@ public class GameList extends AbstractComponent {
         super(container);
         area = new Rectangle(x, y, w, h);
         games = new LinkedHashMap<Integer, String>();
-        selectedID = 1;
+        selectedID = -1;
     }
 
     @Override
@@ -31,11 +32,19 @@ public class GameList extends AbstractComponent {
         g.setColor(Color.white);
         g.fill(area);
 
-        int y = getY();
+        int y = getY() + 3;
+        int textHeight = 0;
+        String text;
         g.setColor(Color.black);
-        for (String gameName : games.values()) {
-            g.drawString(gameName, getX(), y);
-            y += 20;
+        if (games.isEmpty()) {
+            g.drawString("No games available", getX() + 3, y);
+        } else {
+            for (Entry<Integer, String> entry : games.entrySet()) {
+                text = entry.getValue() + " - GameID: " + entry.getKey();
+                textHeight = g.getFont().getHeight(text);
+                g.drawString(text, getX(), y);
+                y += textHeight;
+            }
         }
 
         g.setColor(old);
@@ -55,6 +64,17 @@ public class GameList extends AbstractComponent {
 
     public int getSelectedID() {
         return selectedID;
+    }
+
+    /**
+     * Returns true if the ID exists in the gamelist
+     *
+     * @param id
+     *            the id to be checked
+     * @return true if the ID exists in the gamelist
+     */
+    public boolean validID(int id) {
+        return games.containsKey(id);
     }
 
     @Override
