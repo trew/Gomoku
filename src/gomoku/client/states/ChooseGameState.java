@@ -29,29 +29,6 @@ public class ChooseGameState extends GomokuGameState {
     public ChooseGameState() {
     }
 
-    @Override
-    public void received(Connection conn, Object obj) {
-        if (obj instanceof GameListPacket) {
-            debug("ChooseGameState", "Received GameListPacket");
-            GameListPacket glp = (GameListPacket) obj;
-            if (glp.gameID.length != glp.gameName.length) {
-                warn("ChooseGameState", "GameListPacket-list not of same size.");
-                return;
-            }
-            gameList.clear();
-            for (int x = 0; x < glp.gameID.length; x++) {
-                addGame(glp.gameName[x], glp.gameID[x]);
-            }
-
-        } else if (obj instanceof InitialServerDataPacket) {
-            InitialServerDataPacket isdp = (InitialServerDataPacket) obj;
-            ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE))
-                    .setInitialData(isdp.getBoard(), isdp.getColor(),
-                            isdp.getTurn(), isdp.getPlayerList());
-            gomokuClient.enterState(GAMEPLAYSTATE);
-        }
-    }
-
     /**
      * When entering this game state, request initial data from the server such
      * as the board, our player color and the current turn
@@ -112,6 +89,28 @@ public class ChooseGameState extends GomokuGameState {
             throws SlickException {
 
     }
+
+    @Override
+    protected void handleGameList(Connection connection, GameListPacket glp) {
+        debug("ChooseGameState", "Received GameListPacket");
+        if (glp.gameID.length != glp.gameName.length) {
+            warn("ChooseGameState", "GameListPacket-list not of same size.");
+            return;
+        }
+        gameList.clear();
+        for (int x = 0; x < glp.gameID.length; x++) {
+            addGame(glp.gameName[x], glp.gameID[x]);
+        }
+    }
+
+    @Override
+    protected void handleInitialServerData(Connection connection, InitialServerDataPacket isdp) {
+        ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE))
+        .setInitialData(isdp.getBoard(), isdp.getColor(),
+                isdp.getTurn(), isdp.getPlayerList());
+        gomokuClient.enterState(GAMEPLAYSTATE);
+    }
+
 
     @Override
     public int getID() {

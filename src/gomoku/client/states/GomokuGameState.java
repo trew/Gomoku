@@ -1,6 +1,7 @@
 package gomoku.client.states;
 
 import gomoku.client.GomokuClient;
+import gomoku.net.*;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -110,7 +111,6 @@ public abstract class GomokuGameState extends BasicGameState {
     public abstract void enter(GameContainer container, GomokuClient game)
             throws SlickException;
 
-
     @Override
     public void leave(GameContainer container, StateBasedGame game)
             throws SlickException {
@@ -154,6 +154,101 @@ public abstract class GomokuGameState extends BasicGameState {
     }
 
     public void received(Connection connection, Object object) {
+        // locate the type of packet we received
+        if (object instanceof BoardPacket)
+            handleBoard(connection, (BoardPacket) object);
+        else if (object instanceof GameListPacket)
+            handleGameList(connection, (GameListPacket) object);
+        else if (object instanceof GenericRequestPacket)
+            handleGenericRequest(connection, (GenericRequestPacket) object);
+        else if (object instanceof InitialServerDataPacket)
+            handleInitialServerData(connection,
+                    (InitialServerDataPacket) object);
+        else if (object instanceof NotifyTurnPacket)
+            handleNotifyTurn(connection, (NotifyTurnPacket) object);
+        else if (object instanceof PlacePiecePacket)
+            handlePlacePiece(connection, (PlacePiecePacket) object);
+        else if (object instanceof PlayerListPacket)
+            handlePlayerList(connection, (PlayerListPacket) object);
+    }
+
+    /**
+     * Handles how a received BoardPacket should be treated.
+     *
+     * @param connection
+     *            the connection that send the BoardPacket
+     * @param bp
+     *            the BoardPacket
+     */
+    protected void handleBoard(Connection connection, BoardPacket bp) {
+    }
+
+    /**
+     * Handles how a received GameListPacket should be treated.
+     *
+     * @param connection
+     *            the connection that send the GameListPacket
+     * @param glp
+     *            the GameListPacket
+     */
+    protected void handleGameList(Connection connection, GameListPacket glp) {
+    }
+
+    /**
+     * Handles how a received GenericRequestPacket should be treated.
+     *
+     * @param connection
+     *            the connection that send the GenericRequestPacket
+     * @param grp
+     *            the GenericRequestPacket
+     */
+    protected void handleGenericRequest(Connection connection,
+            GenericRequestPacket grp) {
+    }
+
+    /**
+     * Handles how a received InitialServerDataPacket should be treated.
+     *
+     * @param connection
+     *            the connection that send the InitialServerDataPacket
+     * @param isdp
+     *            the InitialServerDataPacket
+     */
+    protected void handleInitialServerData(Connection connection,
+            InitialServerDataPacket isdp) {
+    }
+
+    /**
+     * Handles how a received NotifyTurnPacket should be treated.
+     *
+     * @param connection
+     *            the connection that send the NotifyTurnPacket
+     * @param ntp
+     *            the NotifyTurnPacket
+     */
+    protected void handleNotifyTurn(Connection connection, NotifyTurnPacket ntp) {
+    }
+
+    /**
+     * Handles how a received PlacePiecePacket should be treated.
+     *
+     * @param connection
+     *            the connection that send the PlacePiecePacket
+     * @param ppp
+     *            the PlacePiecePacket
+     */
+    protected void handlePlacePiece(Connection connection, PlacePiecePacket ppp) {
+    }
+
+    /**
+     * Handles how a received PlayerListPacket should be treated.
+     *
+     * @param connection
+     *            the connection that send the PlayerListPacket
+     * @param plp
+     *            the PlayerListPacket
+     */
+    protected void handlePlayerList(Connection connection, PlayerListPacket plp) {
     }
 
     public void idle(Connection connection) {
