@@ -153,8 +153,16 @@ public abstract class GomokuGameState extends BasicGameState {
     public void disconnected(Connection connection) {
     }
 
+    /**
+     * This function is called from {@link BounceListener}s. It will distribute
+     * the call out to specific functions depending on the packet type. The
+     * function name is "handle&lt;PacketType&gt;". Packets can be found in
+     * {@link gomoku.net}.
+     *
+     * @param connection the connection that sent the packet
+     * @param object the object
+     */
     public void received(Connection connection, Object object) {
-        // locate the type of packet we received
         if (object instanceof BoardPacket)
             handleBoard(connection, (BoardPacket) object);
         else if (object instanceof GameListPacket)
@@ -176,7 +184,7 @@ public abstract class GomokuGameState extends BasicGameState {
      * Handles how a received BoardPacket should be treated.
      *
      * @param connection
-     *            the connection that send the BoardPacket
+     *            the connection that sent the BoardPacket
      * @param bp
      *            the BoardPacket
      */
@@ -187,7 +195,7 @@ public abstract class GomokuGameState extends BasicGameState {
      * Handles how a received GameListPacket should be treated.
      *
      * @param connection
-     *            the connection that send the GameListPacket
+     *            the connection that sent the GameListPacket
      * @param glp
      *            the GameListPacket
      */
@@ -198,7 +206,7 @@ public abstract class GomokuGameState extends BasicGameState {
      * Handles how a received GenericRequestPacket should be treated.
      *
      * @param connection
-     *            the connection that send the GenericRequestPacket
+     *            the connection that sent the GenericRequestPacket
      * @param grp
      *            the GenericRequestPacket
      */
@@ -210,7 +218,7 @@ public abstract class GomokuGameState extends BasicGameState {
      * Handles how a received InitialServerDataPacket should be treated.
      *
      * @param connection
-     *            the connection that send the InitialServerDataPacket
+     *            the connection that sent the InitialServerDataPacket
      * @param isdp
      *            the InitialServerDataPacket
      */
@@ -222,7 +230,7 @@ public abstract class GomokuGameState extends BasicGameState {
      * Handles how a received NotifyTurnPacket should be treated.
      *
      * @param connection
-     *            the connection that send the NotifyTurnPacket
+     *            the connection that sent the NotifyTurnPacket
      * @param ntp
      *            the NotifyTurnPacket
      */
@@ -233,7 +241,7 @@ public abstract class GomokuGameState extends BasicGameState {
      * Handles how a received PlacePiecePacket should be treated.
      *
      * @param connection
-     *            the connection that send the PlacePiecePacket
+     *            the connection that sent the PlacePiecePacket
      * @param ppp
      *            the PlacePiecePacket
      */
@@ -244,7 +252,7 @@ public abstract class GomokuGameState extends BasicGameState {
      * Handles how a received PlayerListPacket should be treated.
      *
      * @param connection
-     *            the connection that send the PlayerListPacket
+     *            the connection that sent the PlayerListPacket
      * @param plp
      *            the PlayerListPacket
      */

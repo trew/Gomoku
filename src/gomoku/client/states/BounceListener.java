@@ -3,6 +3,14 @@ package gomoku.client.states;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
+/**
+ * A BounceListener will return all events from a regular Listener to the
+ * corresponding functions in the GomokuGameState that was passed to the
+ * listener on creation.
+ *
+ * @author Samuel Andersson
+ *
+ */
 public class BounceListener extends Listener {
 
     private GomokuGameState state;

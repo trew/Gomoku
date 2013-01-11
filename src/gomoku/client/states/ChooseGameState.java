@@ -26,6 +26,8 @@ public class ChooseGameState extends GomokuGameState {
 
     private GomokuClient gomokuClient;
 
+    private BounceListener listener;
+
     public ChooseGameState() {
     }
 
@@ -36,16 +38,21 @@ public class ChooseGameState extends GomokuGameState {
     @Override
     public void enter(GameContainer container, GomokuClient gomokuClient)
             throws SlickException {
+        gomokuClient.client.addListener(listener);
         gomokuClient.client.sendTCP(new InitialClientDataPacket(gomokuClient
                 .getPlayerName()));
     }
 
     @Override
+    public void leave(GameContainer container, GomokuClient game)
+            throws SlickException {
+        gomokuClient.client.removeListener(listener);
+    }
+
+    @Override
     public void init(GameContainer container, GomokuClient game)
             throws SlickException {
-        // a bouncelistener will return all events to the corresponding
-        // functions in this state (connected, received, etc)
-        game.client.addListener(new BounceListener(this));
+        listener = new BounceListener(this);
         gomokuClient = game;
 
         gameList = new GameList(container, 100, 50, 600, 400);
@@ -90,6 +97,9 @@ public class ChooseGameState extends GomokuGameState {
 
     }
 
+    /**
+     * Clear the current gamelist and replace it with the new list
+     */
     @Override
     protected void handleGameList(Connection connection, GameListPacket glp) {
         debug("ChooseGameState", "Received GameListPacket");
@@ -103,23 +113,21 @@ public class ChooseGameState extends GomokuGameState {
         }
     }
 
+    /**
+     * The server said we're good to go, prepare the GamePlayState and enter it.
+     */
     @Override
-    protected void handleInitialServerData(Connection connection, InitialServerDataPacket isdp) {
-        ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE))
-        .setInitialData(isdp.getBoard(), isdp.getColor(),
-                isdp.getTurn(), isdp.getPlayerList());
+    protected void handleInitialServerData(Connection connection,
+            InitialServerDataPacket isdp) {
+        ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE)).setInitialData(
+                isdp.getBoard(), isdp.getColor(), isdp.getTurn(),
+                isdp.getPlayerList());
         gomokuClient.enterState(GAMEPLAYSTATE);
     }
-
 
     @Override
     public int getID() {
         return CHOOSEGAMESTATE;
-    }
-
-    @Override
-    public void leave(GameContainer container, GomokuClient game)
-            throws SlickException {
     }
 
 }
