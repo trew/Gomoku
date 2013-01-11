@@ -13,6 +13,8 @@ import java.util.HashMap;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
+import static com.esotericsoftware.minlog.Log.*;
+
 /**
  * The listener for connections to the server. It contains the server and the
  * board which it will manipulate during connection interactions.
@@ -54,6 +56,8 @@ public class ServerListener extends Listener {
      */
     @Override
     public void disconnected(Connection connection) {
+        info("GomokuServer", playerList.get(connection.getID()) + "("
+                + connection.getID() + ") disconnected.");
         GomokuNetworkGame game = playerInGame.get(connection.getID());
         if (game != null) {
             game.disconnected(connection);
@@ -96,6 +100,9 @@ public class ServerListener extends Listener {
     private void handleInitialClientData(Connection conn,
             InitialClientDataPacket icdp) {
         String playerName = icdp.getName();
+        String ip = conn.getRemoteAddressTCP().getAddress().getHostAddress();
+        info("GomokuServer", playerName + "(" + ip + ", " + conn.getID()
+                + ") has connected.");
         playerList.put(conn.getID(), playerName);
 
         // send a list of open games
@@ -113,6 +120,8 @@ public class ServerListener extends Listener {
         }
         GomokuNetworkGame newGame = new GomokuNetworkGame(gomokuServer,
                 cgp.name, cgp.width, cgp.height);
+        info("GomokuServer", playerName + " created new game \"" + cgp.name
+                + "\".");
 
         gomokuServer.games.put(newGame.getID(), newGame);
         playerInGame.put(conn.getID(), newGame);
@@ -139,8 +148,9 @@ public class ServerListener extends Listener {
                 playerColor, turn, playerList);
         conn.sendTCP(isdp);
 
+        String playerName = this.playerList.get(conn.getID());
         if (playerColor == Board.NOPLAYER) {
-            spectators.put(conn.getID(), this.playerList.get(conn.getID()));
+            spectators.put(conn.getID(), playerName);
         }
     }
 

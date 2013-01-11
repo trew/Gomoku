@@ -91,12 +91,18 @@ public class GomokuNetworkGame {
             blackID = conn.getID();
             game.getBlack().setName(name);
             playerColor = Board.BLACKPLAYER;
+            info("GomokuNetworkGame", name + " joined game " + this.name
+                    + " as black.");
         } else if (whiteID == 0) {
             whiteID = conn.getID();
             game.getWhite().setName(name);
             playerColor = Board.WHITEPLAYER;
+            info("GomokuNetworkGame", name + " joined game " + this.name
+                    + " as white.");
         } else {
             spectators.put(conn.getID(), name);
+            info("GomokuNetworkGame", name + " joined game " + this.name
+                    + " as spectator.");
         }
         playerList.put(conn.getID(), name);
         broadcast(conn, new PlayerListPacket(getPlayerList()));
@@ -154,8 +160,8 @@ public class GomokuNetworkGame {
 
         // if we actually removed a player, broadcast change to rest
         if (playerList.remove(conn.getID()) != null) {
-            debug("GomokuServer", "Removed " + conn.getID()
-                    + " from playerlist");
+            info("GomokuServer", conn.getID() + " disconnected from game "
+                    + name);
             broadcast(conn, new PlayerListPacket(getPlayerList()));
         }
 
@@ -224,7 +230,7 @@ public class GomokuNetworkGame {
         } else {
             // placement was not possible, update the board at client
             conn.sendTCP(new BoardPacket(game.getBoard()));
-            info("GomokuServer", "Couldn't place there! Pos: " + ppp.x + ", "
+            error("GomokuServer", "Couldn't place there! Pos: " + ppp.x + ", "
                     + ppp.y);
         }
     }

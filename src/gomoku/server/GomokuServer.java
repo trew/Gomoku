@@ -52,6 +52,8 @@ public class GomokuServer {
      */
     private static boolean SWING;
 
+    private static int LOGLEVEL = Log.LEVEL_INFO;
+
     /**
      * The Kryonet server
      */
@@ -110,6 +112,7 @@ public class GomokuServer {
      * @see #PORT
      */
     public void start() {
+        info("GomokuServer", "Starting server ...");
         server.start();
         try {
             server.bind(PORT);
@@ -125,7 +128,7 @@ public class GomokuServer {
      * Stop the server and exit cleanly.
      */
     public void exit() {
-        info("GomokuServer", "Exiting server");
+        info("GomokuServer", "Exiting server ...");
         server.stop();
         System.exit(0);
     }
@@ -165,13 +168,28 @@ public class GomokuServer {
         FlaggedOption portOpt = new FlaggedOption("port")
                 .setStringParser(JSAP.INTEGER_PARSER).setDefault("9123")
                 .setLongFlag("port");
+        FlaggedOption logOpt = new FlaggedOption("loglevel");
+        logOpt.setDefault("info").setLongFlag("loglevel");
+
         try {
             jsap.registerParameter(swingOpt);
             jsap.registerParameter(portOpt);
+            jsap.registerParameter(logOpt);
 
             JSAPResult config = jsap.parse(args);
             SWING = config.getBoolean("swing");
             PORT = config.getInt("port");
+            String loglevel = config.getString("loglevel").toLowerCase();
+            if (loglevel == "trace" || loglevel == "1")
+                LOGLEVEL = Log.LEVEL_TRACE;
+            else if (loglevel == "debug" || loglevel == "2")
+                LOGLEVEL = Log.LEVEL_DEBUG;
+            else if (loglevel == "warn" || loglevel == "4")
+                LOGLEVEL = Log.LEVEL_WARN;
+            else if (loglevel == "error" || loglevel == "5")
+                LOGLEVEL = Log.LEVEL_ERROR;
+            else if (loglevel == "none" || loglevel == "0")
+                LOGLEVEL = Log.LEVEL_NONE;
         } catch (JSAPException e) {
             if (TRACE)
                 trace("GomokuServer", e);
@@ -189,7 +207,7 @@ public class GomokuServer {
      *            Any arguments passed to the server
      */
     public static void main(String[] args) {
-        Log.set(LEVEL_DEBUG);
+        Log.set(LOGLEVEL);
 
         parseArgs(args);
 
