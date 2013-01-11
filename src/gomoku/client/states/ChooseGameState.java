@@ -118,4 +118,9 @@ public class ChooseGameState extends GomokuGameState {
         return CHOOSEGAMESTATE;
     }
 
+    @Override
+    public void leave(GameContainer container, GomokuClient game)
+            throws SlickException {
+    }
+
 }

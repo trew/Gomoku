@@ -15,6 +15,8 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
+import com.esotericsoftware.kryonet.Connection;
+
 import static com.esotericsoftware.minlog.Log.*;
 
 /**
@@ -35,8 +37,8 @@ public class GameplayState extends GomokuGameState {
     /** The board displayed */
     private BoardComponent boardComponent;
 
-    /** The Network listener for this state */
-    private GameplayStateListener listener;
+    /** Enables network events to be passed to this state */
+    private BounceListener listener;
 
     private boolean loading;
 
@@ -122,7 +124,7 @@ public class GameplayState extends GomokuGameState {
             }
         };
 
-        listener = new GameplayStateListener(this);
+        listener = new BounceListener(this);
     }
 
     @Override
@@ -245,6 +247,76 @@ public class GameplayState extends GomokuGameState {
 
         }
     }
+
+
+    @Override
+    public void received(Connection connection, Object object) {
+
+        // locate the type of packet we received
+        if (object instanceof PlacePiecePacket) {
+            handlePlacePiece(connection, (PlacePiecePacket) object);
+
+        } else if (object instanceof BoardPacket) {
+            handleBoard(connection, (BoardPacket) object);
+
+        } else if (object instanceof NotifyTurnPacket) {
+            handleNotifyTurn(connection, (NotifyTurnPacket) object);
+
+        } else if (object instanceof InitialServerDataPacket) {
+            handleInitialServerData(connection,
+                    (InitialServerDataPacket) object);
+
+        } else if (object instanceof PlayerListPacket) {
+            handlePlayerList(connection, (PlayerListPacket) object);
+        }
+    }
+
+    private void handlePlacePiece(Connection conn, PlacePiecePacket ppp) {
+        if (!gomokuGame.placePiece(ppp.x, ppp.y, ppp.playerColor)) {
+            warn("GameplayStateListener",
+                    "Piece couldn't be placed, requesting board update");
+            conn.sendTCP(new GenericRequestPacket(BoardUpdate));
+
+        } else {
+            Player player = gomokuGame.getPlayer(ppp.playerColor);
+            info("GameplayStateListener", player.getColorName()
+                    + " piece placed on " + ppp.x + ", " + ppp.y);
+        }
+    }
+
+    private void handleBoard(Connection conn, BoardPacket bp) {
+        // let's update our board with the board of the server
+        gomokuGame.replaceBoard(bp.getBoard());
+        info("GameplayStateListener", "Board updated");
+    }
+
+    private void handleNotifyTurn(Connection conn, NotifyTurnPacket ntp) {
+        gomokuGame.setTurn(gomokuGame.getPlayer(ntp.getColor()));
+        info("GameplayStateListener", "Notified about turn: "
+                + gomokuGame.getTurn().getName());
+    }
+
+    private void handleInitialServerData(Connection conn,
+            InitialServerDataPacket idp) {
+        setInitialData(idp.getBoard(), idp.getColor(), idp.getTurn(),
+                idp.getPlayerList());
+        info("GameplayStateListener", "Received initial data from server.");
+    }
+
+    private void handlePlayerList(Connection conn, PlayerListPacket plp) {
+        debug("GameplayStateListene", "Updated playerlist");
+        setPlayerList(plp.players);
+
+        // the first two spots is reserved for black and white. If we're not the
+        // specified color, update it.
+        if (me.getColor() != Board.BLACKPLAYER) {
+            gomokuGame.getBlack().setName(plp.players[0]);
+        }
+        if (me.getColor() != Board.WHITEPLAYER) {
+            gomokuGame.getWhite().setName(plp.players[1]);
+        }
+    }
+
 
     @Override
     public int getID() {

@@ -107,9 +107,9 @@ public abstract class GomokuGameState extends BasicGameState {
      *             standard framework mechanism
      * @see #enter(GameContainer, StateBasedGame)
      */
-    public void enter(GameContainer container, GomokuClient game)
-            throws SlickException {
-    }
+    public abstract void enter(GameContainer container, GomokuClient game)
+            throws SlickException;
+
 
     @Override
     public void leave(GameContainer container, StateBasedGame game)
@@ -117,9 +117,20 @@ public abstract class GomokuGameState extends BasicGameState {
         leave(container, (GomokuClient) game);
     }
 
-    public void leave(GameContainer container, GomokuClient game)
-            throws SlickException {
-    }
+    /**
+     * Notification that we're leaving this game state
+     *
+     * @param container
+     *            The container holding the game
+     * @param game
+     *            The Gomoku game holding this state
+     * @throws SlickException
+     *             Indicates an internal error that will be reported through the
+     *             standard framework mechanism
+     * @see #leave(GameContainer, StateBasedGame)
+     */
+    public abstract void leave(GameContainer container, GomokuClient game)
+            throws SlickException;
 
     /**
      * Calculate the left X position for centering something within borders

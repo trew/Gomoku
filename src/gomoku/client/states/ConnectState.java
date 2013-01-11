@@ -218,4 +218,14 @@ public class ConnectState extends GomokuGameState {
         return CONNECTGAMESTATE;
     }
 
+    @Override
+    public void enter(GameContainer container, GomokuClient game)
+            throws SlickException {
+    }
+
+    @Override
+    public void leave(GameContainer container, GomokuClient game)
+            throws SlickException {
+    }
+
 }
