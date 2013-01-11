@@ -19,7 +19,7 @@ import static com.esotericsoftware.minlog.Log.*;
 
 /**
  * The playing state of the Gomoku game.
- * 
+ *
  * @author Samuel Andersson
  */
 public class GameplayState extends GomokuGameState {
@@ -62,7 +62,7 @@ public class GameplayState extends GomokuGameState {
     /**
      * Setup names and values for players. If this client receives black, makes
      * sure the white player receives the correct name.
-     * 
+     *
      * @param playerColor
      *            The player color being given to this client
      */
@@ -141,7 +141,7 @@ public class GameplayState extends GomokuGameState {
     /**
      * Try to place a new piece on provided position. If successful client-side,
      * send a packet to server trying to do the same thing.
-     * 
+     *
      * @param gomokuClient
      *            The game which we place the piece in
      * @param x
@@ -158,7 +158,7 @@ public class GameplayState extends GomokuGameState {
 
     /**
      * Whether it's our turn or not
-     * 
+     *
      * @return True if it's our turn
      */
     public boolean myTurn() {
@@ -248,7 +248,7 @@ public class GameplayState extends GomokuGameState {
 
     @Override
     public int getID() {
-        return 2;
+        return GAMEPLAYSTATE;
     }
 
 }

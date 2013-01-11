@@ -32,7 +32,7 @@ import com.martiansoftware.jsap.*;
  * <b>--port</b> <i>PORT</i> - The port number which we'll run the server on<br />
  * <b>--swing</b> - Whether we should run with swing or use standard console.
  * (Swing is always used on windows)<br />
- * 
+ *
  * @author Samuel Andersson
  */
 public class GomokuServer {
@@ -40,14 +40,14 @@ public class GomokuServer {
     /**
      * The port which this server is listening on. Can be set by providing
      * --port to the application command line
-     * 
+     *
      * @see #parseArgs(String[])
      */
     private static int PORT;
 
     /**
      * Whether we are going to use Swing as our console
-     * 
+     *
      * @see #parseArgs(String[])
      */
     private static boolean SWING;
@@ -95,7 +95,7 @@ public class GomokuServer {
 
     /**
      * Initialize the server, add the ServerListener and register kryo classes.
-     * 
+     *
      * @see ServerListener
      */
     public void init() {
@@ -106,7 +106,7 @@ public class GomokuServer {
 
     /**
      * Start the server and begin listening on provided port
-     * 
+     *
      * @see #PORT
      */
     public void start() {
@@ -134,7 +134,7 @@ public class GomokuServer {
      * Broadcast a packet to all connections except provided source. We won't
      * send to the source connection because that client has already made
      * necessary changes.
-     * 
+     *
      * @param sourceConnection
      *            The connection that triggered this broadcast
      * @param object
@@ -153,7 +153,7 @@ public class GomokuServer {
     /**
      * Parse command line arguments that was passed to the application upon
      * startup.
-     * 
+     *
      * @param args
      *            The arguments passed to the application
      */
@@ -184,7 +184,7 @@ public class GomokuServer {
 
     /**
      * The main entry point of the server
-     * 
+     *
      * @param args
      *            Any arguments passed to the server
      */

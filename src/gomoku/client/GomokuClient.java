@@ -2,6 +2,7 @@ package gomoku.client;
 
 import gomoku.client.states.ChooseGameState;
 import gomoku.client.states.ConnectState;
+import gomoku.client.states.CreateGameState;
 import gomoku.client.states.GameplayState;
 
 import org.newdawn.slick.AppGameContainer;
@@ -16,9 +17,9 @@ import static com.esotericsoftware.minlog.Log.*;
 
 /**
  * The main entry class for the Gomoku client.
- * 
+ *
  * @author Samuel Andersson
- * 
+ *
  */
 public class GomokuClient extends StateBasedGame {
 
@@ -63,14 +64,15 @@ public class GomokuClient extends StateBasedGame {
      */
     @Override
     public void initStatesList(GameContainer container) throws SlickException {
-        this.addState(new ConnectState()); // stateID: 0
-        this.addState(new ChooseGameState()); // stateID: 1
-        this.addState(new GameplayState()); // stateID: 2
+        this.addState(new ConnectState());
+        this.addState(new ChooseGameState());
+        this.addState(new CreateGameState());
+        this.addState(new GameplayState());
     }
 
     /**
      * The main entry point of the game client
-     * 
+     *
      * @param args
      *            The arguments passed to the application
      * @see #parseArgs(String[])

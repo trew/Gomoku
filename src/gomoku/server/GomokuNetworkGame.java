@@ -46,13 +46,14 @@ public class GomokuNetworkGame {
 
     private String name;
 
-    public GomokuNetworkGame(GomokuServer gomokuServer, int width, int height) {
+    public GomokuNetworkGame(GomokuServer gomokuServer, String name, int width,
+            int height) {
         this.gomokuServer = gomokuServer;
         this.server = gomokuServer.getServer();
         game = new GomokuGame(width, height);
         id = IDCOUNTER;
         IDCOUNTER++;
-        name = "Game_" + id;
+        this.name = name;
 
         playerList = new HashMap<Integer, String>();
         spectators = new HashMap<Integer, String>();
@@ -71,7 +72,7 @@ public class GomokuNetworkGame {
      * Broadcast a packet to all connections except provided source. We won't
      * send to the source connection because that client has already made
      * necessary changes.
-     * 
+     *
      * @param sourceConnection
      *            The connection that triggered this broadcast
      * @param object
@@ -120,7 +121,7 @@ public class GomokuNetworkGame {
      * contain "(none)". The second position is reserved for the white player.
      * If no white player is connected the second spot will contain "(none)".
      * The rest of the list will be spectators.
-     * 
+     *
      * @return a list of connected players
      */
     public String[] getPlayerList() {
@@ -168,7 +169,7 @@ public class GomokuNetworkGame {
      * Called when an object has been received from the remote end of the
      * connection. This method dispatches to relevant methods depending on the
      * packet type.
-     * 
+     *
      * @param conn
      *            The connection that sent us the packet
      * @param obj
@@ -193,7 +194,7 @@ public class GomokuNetworkGame {
 
     /**
      * Place a piece on the board and notify other connections
-     * 
+     *
      * @param conn
      *            The connection that sent us the packet
      * @param ppp
@@ -233,7 +234,7 @@ public class GomokuNetworkGame {
      * and wants to play. This function will delegate a player spot in the game
      * to the client if there is one free, otherwise the client will be told to
      * spectate.
-     * 
+     *
      * @param conn
      *            The connection that sent us the packet
      * @param icdp
@@ -274,7 +275,7 @@ public class GomokuNetworkGame {
 
     /**
      * Handle a generic request, such as BoardUpdate or ClearBoard i.e.
-     * 
+     *
      * @param conn
      *            The connection that sent us the packet
      * @param grp

@@ -21,7 +21,7 @@ public class GameList extends AbstractComponent {
         super(container);
         area = new Rectangle(x, y, w, h);
         games = new LinkedHashMap<Integer, String>();
-        selectedID = -1;
+        selectedID = 1;
     }
 
     @Override

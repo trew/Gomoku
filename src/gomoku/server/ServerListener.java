@@ -16,7 +16,7 @@ import com.esotericsoftware.kryonet.Listener;
 /**
  * The listener for connections to the server. It contains the server and the
  * board which it will manipulate during connection interactions.
- * 
+ *
  * @author Samuel Andersson
  */
 public class ServerListener extends Listener {
@@ -35,7 +35,7 @@ public class ServerListener extends Listener {
 
     /**
      * /** Create a listener for the server
-     * 
+     *
      * @param server
      *            The server which we exist in
      * @param board
@@ -87,7 +87,7 @@ public class ServerListener extends Listener {
      * and wants to play. This function will delegate a player spot in the game
      * to the client if there is one free, otherwise the client will be told to
      * spectate.
-     * 
+     *
      * @param conn
      *            The connection that sent us the packet
      * @param icdp
@@ -112,7 +112,7 @@ public class ServerListener extends Listener {
             playerColor = Board.WHITEPLAYER;
         }
         GomokuNetworkGame newGame = new GomokuNetworkGame(gomokuServer,
-                cgp.width, cgp.height);
+                cgp.name, cgp.width, cgp.height);
 
         gomokuServer.games.put(newGame.getID(), newGame);
         playerInGame.put(conn.getID(), newGame);

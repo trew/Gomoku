@@ -4,7 +4,7 @@ import gomoku.logic.Board;
 
 /**
  * A packet containing a board data.
- * 
+ *
  * @author Samuel Andersson
  */
 public class BoardPacket {
@@ -18,7 +18,7 @@ public class BoardPacket {
 
     /**
      * Create a new board packet from a {@link Board}
-     * 
+     *
      * @param board
      *            The board to get data from
      */
@@ -28,7 +28,7 @@ public class BoardPacket {
 
     /**
      * Returns the board from this packet
-     * 
+     *
      * @return the board from this packet
      */
     public Board getBoard() {

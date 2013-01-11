@@ -25,7 +25,7 @@ import static com.esotericsoftware.minlog.Log.*;
 /**
  * The connecting state of the game. This state's responsibility is to fetch
  * which server the player wants to connect to and connect to that server.
- * 
+ *
  * @author Samuel Andersson
  */
 public class ConnectState extends GomokuGameState {
@@ -113,7 +113,7 @@ public class ConnectState extends GomokuGameState {
     /**
      * Create a new thread to connect to the server. Calling this function will
      * lock all selected settings, such as player name.
-     * 
+     *
      * @param game
      *            The client that till connect to the server
      */
@@ -138,7 +138,7 @@ public class ConnectState extends GomokuGameState {
                 connectingState = CONNECTSTATE.CONNECTED;
                 connectMessage = "Connected.";
                 game.client.removeListener(this);
-                game.enterState(1); // choosegamestate
+                game.enterState(CHOOSEGAMESTATE);
             }
         };
         game.client.addListener(listener);
@@ -215,7 +215,7 @@ public class ConnectState extends GomokuGameState {
 
     @Override
     public int getID() {
-        return 0;
+        return CONNECTGAMESTATE;
     }
 
 }

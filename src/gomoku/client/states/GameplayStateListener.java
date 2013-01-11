@@ -13,9 +13,9 @@ import static gomoku.net.Request.*;
 /**
  * The listener towards the server for the GamePlayState. This will update the
  * board and move pieces around.
- * 
+ *
  * @author Samuel Andersson
- * 
+ *
  */
 public class GameplayStateListener extends Listener {
 
@@ -24,7 +24,7 @@ public class GameplayStateListener extends Listener {
 
     /**
      * Create a new listener
-     * 
+     *
      * @param state
      *            The state holding this listener
      */

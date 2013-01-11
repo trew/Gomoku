@@ -4,7 +4,6 @@ import gomoku.client.GomokuClient;
 
 import gomoku.client.gui.Button;
 import gomoku.client.gui.GameList;
-import gomoku.net.CreateGamePacket;
 import gomoku.net.GameListPacket;
 import gomoku.net.InitialClientDataPacket;
 import gomoku.net.InitialServerDataPacket;
@@ -46,10 +45,10 @@ public class ChooseGameState extends GomokuGameState {
 
         } else if (obj instanceof InitialServerDataPacket) {
             InitialServerDataPacket isdp = (InitialServerDataPacket) obj;
-            ((GameplayState) gomokuClient.getState(2)).setInitialData(
-                    isdp.getBoard(), isdp.getColor(), isdp.getTurn(),
-                    isdp.getPlayerList());
-            gomokuClient.enterState(2);
+            ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE))
+                    .setInitialData(isdp.getBoard(), isdp.getColor(),
+                            isdp.getTurn(), isdp.getPlayerList());
+            gomokuClient.enterState(GAMEPLAYSTATE);
         }
     }
 
@@ -77,7 +76,7 @@ public class ChooseGameState extends GomokuGameState {
         createNewGameButton = new Button(container, "Create new game", 100, 460) {
             @Override
             public void buttonClicked(int button, int x, int y) {
-                createNewGame();
+                gomokuClient.enterState(CREATEGAMESTATE);
             }
         };
         joinGameButton = new Button(container, "Join Game", 300, 460) {
@@ -86,11 +85,6 @@ public class ChooseGameState extends GomokuGameState {
                 joinGame();
             }
         };
-    }
-
-    public void createNewGame() {
-        // TODO: Enable game setup
-        gomokuClient.client.sendTCP(new CreateGamePacket(15, 15, true));
     }
 
     public void joinGame() {
@@ -121,7 +115,7 @@ public class ChooseGameState extends GomokuGameState {
 
     @Override
     public int getID() {
-        return 1;
+        return CHOOSEGAMESTATE;
     }
 
 }

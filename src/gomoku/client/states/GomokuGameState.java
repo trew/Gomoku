@@ -12,6 +12,11 @@ import com.esotericsoftware.kryonet.Connection;
 
 public abstract class GomokuGameState extends BasicGameState {
 
+    public static final int CONNECTGAMESTATE = 1;
+    public static final int CHOOSEGAMESTATE = 2;
+    public static final int CREATEGAMESTATE = 3;
+    public static final int GAMEPLAYSTATE = 4;
+
     /**
      * @see BasicGameState#init(GameContainer, StateBasedGame)
      */
@@ -23,7 +28,7 @@ public abstract class GomokuGameState extends BasicGameState {
 
     /**
      * Initialize the state. It should load any resources it needs at this stage
-     * 
+     *
      * @param container
      *            The container holding the game
      * @param game
@@ -44,7 +49,7 @@ public abstract class GomokuGameState extends BasicGameState {
 
     /**
      * Render this state to the game's graphics context
-     * 
+     *
      * @param container
      *            The container holding the game
      * @param game
@@ -68,7 +73,7 @@ public abstract class GomokuGameState extends BasicGameState {
 
     /**
      * Update the state's logic based on the amount of time thats passed
-     * 
+     *
      * @param container
      *            The container holding the game
      * @param game
@@ -92,7 +97,7 @@ public abstract class GomokuGameState extends BasicGameState {
 
     /**
      * Notification that we've entered this game state
-     * 
+     *
      * @param container
      *            The container holding the game
      * @param game
@@ -118,7 +123,7 @@ public abstract class GomokuGameState extends BasicGameState {
 
     /**
      * Calculate the left X position for centering something within borders
-     * 
+     *
      * @param x1
      *            The left position of the border
      * @param x2

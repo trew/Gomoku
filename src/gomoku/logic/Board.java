@@ -1,17 +1,17 @@
 package gomoku.logic;
 
 /**
- * A Board represents a Gomoku board.
- * 
+ * A Board represents a Gomoku board. The board size restrictions is 40x40.
+ *
  * @author Samuel Andersson
- * 
+ *
  */
 public class Board {
 
     /** The value representing no player */
     public static final int NOPLAYER = 0;
 
-    /** THe value representing a black player */
+    /** The value representing a black player */
     public static final int BLACKPLAYER = 1;
 
     /** The value representing a white player */
@@ -32,9 +32,19 @@ public class Board {
     }
 
     /**
-     * Construct a new Gomoku board
+     * Construct a new Gomoku board. Minimum size is 3x3 and maximum size is
+     * 40x40.
+     *
+     * @param width
+     *            the width of the board
+     * @param height
+     *            the height of the board
      */
     public Board(int width, int height) {
+        if (width < 3 || width > 40 || height < 3 || height > 40) {
+            throw new IllegalArgumentException("Invalid size for board: "
+                    + width + "x" + height + ". Max is 40x40.");
+        }
         this.width = width;
         this.height = height;
         reset();
@@ -49,7 +59,7 @@ public class Board {
 
     /**
      * Replace the current board with a new board
-     * 
+     *
      * @param board
      *            The source board which will replace the current board
      */
@@ -61,7 +71,7 @@ public class Board {
 
     /**
      * Place a new piece on the board
-     * 
+     *
      * @see #placePiece(int, int, int)
      */
     public boolean placePiece(Player player, int x, int y) {
@@ -71,7 +81,7 @@ public class Board {
     /**
      * Place a new piece on the board. Pieces can only be placed on empty
      * positions
-     * 
+     *
      * @param player
      *            The player color of the piece
      * @param x
@@ -92,7 +102,7 @@ public class Board {
      * Returns the player color for given position on the board. If either of
      * the arguments is invalid, i.e. "x" being larger than board width, the
      * function will return 0.
-     * 
+     *
      * @param x
      *            The x location
      * @param y
@@ -109,19 +119,15 @@ public class Board {
 
     /**
      * Place a piece on the board
-     * 
+     *
      * @param x
      *            The x location for the piece
      * @param y
      *            The y location for the piece
      * @param player
      *            The player color for the piece
-     * @throws IllegalArgumentException
-     *             Indicates that the piece was out of bounds or the player
-     *             color wasn't valid.
      */
-    private void setPiece(int x, int y, int player)
-            throws IllegalArgumentException {
+    private void setPiece(int x, int y, int player) {
         if (x < 0 || x > width || y < 0 || y > height) {
             throw new IllegalArgumentException("Position out of bounds. X: "
                     + x + ", Y: " + y);
@@ -136,7 +142,7 @@ public class Board {
 
     /**
      * Returns the current width of the board
-     * 
+     *
      * @return the current width of the board
      */
     public int getWidth() {
@@ -145,20 +151,10 @@ public class Board {
 
     /**
      * Returns the current height of the board
-     * 
+     *
      * @return the current height of the board
      */
     public int getHeight() {
         return height;
     }
-
-    /**
-     * Returns the integer array containing the data of the board
-     * 
-     * @return the integer array containing the data of the board
-     */
-    public int[] getBoard() {
-        return board;
-    }
-
 }
