@@ -1,5 +1,11 @@
 package gomoku.server;
 
+import gomoku.logic.Board;
+import gomoku.net.CreateGamePacket;
+import gomoku.net.GameListPacket;
+import gomoku.net.InitialClientDataPacket;
+import gomoku.net.InitialServerDataPacket;
+import gomoku.net.JoinGamePacket;
 import gomoku.net.RegisterPackets;
 
 import java.awt.AWTException;
@@ -26,6 +32,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 import com.esotericsoftware.kryonet.Connection;
+import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
 import com.esotericsoftware.minlog.Log;
 import com.martiansoftware.jsap.FlaggedOption;
@@ -34,6 +41,7 @@ import com.martiansoftware.jsap.JSAPException;
 import com.martiansoftware.jsap.JSAPResult;
 
 import static com.esotericsoftware.minlog.Log.*;
+
 /**
  * Server of the Gomoku game<br />
  * <br />
@@ -44,7 +52,7 @@ import static com.esotericsoftware.minlog.Log.*;
  *
  * @author Samuel Andersson
  */
-public class GomokuServer {
+public class GomokuServer extends Listener {
 
     /**
      * The port which this server is listening on. Can be set by providing
@@ -61,47 +69,38 @@ public class GomokuServer {
      */
     private static boolean SWING;
 
+    /** The log level for the server */
     private static int LOGLEVEL = Log.LEVEL_INFO;
 
-    /**
-     * The Kryonet server
-     */
+    /** The Kryonet server */
     private Server server;
 
-    /**
-     * The listener for the open connections. Each connection will have its own
-     * listener.
-     */
-    private ServerListener listener;
-
-    /**
-     * The games that the server runs
-     */
+    /** The games that the server runs */
     public HashMap<Integer, GomokuNetworkGame> games;
 
-    /**
-     * The JFrame if we're using Swing console
-     */
-    private JFrame frame;
+    /** The list of connected players */
+    private HashMap<Integer, String> playerList;
 
-    private static GomokuServer gomokuserver = null;
+    /** The list of all spectators */
+    private HashMap<Integer, String> spectators;
+
+    /** List that keeps track of which game contains which player */
+    private HashMap<Integer, GomokuNetworkGame> playerInGame;
+
+    /** The JFrame if we're using Swing console */
+    private JFrame frame;
 
     /**
      * Create a new GomokuServer
      */
     public GomokuServer() {
         server = new Server();
-        listener = new ServerListener(this);
         games = new HashMap<Integer, GomokuNetworkGame>();
         frame = null;
-    }
+        playerList = new HashMap<Integer, String>();
+        spectators = new HashMap<Integer, String>();
+        playerInGame = new HashMap<Integer, GomokuNetworkGame>();
 
-    public Server getServer() {
-        return server;
-    }
-
-    public void endGame(GomokuNetworkGame game) {
-        games.remove(game.getID());
     }
 
     /**
@@ -110,7 +109,7 @@ public class GomokuServer {
      * @see ServerListener
      */
     public void init() {
-        server.addListener(listener);
+        server.addListener(this);
 
         RegisterPackets.register(server.getKryo());
     }
@@ -122,7 +121,7 @@ public class GomokuServer {
      */
     public void start() {
         info("GomokuServer", "Starting server ...");
-        server.start();
+        server.start(); // new thread started
         try {
             server.bind(PORT);
             info("GomokuServer", "Server running on *:" + PORT);
@@ -143,6 +142,10 @@ public class GomokuServer {
         System.exit(0);
     }
 
+    public void endGame(GomokuNetworkGame game) {
+        games.remove(game.getID());
+    }
+
     /**
      * Broadcast a packet to all connections except provided source. We won't
      * send to the source connection because that client has already made
@@ -160,6 +163,130 @@ public class GomokuServer {
             server.sendToAllTCP(object);
         } else {
             server.sendToAllExceptTCP(sourceConnection.getID(), object);
+        }
+    }
+
+    /**
+     * Notification that a connection has disconnected. Remove any connected
+     * players from our player lists.
+     */
+    @Override
+    public void disconnected(Connection connection) {
+        info("GomokuServer", playerList.get(connection.getID()) + "("
+                + connection.getID() + ") disconnected.");
+        GomokuNetworkGame game = playerInGame.get(connection.getID());
+        if (game != null) {
+            game.disconnected(connection);
+        }
+        playerList.remove(connection.getID());
+        spectators.remove(connection.getID());
+        playerInGame.remove(connection.getID());
+    }
+
+    /**
+     * Called when an object has been received from the remote end of this
+     * connection. If the player on the remote end has joined a game, the object
+     * will be sent to {@link GomokuNetworkGame#received(Connection, Object)},
+     * and handled there.
+     */
+    @Override
+    public void received(Connection conn, Object obj) {
+        GomokuNetworkGame game = playerInGame.get(conn.getID());
+        if (game != null) {
+            game.received(conn, obj);
+        } else {
+            // player hasn't joined a game yet.
+            if (obj instanceof InitialClientDataPacket) {
+                handleInitialClientData(conn, (InitialClientDataPacket) obj);
+            } else if (obj instanceof CreateGamePacket) {
+                handleCreateGamePacket(conn, (CreateGamePacket) obj);
+            } else if (obj instanceof JoinGamePacket) {
+                handleJoinGamePacket(conn, (JoinGamePacket) obj);
+            }
+        }
+    }
+
+    /**
+     * This packet is treated as the confirmation that the client has connected
+     * and wants to play. This function will delegate a player spot in the game
+     * to the client if there is one free, otherwise the client will be told to
+     * spectate.
+     *
+     * @param conn
+     *            The connection that sent us the packet
+     * @param icdp
+     *            The initial data from the client
+     */
+    private void handleInitialClientData(Connection conn,
+            InitialClientDataPacket icdp) {
+        String playerName = icdp.getName();
+        String ip = conn.getRemoteAddressTCP().getAddress().getHostAddress();
+        info("GomokuServer", playerName + "(" + ip + ", " + conn.getID()
+                + ") has connected.");
+        playerList.put(conn.getID(), playerName);
+
+        // send a list of open games
+        conn.sendTCP(new GameListPacket(games));
+    }
+
+    /**
+     * Handles how a received CreateGamePacket should be treated.
+     *
+     * @param conn
+     *            the connection that sent the CreateGamePacket
+     * @param cgp
+     *            the CreateGamePacket
+     */
+    private void handleCreateGamePacket(Connection conn, CreateGamePacket cgp) {
+        // TODO: Fix option to choose between white, black and spectator
+        int playerColor = 0;
+        String playerName = playerList.get(conn.getID());
+        if (cgp.ownerReceivesBlack) {
+            playerColor = Board.BLACKPLAYER;
+        } else {
+            playerColor = Board.WHITEPLAYER;
+        }
+        GomokuNetworkGame newGame = new GomokuNetworkGame(this, server,
+                cgp.name, cgp.width, cgp.height);
+        info("GomokuServer", playerName + " created new game \"" + cgp.name
+                + "\".");
+
+        games.put(newGame.getID(), newGame);
+        playerInGame.put(conn.getID(), newGame);
+        playerColor = newGame.join(conn, playerName);
+
+        InitialServerDataPacket isdp = new InitialServerDataPacket(newGame
+                .getGame().getBoard(), playerColor, newGame.getGame().getTurn()
+                .getColor(), newGame.getPlayerList());
+        conn.sendTCP(isdp);
+    }
+
+    /**
+     * Handles how a received JoinGamePacket should be treated.
+     *
+     * @param conn
+     *            the connection that sent the JoinGamePacket
+     * @param jgp
+     *            the JoinGamePacket
+     */
+    private void handleJoinGamePacket(Connection conn, JoinGamePacket jgp) {
+        GomokuNetworkGame game = games.get(jgp.gameID);
+        if (game == null)
+            return;
+        playerInGame.put(conn.getID(), game);
+        int playerColor = game.join(conn, playerList.get(conn.getID()));
+
+        Board board = game.getGame().getBoard();
+        String[] playerList = game.getPlayerList();
+
+        int turn = game.getGame().getTurn().getColor();
+        InitialServerDataPacket isdp = new InitialServerDataPacket(board,
+                playerColor, turn, playerList);
+        conn.sendTCP(isdp);
+
+        String playerName = this.playerList.get(conn.getID());
+        if (playerColor == Board.NOPLAYER) {
+            spectators.put(conn.getID(), playerName);
         }
     }
 
@@ -225,7 +352,7 @@ public class GomokuServer {
             // SWING = true;
         }
 
-        gomokuserver = new GomokuServer();
+        final GomokuServer gomokuserver = new GomokuServer();
         if (SWING) {
             gomokuserver.frame = new JFrame();
             gomokuserver.frame.setAutoRequestFocus(true);

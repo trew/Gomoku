@@ -30,9 +30,6 @@ public class GomokuClient extends StateBasedGame {
     /** The height of the screen */
     private static final int HEIGHT = 600;
 
-    /** Fullscreen or not? */
-    private static final boolean FULLSCREEN = false;
-
     /** The target max frame rate */
     private static final int TARGET_FPS = 60;
 
@@ -88,8 +85,9 @@ public class GomokuClient extends StateBasedGame {
             AppGameContainer container = new AppGameContainer(game);
 
             // set display mode and configurations
-            container.setDisplayMode(WIDTH, HEIGHT, FULLSCREEN);
+            container.setDisplayMode(WIDTH, HEIGHT, false);
             container.setTargetFrameRate(TARGET_FPS);
+            container.setShowFPS(false);
 
             // start the game
             container.start();

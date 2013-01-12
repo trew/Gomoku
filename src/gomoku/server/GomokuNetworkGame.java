@@ -46,10 +46,10 @@ public class GomokuNetworkGame {
 
     private String name;
 
-    public GomokuNetworkGame(GomokuServer gomokuServer, String name, int width,
+    public GomokuNetworkGame(GomokuServer gomokuServer, Server server, String name, int width,
             int height) {
         this.gomokuServer = gomokuServer;
-        this.server = gomokuServer.getServer();
+        this.server = server;
         game = new GomokuGame(width, height);
         id = IDCOUNTER;
         IDCOUNTER++;

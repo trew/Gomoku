@@ -40,6 +40,7 @@ public class BoardComponent extends AbstractComponent {
     /** The amount of squares to display vertically */
     protected int displayHeight;
 
+    /** The size of each individual square on the board */
     protected int squareSize;
 
     /** The board */
@@ -63,8 +64,7 @@ public class BoardComponent extends AbstractComponent {
     /**
      * Create a new board component with the default width of 5 and height of 5.
      *
-     * @see #BoardComponent(GUIContext, Board, int, int, int, int, int, int,
-     *      int, int, int)
+     * @see #BoardComponent(GUIContext, Board, int, int, int, int, int)
      */
     public BoardComponent(GUIContext container, Board board, int x, int y,
             int squareSize) {
@@ -72,7 +72,8 @@ public class BoardComponent extends AbstractComponent {
     }
 
     /**
-     * Create a new board component
+     * Create a new board component. The squaresize and the amount of squares to
+     * display determines the actual size of this component.
      *
      * @param container
      *            The container holding this component
@@ -82,20 +83,12 @@ public class BoardComponent extends AbstractComponent {
      *            The x location of this component
      * @param y
      *            The y location of this component
-     * @param width
-     *            The width in pixels
-     * @param height
-     *            The height in pixels
-     * @param topBorder
-     *            The top border of the board to display
-     * @param leftBorder
-     *            The left border of the board to display
+     * @param squareSize
+     *            The size of each individual square on the board
      * @param displayWidth
      *            The number of squares to display horizontally
      * @param displayHeight
      *            The number of squares to display vertically
-     * @param pieceMargin
-     *            The margin between the board piece and the square edge
      */
     public BoardComponent(GUIContext container, Board board, int x, int y,
             int squareSize, int displayWidth, int displayHeight) {
@@ -128,7 +121,9 @@ public class BoardComponent extends AbstractComponent {
     }
 
     /**
-     * Set the board which this component will represent
+     * Set the board which this component will represent. Setting this might
+     * change the displaySize of the component if the board being shown is
+     * smaller than current displaySize.
      *
      * @param board
      *            the board which this component will represent
@@ -171,9 +166,13 @@ public class BoardComponent extends AbstractComponent {
         }
     }
 
+    /**
+     * Will trigger {@link #squareClicked(int, int)} if left mouse button was
+     * clicked and mouse is within board area.
+     */
     @Override
     public void mouseReleased(int button, int x, int y) {
-        if (area.contains(x, y)) {
+        if (button == 0 && area.contains(x, y)) {
             squareClicked(getMouseXPositionOnBoard(x),
                     getMouseYPositionOnBoard(y));
         }
