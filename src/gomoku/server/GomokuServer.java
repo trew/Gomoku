@@ -208,9 +208,8 @@ public class GomokuServer extends Listener {
 
     /**
      * This packet is treated as the confirmation that the client has connected
-     * and wants to play. This function will delegate a player spot in the game
-     * to the client if there is one free, otherwise the client will be told to
-     * spectate.
+     * and wants to play. This function will send a GameList back to the client
+     * with games he can choose to play in or spectate.
      *
      * @param conn
      *            The connection that sent us the packet
