@@ -17,7 +17,7 @@ import org.newdawn.slick.gui.TextField;
 
 import com.esotericsoftware.kryonet.Connection;
 
-import static com.esotericsoftware.minlog.Log.*;
+import static org.trew.log.Log.*;
 
 public class ChooseGameState extends GomokuGameState {
 
@@ -118,9 +118,9 @@ public class ChooseGameState extends GomokuGameState {
      */
     @Override
     protected void handleGameList(Connection connection, GameListPacket glp) {
-        debug("ChooseGameState", "Received GameListPacket");
+        debug("Received GameListPacket");
         if (glp.gameID.length != glp.gameName.length) {
-            warn("ChooseGameState", "GameListPacket-list not of same size.");
+            warn("GameListPacket-list not of same size.");
             return;
         }
         gameList.clear();

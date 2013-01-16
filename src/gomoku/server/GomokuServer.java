@@ -34,13 +34,14 @@ import javax.swing.JTextArea;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
-import com.esotericsoftware.minlog.Log;
 import com.martiansoftware.jsap.FlaggedOption;
 import com.martiansoftware.jsap.JSAP;
 import com.martiansoftware.jsap.JSAPException;
 import com.martiansoftware.jsap.JSAPResult;
 
-import static com.esotericsoftware.minlog.Log.*;
+import org.newdawn.slick.util.ResourceLoader;
+import org.trew.log.Log;
+import static org.trew.log.Log.*;
 
 /**
  * Server of the Gomoku game<br />
@@ -120,16 +121,16 @@ public class GomokuServer extends Listener {
      * @see #PORT
      */
     public void start() {
-        info("GomokuServer", "Starting server ...");
+        info("Starting server ...");
         server.start(); // new thread started
         try {
             server.bind(PORT);
-            info("GomokuServer", "Server running on *:" + PORT);
+            info("Server running on *:" + PORT);
         } catch (IOException e) {
             if (TRACE)
-                trace("GomokuServer", e);
+                trace(e);
             else
-                error("GomokuServer", "Error: " + e.getMessage());
+                error(e.getMessage());
         }
     }
 
@@ -137,7 +138,7 @@ public class GomokuServer extends Listener {
      * Stop the server and exit cleanly.
      */
     public void exit() {
-        info("GomokuServer", "Exiting server ...");
+        info("Exiting server ...");
         server.stop();
         System.exit(0);
     }
@@ -157,8 +158,7 @@ public class GomokuServer extends Listener {
      *            The object that will be broadcasted
      */
     public void broadcast(Connection sourceConnection, Object object) {
-        debug("GomokuServer", "Broadcasting "
-                + object.getClass().getSimpleName());
+        debug("Broadcasting " + object.getClass().getSimpleName());
         if (sourceConnection == null) {
             server.sendToAllTCP(object);
         } else {
@@ -172,8 +172,8 @@ public class GomokuServer extends Listener {
      */
     @Override
     public void disconnected(Connection connection) {
-        info("GomokuServer", playerList.get(connection.getID()) + "("
-                + connection.getID() + ") disconnected.");
+        info(playerList.get(connection.getID()) + "(" + connection.getID()
+                + ") disconnected.");
         GomokuNetworkGame game = playerInGame.get(connection.getID());
         if (game != null) {
             game.disconnected(connection);
@@ -220,8 +220,7 @@ public class GomokuServer extends Listener {
             InitialClientDataPacket icdp) {
         String playerName = icdp.getName();
         String ip = conn.getRemoteAddressTCP().getAddress().getHostAddress();
-        info("GomokuServer", playerName + "(" + ip + ", " + conn.getID()
-                + ") has connected.");
+        info(playerName + "(" + ip + ", " + conn.getID() + ") has connected.");
         playerList.put(conn.getID(), playerName);
 
         // send a list of open games
@@ -247,8 +246,7 @@ public class GomokuServer extends Listener {
         }
         GomokuNetworkGame newGame = new GomokuNetworkGame(this, server,
                 cgp.name, cgp.width, cgp.height);
-        info("GomokuServer", playerName + " created new game \"" + cgp.name
-                + "\".");
+        info(playerName + " created new game \"" + cgp.name + "\".");
 
         games.put(newGame.getID(), newGame);
         playerInGame.put(conn.getID(), newGame);
@@ -328,10 +326,9 @@ public class GomokuServer extends Listener {
                 LOGLEVEL = Log.LEVEL_NONE;
         } catch (JSAPException e) {
             if (TRACE)
-                trace("GomokuServer", e);
+                trace(e);
             else
-                error("GomokuServer",
-                        "Error parsing arguments: " + e.getMessage());
+                error("Error parsing arguments: " + e.getMessage());
             System.exit(-1);
         }
     }
@@ -343,7 +340,7 @@ public class GomokuServer extends Listener {
      *            Any arguments passed to the server
      */
     public static void main(String[] args) {
-        Log.set(LOGLEVEL);
+        Log.setLevel(LOGLEVEL);
         parseArgs(args);
 
         // override if using windows
@@ -360,8 +357,7 @@ public class GomokuServer extends Listener {
             JTextArea ta = new JTextArea();
             Console co = new Console(ta);
             PrintStream ps = new PrintStream(co);
-            System.setOut(ps);
-            System.setErr(ps);
+            Log.getLogger().setOut(ps);
 
             gomokuserver.frame.add(new JScrollPane(ta));
 
@@ -370,10 +366,8 @@ public class GomokuServer extends Listener {
             TrayIcon icon = null;
             if (SystemTray.isSupported()) {
                 SystemTray tray = SystemTray.getSystemTray();
-                Image image = Toolkit
-                        .getDefaultToolkit()
-                        .getImage(
-                                "C:/Users/samuel/Documents/dev/gomoku/src/res/tray.gif");
+                Image image = Toolkit.getDefaultToolkit().getImage(
+                        ResourceLoader.getResource("res/tray.gif"));
 
                 PopupMenu menu = new PopupMenu();
                 MenuItem exitItem = new MenuItem("Exit server");
@@ -415,14 +409,14 @@ public class GomokuServer extends Listener {
             gomokuserver.frame.setVisible(true);
         }
 
-        Log.set(LOGLEVEL);
+        Log.setLevel(LOGLEVEL);
 
         String logName = "info";
         if (LOGLEVEL == 1)
             logName = "trace";
         else if (LOGLEVEL == 2)
             logName = "debug";
-        info("GomokuServer", "Logging level set to \"" + logName + "\".");
+        info("Logging level set to \"" + logName + "\".");
 
         gomokuserver.init();
         gomokuserver.start();

@@ -11,7 +11,7 @@ import org.newdawn.slick.geom.Rectangle;
 import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
 
-import static com.esotericsoftware.minlog.Log.*;
+import static org.trew.log.Log.*;
 
 /**
  * A component displaying a Gomoku board. The board component handles input and
@@ -106,10 +106,9 @@ public class BoardComponent extends AbstractComponent {
             squareImage = new Image("res/boardsquare.png");
         } catch (SlickException e) {
             if (TRACE)
-                trace("BoardComponent", e);
+                trace(e);
             else
-                error("BoardComponent",
-                        "Image couldn't be loaded! " + e.getMessage());
+                error("Image couldn't be loaded! " + e.getMessage());
         }
         this.leftBorder = 0;
         this.topBorder = 0;

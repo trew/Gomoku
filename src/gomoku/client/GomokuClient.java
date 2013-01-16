@@ -11,9 +11,9 @@ import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
 import com.esotericsoftware.kryonet.Client;
-import com.esotericsoftware.minlog.Log;
+import org.trew.log.Log;
 
-import static com.esotericsoftware.minlog.Log.*;
+import static org.trew.log.Log.*;
 
 /**
  * The main entry class for the Gomoku client.
@@ -76,7 +76,7 @@ public class GomokuClient extends StateBasedGame {
      */
     public static void main(String[] args) {
         try {
-            Log.set(LEVEL_DEBUG);
+            Log.setLevel(LEVEL_DEBUG);
 
             // create the StateBasedGame to be passed to the container
             GomokuClient game = new GomokuClient();
@@ -97,9 +97,9 @@ public class GomokuClient extends StateBasedGame {
 
         } catch (SlickException e) {
             if (TRACE)
-                trace("GomokuClient", e);
+                trace(e);
             else
-                error("GomokuClient", e.getMessage());
+                error(e.getMessage());
         }
     }
 }

@@ -20,7 +20,7 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
-import static com.esotericsoftware.minlog.Log.*;
+import static org.trew.log.Log.*;
 
 /**
  * The connecting state of the game. This state's responsibility is to fetch
@@ -152,13 +152,13 @@ public class ConnectState extends GomokuGameState {
                 } catch (UnknownHostException e) {
                     connectingState = CONNECTSTATE.CONNECTIONFAILED;
                     if (TRACE)
-                        trace("ConnectState", e);
+                        trace(e);
                     connectMessage = "Unkown host";
                     connectButton.enable();
                 } catch (IOException e) {
                     connectingState = CONNECTSTATE.CONNECTIONFAILED;
                     if (TRACE)
-                        trace("ConnectState", e);
+                        trace(e);
                     connectMessage = e.getMessage();
                     connectButton.enable();
                 }

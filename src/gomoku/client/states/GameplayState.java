@@ -17,7 +17,7 @@ import org.newdawn.slick.SlickException;
 
 import com.esotericsoftware.kryonet.Connection;
 
-import static com.esotericsoftware.minlog.Log.*;
+import static org.trew.log.Log.*;
 
 /**
  * The playing state of the Gomoku game.
@@ -87,7 +87,7 @@ public class GameplayState extends GomokuGameState {
         }
 
         me.setName(client.getPlayerName());
-        info("GameplayState", "Color set to " + me.getColorName());
+        info("Color set to " + me.getColorName());
     }
 
     public String[] getPlayerList() {
@@ -205,11 +205,13 @@ public class GameplayState extends GomokuGameState {
     }
 
     private static int rowYPos = 20;
+
     private void drawRow(String str, int x, Graphics g) {
         int textHeight = g.getFont().getHeight(str);
         g.drawString(str, x, rowYPos);
         rowYPos += textHeight + 1;
     }
+
     @Override
     public void render(GameContainer container, GomokuClient gomokuClient,
             Graphics g) throws SlickException {
@@ -268,14 +270,13 @@ public class GameplayState extends GomokuGameState {
     @Override
     protected void handlePlacePiece(Connection conn, PlacePiecePacket ppp) {
         if (!gomokuGame.placePiece(ppp.x, ppp.y, ppp.playerColor)) {
-            warn("GameplayStateListener",
-                    "Piece couldn't be placed, requesting board update");
+            warn("Piece couldn't be placed, requesting board update");
             conn.sendTCP(new GenericRequestPacket(BoardUpdate));
 
         } else {
             Player player = gomokuGame.getPlayer(ppp.playerColor);
-            info("GameplayStateListener", player.getColorName()
-                    + " piece placed on " + ppp.x + ", " + ppp.y);
+            info(player.getColorName() + " piece placed on " + ppp.x + ", "
+                    + ppp.y);
         }
     }
 
@@ -283,27 +284,18 @@ public class GameplayState extends GomokuGameState {
     protected void handleBoard(Connection conn, BoardPacket bp) {
         // let's update our board with the board of the server
         gomokuGame.replaceBoard(bp.getBoard());
-        info("GameplayStateListener", "Board updated");
+        info("Board updated");
     }
 
     @Override
     protected void handleNotifyTurn(Connection conn, NotifyTurnPacket ntp) {
         gomokuGame.setTurn(gomokuGame.getPlayer(ntp.getColor()));
-        info("GameplayStateListener", "Notified about turn: "
-                + gomokuGame.getTurn().getName());
-    }
-
-    @Override
-    protected void handleInitialServerData(Connection conn,
-            InitialServerDataPacket idp) {
-        setInitialData(idp.getBoard(), idp.getColor(), idp.getTurn(),
-                idp.getPlayerList());
-        info("GameplayStateListener", "Received initial data from server.");
+        info("Notified about turn: " + gomokuGame.getTurn().getName());
     }
 
     @Override
     protected void handlePlayerList(Connection conn, PlayerListPacket plp) {
-        debug("GameplayStateListene", "Updated playerlist");
+        debug("Updated playerlist");
         setPlayerList(plp.players);
 
         // the first two spots is reserved for black and white. If we're not the
@@ -315,7 +307,6 @@ public class GameplayState extends GomokuGameState {
             gomokuGame.getWhite().setName(plp.players[1]);
         }
     }
-
 
     @Override
     public int getID() {

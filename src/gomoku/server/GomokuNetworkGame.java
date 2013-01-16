@@ -1,8 +1,5 @@
 package gomoku.server;
 
-import static com.esotericsoftware.minlog.Log.debug;
-import static com.esotericsoftware.minlog.Log.error;
-import static com.esotericsoftware.minlog.Log.info;
 import static gomoku.net.Request.BoardUpdate;
 import static gomoku.net.Request.ClearBoard;
 import static gomoku.net.Request.GetTurn;
@@ -20,6 +17,8 @@ import gomoku.net.PlayerListPacket;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
+
+import static org.trew.log.Log.*;
 
 /**
  * A game of Gomoku, delegated by the GomokuServer.
@@ -118,18 +117,15 @@ public class GomokuNetworkGame {
             blackID = conn.getID();
             game.getBlack().setName(name);
             playerColor = Board.BLACKPLAYER;
-            info("GomokuNetworkGame", name + " joined game " + this.name
-                    + " as black.");
+            info(name + " joined game " + this.name + " as black.");
         } else if (whiteID == 0) {
             whiteID = conn.getID();
             game.getWhite().setName(name);
             playerColor = Board.WHITEPLAYER;
-            info("GomokuNetworkGame", name + " joined game " + this.name
-                    + " as white.");
+            info(name + " joined game " + this.name + " as white.");
         } else {
             spectators.put(conn.getID(), name);
-            info("GomokuNetworkGame", name + " joined game " + this.name
-                    + " as spectator.");
+            info(name + " joined game " + this.name + " as spectator.");
         }
         playerList.put(conn.getID(), name);
         broadcast(conn, new PlayerListPacket(getPlayerList()));
@@ -210,13 +206,12 @@ public class GomokuNetworkGame {
 
         // if we actually removed a player, broadcast change to rest
         if (playerList.remove(conn.getID()) != null) {
-            info("GomokuServer", conn.getID() + " disconnected from game "
-                    + name);
+            info(conn.getID() + " disconnected from game " + name);
             broadcast(conn, new PlayerListPacket(getPlayerList()));
         }
 
         if (blackID == 0 && whiteID == 0 && spectators.isEmpty()) {
-            info("GomokuNetworkGame", "Ending game: " + name);
+            info("Ending game: " + name);
             gomokuServer.endGame(this);
         }
     }
@@ -268,14 +263,13 @@ public class GomokuNetworkGame {
         }
 
         if (game.placePiece(ppp.x, ppp.y, playerColor)) {
-            debug("GomokuServer", playerList.get(conn.getID())
-                    + " placed a piece on " + ppp.x + ", " + ppp.y);
+            debug(playerList.get(conn.getID()) + " placed a piece on " + ppp.x
+                    + ", " + ppp.y);
             broadcast(conn, ppp);
         } else {
             // placement was not possible, update the board at client
             conn.sendTCP(new BoardPacket(game.getBoard()));
-            error("GomokuServer", "Couldn't place there! Pos: " + ppp.x + ", "
-                    + ppp.y);
+            error("Couldn't place there! Pos: " + ppp.x + ", " + ppp.y);
         }
     }
 
@@ -306,8 +300,7 @@ public class GomokuNetworkGame {
             conn.sendTCP(new PlayerListPacket(getPlayerList()));
 
         } else {
-            error("GomokuServer", "GenericRequestPacket of unknown type: "
-                    + grp.getRequest());
+            error("GenericRequestPacket of unknown type: " + grp.getRequest());
         }
     }
 
