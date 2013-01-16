@@ -2,6 +2,8 @@ package gomoku.logic;
 
 import static org.trew.log.Log.*;
 
+import java.util.ArrayList;
+
 /**
  * Contains game logic for Gomoku game. The game keeps track of the board, the
  * players and whose turn it is. It will also have methods indicating victory or
@@ -23,6 +25,13 @@ public class GomokuGame {
     /** The white player */
     private Player white;
 
+    private boolean gameOver;
+
+    private int victoryLength;
+    private boolean allowOverlines;
+
+    private ArrayList<GomokuGameListener> listeners;
+
     /**
      * Create a new game with set width and height
      *
@@ -32,10 +41,7 @@ public class GomokuGame {
      *            the height of the board
      */
     public GomokuGame(int width, int height) {
-        board = new Board(width, height);
-        black = new Player("Black", Board.BLACKPLAYER);
-        white = new Player("White", Board.WHITEPLAYER);
-        turn = black;
+        this(new Board(width, height));
     }
 
     /**
@@ -49,6 +55,13 @@ public class GomokuGame {
         black = new Player("Black", Board.BLACKPLAYER);
         white = new Player("White", Board.WHITEPLAYER);
         turn = black;
+        gameOver = false;
+
+        // game rules
+        victoryLength = 5;
+        allowOverlines = true;
+
+        listeners = new ArrayList<GomokuGameListener>();
     }
 
     /**
@@ -57,6 +70,197 @@ public class GomokuGame {
     public void reset() {
         board.reset();
         turn = black;
+        gameOver = false;
+    }
+
+    /**
+     * Checks for victory and calls listeners if someone won
+     *
+     * @param x
+     *            the x position modified that forced victory check
+     * @param y
+     *            the y position modified that forced victory check
+     */
+    private void checkBoard(int x, int y) {
+        /*
+         * The algorithm will check four lines for victory based of the changed
+         * position. Horizontally, vertically and two diagonal rows.
+         */
+        Player player = getPieceOwner(x, y);
+        int playerColor = player.getColor();
+        boolean victory = false;
+        int curLength = 0;
+        int longestLength = 0;
+        int minX = x - victoryLength < 0 ? 0 : x - victoryLength;
+        int minY = y - victoryLength < 0 ? 0 : x - victoryLength;
+        int maxX = x + victoryLength > board.getWidth() ? board.getWidth() : x
+                + victoryLength;
+        int maxY = y + victoryLength > board.getHeight() ? board.getHeight()
+                : y + victoryLength;
+
+        // from x, move 4 steps to the left, then check 9 pieces in a row
+        trace("Checking victory for player: " + player.getColor());
+        if (!victory) {
+            int xPos = minX;
+            for (; xPos < maxX; xPos++) {
+                Player pieceOwner = getPieceOwner(xPos, y);
+                int clr = pieceOwner == null ? Board.NOPLAYER : pieceOwner
+                        .getColor();
+
+                if (clr == playerColor) {
+                    curLength++;
+                    if (curLength == victoryLength) {
+                        victory = true;
+                        if (allowOverlines) {
+                            break; // check another one if we don't allow
+                                   // overlines
+                        }
+                    } else if (curLength > victoryLength) {
+                        if (!allowOverlines) {
+                            victory = false;
+                            break;
+                        }
+                    }
+                } else {
+                    curLength = 0;
+                    if (victory)
+                        break;
+                }
+                if (curLength > longestLength)
+                    longestLength = curLength;
+            }
+        }
+
+        curLength = 0;
+        if (!victory) {
+            // same check for Y
+            int yPos = minY;
+            for (; yPos < maxY; yPos++) {
+                Player pieceOwner = getPieceOwner(x, yPos);
+                int clr = pieceOwner == null ? Board.NOPLAYER : pieceOwner
+                        .getColor();
+
+                if (clr == playerColor) {
+                    curLength++;
+                    if (curLength == victoryLength) {
+                        victory = true;
+                        if (allowOverlines) {
+                            break; // check another one if we don't allow
+                                   // overlines
+                        }
+                    } else if (curLength > victoryLength) {
+                        if (!allowOverlines) {
+                            victory = false;
+                            break;
+                        }
+                    }
+                } else {
+                    curLength = 0;
+                    if (victory)
+                        break;
+                }
+                if (curLength > longestLength)
+                    longestLength = curLength;
+            }
+        }
+
+        curLength = 0;
+        // check diagonally from top left to bottom right
+        if (!victory) {
+            int xPos = x - victoryLength;
+            int yPos = y - victoryLength;
+            if (xPos < 0) {
+                yPos -= xPos;
+                xPos = 0;
+            }
+            if (yPos < 0) {
+                xPos -= yPos;
+                yPos = 0;
+            }
+            while (xPos < maxX || yPos < maxY) {
+                Player pieceOwner = getPieceOwner(xPos, yPos);
+                int clr = pieceOwner == null ? Board.NOPLAYER : pieceOwner
+                        .getColor();
+
+                if (clr == playerColor) {
+                    curLength++;
+                    if (curLength == victoryLength) {
+                        victory = true;
+                        if (allowOverlines) {
+                            break; // check another one if we don't allow
+                                   // overlines
+                        }
+                    } else if (curLength > victoryLength) {
+                        if (!allowOverlines) {
+                            victory = false;
+                            break;
+                        }
+                    }
+                } else {
+                    curLength = 0;
+                    if (victory)
+                        break;
+                }
+                xPos++;
+                yPos++;
+                if (curLength > longestLength)
+                    longestLength = curLength;
+            }
+        }
+
+        curLength = 0;
+        // check diagonally from top right to bottom left
+        if (!victory) {
+            int rightXDiff = maxX - x;
+            int topYDiff = y - minY;
+            int topRightDiff = topYDiff > rightXDiff ? rightXDiff : topYDiff;
+
+            int leftXDiff = x - minX;
+            int bottomYDiff = maxY - y;
+            int bottomLeftDiff = bottomYDiff > leftXDiff ? leftXDiff : bottomYDiff;
+
+            int xPos = x + topRightDiff;
+            int yPos = y - topRightDiff;
+            while (xPos >= x - bottomLeftDiff) {
+                Player pieceOwner = getPieceOwner(xPos, yPos);
+                int clr = pieceOwner == null ? Board.NOPLAYER : pieceOwner
+                        .getColor();
+
+                if (clr == playerColor) {
+                    curLength++;
+                    if (curLength == victoryLength) {
+                        victory = true;
+                        if (allowOverlines) {
+                            break; // check another one if we don't allow
+                                   // overlines
+                        }
+                    } else if (curLength > victoryLength) {
+                        if (!allowOverlines) {
+                            victory = false;
+                            break;
+                        }
+                    }
+                } else {
+                    curLength = 0;
+                    if (victory)
+                        break;
+                }
+                xPos--;
+                yPos++;
+                if (curLength > longestLength)
+                    longestLength = curLength;
+            }
+        }
+        debug("Longest row: " + longestLength);
+
+        if (victory) {
+            debug("Game detected winner + " + playerColor
+                    + ". Notifying listeners.");
+            gameOver = true;
+            for (GomokuGameListener listener : listeners) {
+                listener.gameOver(player.getColor());
+            }
+        }
     }
 
     /**
@@ -71,11 +275,14 @@ public class GomokuGame {
      * @return true if piece was placed
      */
     public boolean placePiece(int x, int y, int player) {
+        if (gameOver)
+            return false;
         // not possible to compare "turn == player" because it is a reference
         // comparison. We must rely on comparison by value, which is
         // possible using the colors.
         if (turn.getColor() == player) {
             if (board.placePiece(player, x, y)) {
+                checkBoard(x, y);
                 switchTurn();
                 return true;
             }
@@ -108,6 +315,9 @@ public class GomokuGame {
      * Swap turns between black and white
      */
     public void switchTurn() {
+        if (gameOver)
+            return;
+
         if (turn == black)
             setTurn(white);
         else
@@ -121,6 +331,8 @@ public class GomokuGame {
      *            The player who is going to get the turn
      */
     public void setTurn(Player player) {
+        if (gameOver)
+            return;
         if (player != black && player != white)
             return;
         debug("Turn set to " + turn.getColorName());
@@ -134,6 +346,8 @@ public class GomokuGame {
      *            the provided player color
      */
     public void setTurn(int playerColor) {
+        if (gameOver)
+            return;
         if (playerColor == Board.BLACKPLAYER) {
             turn = black;
             debug("Turn set to " + turn.getColorName());
@@ -208,6 +422,18 @@ public class GomokuGame {
      */
     public Board getBoard() {
         return board;
+    }
+
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public void addListener(GomokuGameListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(GomokuGameListener listener) {
+        listeners.remove(listener);
     }
 
 }

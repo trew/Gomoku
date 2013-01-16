@@ -38,6 +38,7 @@ public class Console extends OutputStream {
      */
     public Console(JTextArea output) {
         this.output = output;
+        this.output.setAutoscrolls(true);
     }
 
     /**

@@ -4,16 +4,19 @@ import static gomoku.net.Request.BoardUpdate;
 import static gomoku.net.Request.ClearBoard;
 import static gomoku.net.Request.GetTurn;
 import static gomoku.net.Request.PlayerList;
+import static gomoku.net.Request.LeaveGame;
 
 import java.util.HashMap;
 
 import gomoku.logic.Board;
 import gomoku.logic.GomokuGame;
+import gomoku.logic.GomokuGameListener;
 import gomoku.net.BoardPacket;
 import gomoku.net.GenericRequestPacket;
 import gomoku.net.NotifyTurnPacket;
 import gomoku.net.PlacePiecePacket;
 import gomoku.net.PlayerListPacket;
+import gomoku.net.VictoryPacket;
 
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
@@ -26,7 +29,7 @@ import static org.trew.log.Log.*;
  * @author Samuel Andersson
  *
  */
-public class GomokuNetworkGame {
+public class GomokuNetworkGame implements GomokuGameListener {
 
     /** Global ID counter for games */
     private static int IDCOUNTER = 1;
@@ -58,6 +61,8 @@ public class GomokuNetworkGame {
     /** The game name */
     private String name;
 
+    private boolean isEnding;
+
     /**
      * Create a new game of Gomoku.
      *
@@ -78,10 +83,18 @@ public class GomokuNetworkGame {
         this.server = server;
         this.name = name;
         game = new GomokuGame(width, height);
+        game.addListener(this);
+        isEnding = false;
         id = IDCOUNTER++;
 
         playerList = new HashMap<Integer, String>();
         spectators = new HashMap<Integer, String>();
+    }
+
+    @Override
+    public void gameOver(int winner) {
+        debug("Game Over!");
+        broadcast(null, new VictoryPacket((short)(game.getTurn().getColor())));
     }
 
     /**
@@ -130,6 +143,38 @@ public class GomokuNetworkGame {
         playerList.put(conn.getID(), name);
         broadcast(conn, new PlayerListPacket(getPlayerList()));
         return playerColor;
+    }
+
+    /**
+     * A player disconnected or left the game
+     *
+     * @param conn
+     *            the connection
+     * @param disconnect
+     *            whether the player disconnected
+     */
+    private void leave(Connection conn, boolean disconnect) {
+        if (conn.getID() == blackID)
+            blackID = 0;
+        else if (conn.getID() == whiteID)
+            whiteID = 0;
+        else
+            spectators.remove(conn.getID());
+
+        // if we actually removed a player, broadcast change to rest
+        if (playerList.remove(conn.getID()) != null) {
+            if (disconnect)
+                info(conn.getID() + " disconnected from game " + name);
+            else
+                info(conn.getID() + " left the game " + name);
+            broadcast(conn, new PlayerListPacket(getPlayerList()));
+        }
+
+        if (blackID == 0 && whiteID == 0 && spectators.isEmpty() && !isEnding) {
+            info("Ending game: " + name);
+            isEnding = true;
+            gomokuServer.endGame(this);
+        }
     }
 
     /**
@@ -197,23 +242,7 @@ public class GomokuNetworkGame {
      *            the disconnected connection
      */
     public void disconnected(Connection conn) {
-        if (conn.getID() == blackID)
-            blackID = 0;
-        else if (conn.getID() == whiteID)
-            whiteID = 0;
-        else
-            spectators.remove(conn.getID());
-
-        // if we actually removed a player, broadcast change to rest
-        if (playerList.remove(conn.getID()) != null) {
-            info(conn.getID() + " disconnected from game " + name);
-            broadcast(conn, new PlayerListPacket(getPlayerList()));
-        }
-
-        if (blackID == 0 && whiteID == 0 && spectators.isEmpty()) {
-            info("Ending game: " + name);
-            gomokuServer.endGame(this);
-        }
+        leave(conn, true);
     }
 
     /**
@@ -298,6 +327,9 @@ public class GomokuNetworkGame {
 
         } else if (grp.getRequest() == PlayerList) {
             conn.sendTCP(new PlayerListPacket(getPlayerList()));
+
+        } else if (grp.getRequest() == LeaveGame) {
+            leave(conn, false);
 
         } else {
             error("GenericRequestPacket of unknown type: " + grp.getRequest());

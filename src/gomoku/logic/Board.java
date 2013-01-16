@@ -111,7 +111,7 @@ public class Board {
      *         2 = Player 2.
      */
     public int getPiece(int x, int y) {
-        if (x < 0 || x > width || y < 0 || y > height) {
+        if (x < 0 || x >= width || y < 0 || y >= height) {
             return 0;
         }
         return board[x + width * y];

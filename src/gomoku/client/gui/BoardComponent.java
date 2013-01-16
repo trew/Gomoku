@@ -61,6 +61,9 @@ public class BoardComponent extends AbstractComponent {
     /** The rectangle used to create the board background */
     private Rectangle bgRect;
 
+    /** Whether the board is changeable */
+    private boolean changeable;
+
     /**
      * Create a new board component with the default width of 5 and height of 5.
      *
@@ -114,6 +117,8 @@ public class BoardComponent extends AbstractComponent {
         this.topBorder = 0;
         this.displayWidth = displayWidth;
         this.displayHeight = displayHeight;
+
+        changeable = true;
 
         pieceRect.setSize(getWidth() / displayWidth - 3 * 2, getHeight()
                 / displayHeight - 3 * 2);
@@ -171,7 +176,7 @@ public class BoardComponent extends AbstractComponent {
      */
     @Override
     public void mouseReleased(int button, int x, int y) {
-        if (button == 0 && area.contains(x, y)) {
+        if (button == 0 && area.contains(x, y) && changeable) {
             squareClicked(getMouseXPositionOnBoard(x),
                     getMouseYPositionOnBoard(y));
         }
@@ -379,6 +384,14 @@ public class BoardComponent extends AbstractComponent {
     @Override
     public int getHeight() {
         return (int) area.getHeight();
+    }
+
+    public boolean getChangeable() {
+        return changeable;
+    }
+
+    public void setChangeable(boolean changeable) {
+        this.changeable = changeable;
     }
 
     /**

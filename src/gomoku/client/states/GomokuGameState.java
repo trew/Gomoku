@@ -159,8 +159,10 @@ public abstract class GomokuGameState extends BasicGameState {
      * function name is "handle&lt;PacketType&gt;". Packets can be found in
      * {@link gomoku.net}.
      *
-     * @param connection the connection that sent the packet
-     * @param object the object
+     * @param connection
+     *            the connection that sent the packet
+     * @param object
+     *            the object
      */
     public void received(Connection connection, Object object) {
         if (object instanceof BoardPacket)
@@ -178,6 +180,8 @@ public abstract class GomokuGameState extends BasicGameState {
             handlePlacePiece(connection, (PlacePiecePacket) object);
         else if (object instanceof PlayerListPacket)
             handlePlayerList(connection, (PlayerListPacket) object);
+        else if (object instanceof VictoryPacket)
+            handleVictory(connection, (VictoryPacket) object);
     }
 
     /**
@@ -257,6 +261,17 @@ public abstract class GomokuGameState extends BasicGameState {
      *            the PlayerListPacket
      */
     protected void handlePlayerList(Connection connection, PlayerListPacket plp) {
+    }
+
+    /**
+     * Handles how a received VictoryPacket should be treated.
+     *
+     * @param connection
+     *            the connection that sent the VictoryPacket
+     * @param vp
+     *            the VictoryPacket
+     */
+    protected void handleVictory(Connection connection, VictoryPacket vp) {
     }
 
     public void idle(Connection connection) {

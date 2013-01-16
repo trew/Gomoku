@@ -256,6 +256,9 @@ public class GomokuServer extends Listener {
                 .getGame().getBoard(), playerColor, newGame.getGame().getTurn()
                 .getColor(), newGame.getPlayerList());
         conn.sendTCP(isdp);
+
+        // broadcast all games
+        broadcast(conn, new GameListPacket(games));
     }
 
     /**

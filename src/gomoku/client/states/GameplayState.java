@@ -41,6 +41,8 @@ public class GameplayState extends GomokuGameState {
     private BounceListener listener;
 
     private boolean loading;
+    private boolean gameOver;
+    private int gameOverVictoryState;
 
     private String[] playerList;
 
@@ -59,6 +61,7 @@ public class GameplayState extends GomokuGameState {
         boardComponent.setBoard(board);
 
         loading = false;
+        gameOverVictoryState = 0;
     }
 
     /**
@@ -113,6 +116,7 @@ public class GameplayState extends GomokuGameState {
 
         loading = true; // will be set to false once we receive data from the
                         // server
+        gameOver = false;
 
         client = gomokuClient;
         client.setPlayerName("(none)");
@@ -179,23 +183,25 @@ public class GameplayState extends GomokuGameState {
     public void update(GameContainer container, GomokuClient gomokuClient,
             int delta) throws SlickException {
 
-        if (container.getInput().isKeyPressed(Input.KEY_ESCAPE)) {
+        Input input = container.getInput();
+
+        if (input.isKeyPressed(Input.KEY_ESCAPE)) {
             container.exit();
         }
 
         /* *** NETWORK RELATED INPUT *** */
         if (gomokuClient.client.isConnected()) {
-            if (container.getInput().isKeyPressed(Input.KEY_F5)) {
+            if (input.isKeyPressed(Input.KEY_F5)) {
                 gomokuClient.client.sendTCP(new GenericRequestPacket(
                         BoardUpdate));
             }
 
             // ctrl is pressed
-            if (container.getInput().isKeyDown(Input.KEY_LCONTROL)
+            if (input.isKeyDown(Input.KEY_LCONTROL)
                     || container.getInput().isKeyDown(Input.KEY_RCONTROL)) {
 
                 // clear board
-                if (container.getInput().isKeyPressed(Input.KEY_C)) {
+                if (input.isKeyPressed(Input.KEY_C) && !gameOver) {
                     gomokuClient.client.sendTCP(new GenericRequestPacket(
                             ClearBoard));
                 }
@@ -231,10 +237,10 @@ public class GameplayState extends GomokuGameState {
                 drawRow("Your color: " + me.getColorName(), xPos, g);
                 drawRow("Turn: " + (myTurn() ? "You" : "Opponent"), xPos, g);
             }
-            drawRow("Board size: " + gomokuGame.getBoard().getWidth()
-                    + "x" + gomokuGame.getBoard().getHeight(), xPos, g);
-            drawRow("Displaysize: " + boardComponent.getDisplayWidth()
-                    + "x" + boardComponent.getDisplayHeight(), xPos, g);
+            drawRow("Board size: " + gomokuGame.getBoard().getWidth() + "x"
+                    + gomokuGame.getBoard().getHeight(), xPos, g);
+            drawRow("Displaysize: " + boardComponent.getDisplayWidth() + "x"
+                    + boardComponent.getDisplayHeight(), xPos, g);
 
             drawRow("Connected players", xPos, g);
             drawRow("-----------------", xPos, g);
@@ -252,7 +258,17 @@ public class GameplayState extends GomokuGameState {
 
             } else {
                 String status = "";
-                if (!myTurn()) {
+                if (gameOver) {
+                    g.setColor(Color.white);
+                    status += "Game Over!";
+                    if (gameOverVictoryState == 0) {
+                        status += " You lost.";
+                    } else if (gameOverVictoryState == 1) {
+                        status += " You won!";
+                    } else if (gameOverVictoryState == 2) {
+                        status += " Draw!";
+                    }
+                } else if (!myTurn()) {
                     g.setColor(Color.red);
                     status += "waiting for opponent";
                 } else {
@@ -305,6 +321,24 @@ public class GameplayState extends GomokuGameState {
         }
         if (me.getColor() != Board.WHITEPLAYER) {
             gomokuGame.getWhite().setName(plp.players[1]);
+        }
+    }
+
+    /**
+     * Handles what to do when the server sends information about who won. (not
+     * necessarily us)
+     */
+    @Override
+    protected void handleVictory(Connection conn, VictoryPacket vp) {
+        debug("Victorystatus received: " + vp.victory);
+        boardComponent.setChangeable(false);
+        gameOver = true;
+
+        gameOverVictoryState = 0;
+        if (vp.victory == 0) { // draw
+            gameOverVictoryState = 2;
+        } else if (vp.victory == me.getColor()) { // victory
+            gameOverVictoryState = 1;
         }
     }
 
