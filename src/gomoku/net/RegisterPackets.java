@@ -1,6 +1,7 @@
 package gomoku.net;
 
 import gomoku.logic.Board;
+import gomoku.logic.GomokuConfig;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
@@ -37,5 +38,6 @@ public abstract class RegisterPackets {
         kryo.register(JoinGamePacket.class);
         kryo.register(GameListPacket.class);
         kryo.register(VictoryPacket.class);
+        kryo.register(GomokuConfig.class);
     }
 }

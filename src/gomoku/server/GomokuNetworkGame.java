@@ -9,6 +9,7 @@ import static gomoku.net.Request.LeaveGame;
 import java.util.HashMap;
 
 import gomoku.logic.Board;
+import gomoku.logic.GomokuConfig;
 import gomoku.logic.GomokuGame;
 import gomoku.logic.GomokuGameListener;
 import gomoku.net.BoardPacket;
@@ -78,11 +79,11 @@ public class GomokuNetworkGame implements GomokuGameListener {
      *            the height of the board
      */
     public GomokuNetworkGame(GomokuServer gomokuServer, Server server,
-            String name, int width, int height) {
+            String name, GomokuConfig config) {
         this.gomokuServer = gomokuServer;
         this.server = server;
         this.name = name;
-        game = new GomokuGame(width, height);
+        game = new GomokuGame(config);
         game.addListener(this);
         isEnding = false;
         id = IDCOUNTER++;

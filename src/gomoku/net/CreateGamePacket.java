@@ -1,19 +1,17 @@
 package gomoku.net;
 
+import gomoku.logic.GomokuConfig;
+
 public class CreateGamePacket {
     public String name;
-    public int width;
-    public int height;
-    public boolean ownerReceivesBlack;
+    public GomokuConfig config;
 
     @SuppressWarnings("unused")
     private CreateGamePacket() {
     }
 
-    public CreateGamePacket(String name, int width, int height, boolean receiveBlack) {
+    public CreateGamePacket(String name, GomokuConfig config) {
         this.name = name;
-        this.width = width;
-        this.height = height;
-        ownerReceivesBlack = receiveBlack;
+        this.config = config;
     }
 }

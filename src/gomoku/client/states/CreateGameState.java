@@ -2,6 +2,8 @@ package gomoku.client.states;
 
 import gomoku.client.GomokuClient;
 import gomoku.client.gui.Button;
+import gomoku.client.gui.CheckBox;
+import gomoku.logic.GomokuConfig;
 import gomoku.net.CreateGamePacket;
 import gomoku.net.InitialServerDataPacket;
 
@@ -18,7 +20,11 @@ public class CreateGameState extends GomokuGameState {
     private TextField gameNameField;
     private TextField widthField;
     private TextField heightField;
+    private CheckBox allowOverlinesCB;
     private Button confirmButton;
+
+    // presets
+    private Button gomokuPresetButton;
 
     private GomokuClient gomokuClient;
 
@@ -41,13 +47,30 @@ public class CreateGameState extends GomokuGameState {
         gameNameField.setBackgroundColor(Color.darkGray);
 
         widthField = new TextField(container, container.getDefaultFont(), 20,
-                120, 40, 25);
+                110, 40, 25);
         widthField.setBorderColor(Color.white);
         widthField.setBackgroundColor(Color.darkGray);
-        heightField = new TextField(container, container.getDefaultFont(), 20,
-                180, 40, 25);
+        widthField.setText("15");
+        widthField.setCursorPos(2);
+        heightField = new TextField(container, container.getDefaultFont(), 70,
+                110, 40, 25);
         heightField.setBorderColor(Color.white);
         heightField.setBackgroundColor(Color.darkGray);
+        heightField.setText("15");
+        heightField.setCursorPos(2);
+
+        allowOverlinesCB = new CheckBox(container);
+
+        gomokuPresetButton = new Button(container, "Gomoku", 600, 40) {
+            @Override
+            public void buttonClicked(int button, int x, int y) {
+                try {
+                    createNewGame(GomokuConfig.GomokuPreset());
+                } catch (IllegalArgumentException e) {
+                    errorMsg = e.getMessage();
+                }
+            }
+        };
 
         confirmButton = new Button(container, "Create Game", 20, 250) {
             @Override
@@ -78,20 +101,27 @@ public class CreateGameState extends GomokuGameState {
             throw new IllegalArgumentException(
                     "Width or height must be valid numbers");
         }
+
+        GomokuConfig config = new GomokuConfig(w, h, 5, false, false, false,
+                false);
+        createNewGame(config);
+    }
+
+    public void createNewGame(GomokuConfig config) {
         if (gameNameField.getText() == "") {
             throw new IllegalArgumentException("You must provide a game name");
         }
 
         confirmButton.disable();
         gomokuClient.client.sendTCP(new CreateGamePacket(gameNameField
-                .getText(), w, h, true));
+                .getText(), config));
     }
 
     @Override
     protected void handleInitialServerData(Connection connection,
             InitialServerDataPacket isdp) {
         ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE)).setInitialData(
-                isdp.getBoard(), isdp.getColor(), isdp.getTurn(),
+                isdp.getBoard(), isdp.getConfig(), isdp.getColor(), isdp.getTurn(),
                 isdp.getPlayerList());
         gomokuClient.enterState(GAMEPLAYSTATE);
     }
@@ -116,10 +146,15 @@ public class CreateGameState extends GomokuGameState {
             throws SlickException {
         g.drawString("Game Name", 20, 20);
         gameNameField.render(container, g);
-        g.drawString("Board Width", 20, 90);
+        g.drawString("Width/Height", 20, 90);
         widthField.render(container, g);
-        g.drawString("Board Height", 20, 150);
         heightField.render(container, g);
+        allowOverlinesCB.render(container, g);
+
+        // presets to the right
+        g.drawString("PRESETS", 600, 20);
+        gomokuPresetButton.render(container, g);
+
 
         if (errorMsg != null && errorMsg != "") {
             g.drawString(errorMsg, 20, 500);

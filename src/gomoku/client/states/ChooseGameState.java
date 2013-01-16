@@ -136,7 +136,7 @@ public class ChooseGameState extends GomokuGameState {
     protected void handleInitialServerData(Connection connection,
             InitialServerDataPacket isdp) {
         ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE)).setInitialData(
-                isdp.getBoard(), isdp.getColor(), isdp.getTurn(),
+                isdp.getBoard(), isdp.getConfig(), isdp.getColor(), isdp.getTurn(),
                 isdp.getPlayerList());
         gomokuClient.enterState(GAMEPLAYSTATE);
     }

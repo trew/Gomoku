@@ -1,6 +1,7 @@
 package gomoku.server;
 
 import gomoku.logic.Board;
+import gomoku.logic.GomokuConfig;
 import gomoku.net.CreateGamePacket;
 import gomoku.net.GameListPacket;
 import gomoku.net.InitialClientDataPacket;
@@ -239,22 +240,21 @@ public class GomokuServer extends Listener {
         // TODO: Fix option to choose between white, black and spectator
         int playerColor = 0;
         String playerName = playerList.get(conn.getID());
-        if (cgp.ownerReceivesBlack) {
-            playerColor = Board.BLACKPLAYER;
-        } else {
-            playerColor = Board.WHITEPLAYER;
-        }
+        playerColor = Board.BLACKPLAYER;
+
         GomokuNetworkGame newGame = new GomokuNetworkGame(this, server,
-                cgp.name, cgp.width, cgp.height);
+                cgp.name, cgp.config);
         info(playerName + " created new game \"" + cgp.name + "\".");
 
         games.put(newGame.getID(), newGame);
         playerInGame.put(conn.getID(), newGame);
         playerColor = newGame.join(conn, playerName);
+        Board board = newGame.getGame().getBoard();
+        GomokuConfig config = newGame.getGame().getConfig();
 
-        InitialServerDataPacket isdp = new InitialServerDataPacket(newGame
-                .getGame().getBoard(), playerColor, newGame.getGame().getTurn()
-                .getColor(), newGame.getPlayerList());
+        InitialServerDataPacket isdp = new InitialServerDataPacket(board,
+                config, playerColor, newGame.getGame().getTurn().getColor(),
+                newGame.getPlayerList());
         conn.sendTCP(isdp);
 
         // broadcast all games
@@ -271,6 +271,7 @@ public class GomokuServer extends Listener {
      */
     private void handleJoinGamePacket(Connection conn, JoinGamePacket jgp) {
         GomokuNetworkGame game = games.get(jgp.gameID);
+
         if (game == null)
             return;
         playerInGame.put(conn.getID(), game);
@@ -280,8 +281,9 @@ public class GomokuServer extends Listener {
         String[] playerList = game.getPlayerList();
 
         int turn = game.getGame().getTurn().getColor();
+        GomokuConfig config = game.getGame().getConfig();
         InitialServerDataPacket isdp = new InitialServerDataPacket(board,
-                playerColor, turn, playerList);
+                config, playerColor, turn, playerList);
         conn.sendTCP(isdp);
 
         String playerName = this.playerList.get(conn.getID());

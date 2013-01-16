@@ -27,8 +27,7 @@ public class GomokuGame {
 
     private boolean gameOver;
 
-    private int victoryLength;
-    private boolean allowOverlines;
+    private GomokuConfig config;
 
     private ArrayList<GomokuGameListener> listeners;
 
@@ -40,8 +39,8 @@ public class GomokuGame {
      * @param height
      *            the height of the board
      */
-    public GomokuGame(int width, int height) {
-        this(new Board(width, height));
+    public GomokuGame(GomokuConfig config) {
+        this(new Board(config.getWidth(), config.getHeight()), config);
     }
 
     /**
@@ -50,7 +49,7 @@ public class GomokuGame {
      * @param board
      *            The board
      */
-    public GomokuGame(Board board) {
+    public GomokuGame(Board board, GomokuConfig config) {
         this.board = board;
         black = new Player("Black", Board.BLACKPLAYER);
         white = new Player("White", Board.WHITEPLAYER);
@@ -58,8 +57,7 @@ public class GomokuGame {
         gameOver = false;
 
         // game rules
-        victoryLength = 5;
-        allowOverlines = true;
+        this.config = config;
 
         listeners = new ArrayList<GomokuGameListener>();
     }
@@ -71,6 +69,10 @@ public class GomokuGame {
         board.reset();
         turn = black;
         gameOver = false;
+    }
+
+    public GomokuConfig getConfig() {
+        return config;
     }
 
     /**
@@ -91,12 +93,12 @@ public class GomokuGame {
         boolean victory = false;
         int curLength = 0;
         int longestLength = 0;
-        int minX = x - victoryLength < 0 ? 0 : x - victoryLength;
-        int minY = y - victoryLength < 0 ? 0 : x - victoryLength;
-        int maxX = x + victoryLength > board.getWidth() ? board.getWidth() : x
-                + victoryLength;
-        int maxY = y + victoryLength > board.getHeight() ? board.getHeight()
-                : y + victoryLength;
+        int minX = x - config.getVictoryLength() < 0 ? 0 : x - config.getVictoryLength();
+        int minY = y - config.getVictoryLength() < 0 ? 0 : x - config.getVictoryLength();
+        int maxX = x + config.getVictoryLength() > board.getWidth() ? board.getWidth() : x
+                + config.getVictoryLength();
+        int maxY = y + config.getVictoryLength() > board.getHeight() ? board.getHeight()
+                : y + config.getVictoryLength();
 
         // from x, move 4 steps to the left, then check 9 pieces in a row
         trace("Checking victory for player: " + player.getColor());
@@ -109,14 +111,14 @@ public class GomokuGame {
 
                 if (clr == playerColor) {
                     curLength++;
-                    if (curLength == victoryLength) {
+                    if (curLength == config.getVictoryLength()) {
                         victory = true;
-                        if (allowOverlines) {
+                        if (config.getAllowOverlines()) {
                             break; // check another one if we don't allow
                                    // overlines
                         }
-                    } else if (curLength > victoryLength) {
-                        if (!allowOverlines) {
+                    } else if (curLength > config.getVictoryLength()) {
+                        if (!config.getAllowOverlines()) {
                             victory = false;
                             break;
                         }
@@ -142,14 +144,14 @@ public class GomokuGame {
 
                 if (clr == playerColor) {
                     curLength++;
-                    if (curLength == victoryLength) {
+                    if (curLength == config.getVictoryLength()) {
                         victory = true;
-                        if (allowOverlines) {
+                        if (config.getAllowOverlines()) {
                             break; // check another one if we don't allow
                                    // overlines
                         }
-                    } else if (curLength > victoryLength) {
-                        if (!allowOverlines) {
+                    } else if (curLength > config.getVictoryLength()) {
+                        if (!config.getAllowOverlines()) {
                             victory = false;
                             break;
                         }
@@ -167,8 +169,8 @@ public class GomokuGame {
         curLength = 0;
         // check diagonally from top left to bottom right
         if (!victory) {
-            int xPos = x - victoryLength;
-            int yPos = y - victoryLength;
+            int xPos = x - config.getVictoryLength();
+            int yPos = y - config.getVictoryLength();
             if (xPos < 0) {
                 yPos -= xPos;
                 xPos = 0;
@@ -184,14 +186,14 @@ public class GomokuGame {
 
                 if (clr == playerColor) {
                     curLength++;
-                    if (curLength == victoryLength) {
+                    if (curLength == config.getVictoryLength()) {
                         victory = true;
-                        if (allowOverlines) {
+                        if (config.getAllowOverlines()) {
                             break; // check another one if we don't allow
                                    // overlines
                         }
-                    } else if (curLength > victoryLength) {
-                        if (!allowOverlines) {
+                    } else if (curLength > config.getVictoryLength()) {
+                        if (!config.getAllowOverlines()) {
                             victory = false;
                             break;
                         }
@@ -228,14 +230,14 @@ public class GomokuGame {
 
                 if (clr == playerColor) {
                     curLength++;
-                    if (curLength == victoryLength) {
+                    if (curLength == config.getVictoryLength()) {
                         victory = true;
-                        if (allowOverlines) {
+                        if (config.getAllowOverlines()) {
                             break; // check another one if we don't allow
                                    // overlines
                         }
-                    } else if (curLength > victoryLength) {
-                        if (!allowOverlines) {
+                    } else if (curLength > config.getVictoryLength()) {
+                        if (!config.getAllowOverlines()) {
                             victory = false;
                             break;
                         }

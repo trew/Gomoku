@@ -5,6 +5,7 @@ import static gomoku.net.Request.*;
 import gomoku.client.GomokuClient;
 import gomoku.client.gui.BoardComponent;
 import gomoku.logic.Board;
+import gomoku.logic.GomokuConfig;
 import gomoku.logic.Player;
 import gomoku.logic.GomokuGame;
 import gomoku.net.*;
@@ -50,11 +51,11 @@ public class GameplayState extends GomokuGameState {
         return loading;
     }
 
-    public void setInitialData(Board board, int playerColor, int turn,
+    public void setInitialData(Board board, GomokuConfig config, int playerColor, int turn,
             String[] playerList) {
         // create a new game
         this.playerList = playerList;
-        gomokuGame = new GomokuGame(board);
+        gomokuGame = new GomokuGame(board, config);
         gomokuGame.setTurn(gomokuGame.getPlayer(turn));
         setupPlayers(playerColor);
 
