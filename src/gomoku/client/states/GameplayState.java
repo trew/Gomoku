@@ -6,6 +6,7 @@ import gomoku.client.GomokuClient;
 import gomoku.client.gui.BoardComponent;
 import gomoku.logic.Board;
 import gomoku.logic.GomokuConfig;
+import gomoku.logic.IllegalMoveException;
 import gomoku.logic.Player;
 import gomoku.logic.GomokuGame;
 import gomoku.net.*;
@@ -51,8 +52,8 @@ public class GameplayState extends GomokuGameState {
         return loading;
     }
 
-    public void setInitialData(Board board, GomokuConfig config, int playerColor, int turn,
-            String[] playerList) {
+    public void setInitialData(Board board, GomokuConfig config,
+            int playerColor, int turn, String[] playerList) {
         // create a new game
         this.playerList = playerList;
         gomokuGame = new GomokuGame(board, config);
@@ -161,9 +162,12 @@ public class GameplayState extends GomokuGameState {
      *            The y location for the new piece
      */
     public void placePiece(GomokuClient gomokuClient, int x, int y) {
-        if (this.gomokuGame.placePiece(x, y, me.getColor())) {
+        try {
+            this.gomokuGame.placePiece(x, y, me.getColor());
             gomokuClient.client.sendTCP(new PlacePiecePacket(x, y, me
                     .getColor()));
+        } catch (IllegalMoveException e) {
+            info(e.getMessage());
         }
     }
 
@@ -286,14 +290,15 @@ public class GameplayState extends GomokuGameState {
 
     @Override
     protected void handlePlacePiece(Connection conn, PlacePiecePacket ppp) {
-        if (!gomokuGame.placePiece(ppp.x, ppp.y, ppp.playerColor)) {
-            warn("Piece couldn't be placed, requesting board update");
-            conn.sendTCP(new GenericRequestPacket(BoardUpdate));
-
-        } else {
+        try {
+            gomokuGame.placePiece(ppp.x, ppp.y, ppp.playerColor);
             Player player = gomokuGame.getPlayer(ppp.playerColor);
             info(player.getColorName() + " piece placed on " + ppp.x + ", "
                     + ppp.y);
+        } catch (IllegalMoveException e) {
+            warn("Piece couldn't be placed: " + e.getMessage());
+            info("Requesting boardupdate...");
+            conn.sendTCP(new GenericRequestPacket(BoardUpdate));
         }
     }
 

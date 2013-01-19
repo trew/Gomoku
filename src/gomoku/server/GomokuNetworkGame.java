@@ -12,6 +12,7 @@ import gomoku.logic.Board;
 import gomoku.logic.GomokuConfig;
 import gomoku.logic.GomokuGame;
 import gomoku.logic.GomokuGameListener;
+import gomoku.logic.IllegalMoveException;
 import gomoku.net.BoardPacket;
 import gomoku.net.GenericRequestPacket;
 import gomoku.net.NotifyTurnPacket;
@@ -78,11 +79,10 @@ public class GomokuNetworkGame implements GomokuGameListener {
      * @param height
      *            the height of the board
      */
-    public GomokuNetworkGame(GomokuServer gomokuServer, Server server,
-            String name, GomokuConfig config) {
+    public GomokuNetworkGame(GomokuServer gomokuServer, Server server, GomokuConfig config) {
         this.gomokuServer = gomokuServer;
         this.server = server;
-        this.name = name;
+        this.name = config.getName();
         game = new GomokuGame(config);
         game.addListener(this);
         isEnding = false;
@@ -292,14 +292,15 @@ public class GomokuNetworkGame implements GomokuGameListener {
             return;
         }
 
-        if (game.placePiece(ppp.x, ppp.y, playerColor)) {
+        try {
+            game.placePiece(ppp.x, ppp.y, playerColor);
             debug(playerList.get(conn.getID()) + " placed a piece on " + ppp.x
                     + ", " + ppp.y);
             broadcast(conn, ppp);
-        } else {
+        } catch (IllegalMoveException e) {
             // placement was not possible, update the board at client
             conn.sendTCP(new BoardPacket(game.getBoard()));
-            error("Couldn't place there! Pos: " + ppp.x + ", " + ppp.y);
+            error(e.getMessage());
         }
     }
 

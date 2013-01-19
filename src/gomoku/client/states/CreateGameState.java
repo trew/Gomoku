@@ -21,6 +21,9 @@ public class CreateGameState extends GomokuGameState {
     private TextField widthField;
     private TextField heightField;
     private CheckBox allowOverlinesCB;
+    private CheckBox threeAndThreeCB;
+    private CheckBox fourAndFourCB;
+    private CheckBox swap2CB;
     private Button confirmButton;
 
     // presets
@@ -59,20 +62,19 @@ public class CreateGameState extends GomokuGameState {
         heightField.setText("15");
         heightField.setCursorPos(2);
 
-        allowOverlinesCB = new CheckBox(container);
+        allowOverlinesCB = new CheckBox(container, 20, 150, 25, 25);
+        threeAndThreeCB = new CheckBox(container, 20, 180, 25, 25);
+        fourAndFourCB = new CheckBox(container, 20, 210, 25, 25);
+        swap2CB = new CheckBox(container, 20, 240, 25, 25);
 
         gomokuPresetButton = new Button(container, "Gomoku", 600, 40) {
             @Override
             public void buttonClicked(int button, int x, int y) {
-                try {
-                    createNewGame(GomokuConfig.GomokuPreset());
-                } catch (IllegalArgumentException e) {
-                    errorMsg = e.getMessage();
-                }
+                applyPreset(GomokuConfig.GomokuPreset());
             }
         };
 
-        confirmButton = new Button(container, "Create Game", 20, 250) {
+        confirmButton = new Button(container, "Create Game", 20, 350) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 try {
@@ -82,6 +84,19 @@ public class CreateGameState extends GomokuGameState {
                 }
             }
         };
+    }
+
+    private void applyPreset(GomokuConfig config) {
+        if (gameNameField.getText().equals("")) {
+            gameNameField.setText(config.getName());
+        }
+        widthField.setText(String.valueOf(config.getWidth()));
+        heightField.setText(String.valueOf(config.getHeight()));
+
+        allowOverlinesCB.setChecked(config.getAllowOverlines());
+        threeAndThreeCB.setChecked(config.useThreeAndThree());
+        fourAndFourCB.setChecked(config.useFourAndFour());
+        swap2CB.setChecked(config.useSwap2());
     }
 
     public void createNewGame() {
@@ -102,27 +117,24 @@ public class CreateGameState extends GomokuGameState {
                     "Width or height must be valid numbers");
         }
 
-        GomokuConfig config = new GomokuConfig(w, h, 5, false, false, false,
-                false);
-        createNewGame(config);
-    }
+        GomokuConfig config = new GomokuConfig(gameNameField.getText(), w, h,
+                5, allowOverlinesCB.isChecked(), threeAndThreeCB.isChecked(),
+                fourAndFourCB.isChecked(), swap2CB.isChecked());
 
-    public void createNewGame(GomokuConfig config) {
         if (gameNameField.getText() == "") {
             throw new IllegalArgumentException("You must provide a game name");
         }
 
         confirmButton.disable();
-        gomokuClient.client.sendTCP(new CreateGamePacket(gameNameField
-                .getText(), config));
+        gomokuClient.client.sendTCP(new CreateGamePacket(config));
     }
 
     @Override
     protected void handleInitialServerData(Connection connection,
             InitialServerDataPacket isdp) {
         ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE)).setInitialData(
-                isdp.getBoard(), isdp.getConfig(), isdp.getColor(), isdp.getTurn(),
-                isdp.getPlayerList());
+                isdp.getBoard(), isdp.getConfig(), isdp.getColor(),
+                isdp.getTurn(), isdp.getPlayerList());
         gomokuClient.enterState(GAMEPLAYSTATE);
     }
 
@@ -149,12 +161,19 @@ public class CreateGameState extends GomokuGameState {
         g.drawString("Width/Height", 20, 90);
         widthField.render(container, g);
         heightField.render(container, g);
+
         allowOverlinesCB.render(container, g);
+        g.drawString("Allow Overlines", 50, 153);
+        threeAndThreeCB.render(container, g);
+        g.drawString("Three And Three", 50, 183);
+        fourAndFourCB.render(container, g);
+        g.drawString("Four And Four", 50, 213);
+        swap2CB.render(container, g);
+        g.drawString("Swap 2 opening", 50, 243);
 
         // presets to the right
         g.drawString("PRESETS", 600, 20);
         gomokuPresetButton.render(container, g);
-
 
         if (errorMsg != null && errorMsg != "") {
             g.drawString(errorMsg, 20, 500);

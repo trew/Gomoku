@@ -40,7 +40,7 @@ public class GomokuGame {
      *            the height of the board
      */
     public GomokuGame(GomokuConfig config) {
-        this(new Board(config.getWidth(), config.getHeight()), config);
+        this(new Board(config), config);
     }
 
     /**
@@ -93,12 +93,14 @@ public class GomokuGame {
         boolean victory = false;
         int curLength = 0;
         int longestLength = 0;
-        int minX = x - config.getVictoryLength() < 0 ? 0 : x - config.getVictoryLength();
-        int minY = y - config.getVictoryLength() < 0 ? 0 : x - config.getVictoryLength();
-        int maxX = x + config.getVictoryLength() > board.getWidth() ? board.getWidth() : x
-                + config.getVictoryLength();
-        int maxY = y + config.getVictoryLength() > board.getHeight() ? board.getHeight()
-                : y + config.getVictoryLength();
+        int minX = x - config.getVictoryLength() < 0 ? 0 : x
+                - config.getVictoryLength();
+        int minY = y - config.getVictoryLength() < 0 ? 0 : x
+                - config.getVictoryLength();
+        int maxX = x + config.getVictoryLength() > board.getWidth() ? board
+                .getWidth() : x + config.getVictoryLength();
+        int maxY = y + config.getVictoryLength() > board.getHeight() ? board
+                .getHeight() : y + config.getVictoryLength();
 
         // from x, move 4 steps to the left, then check 9 pieces in a row
         trace("Checking victory for player: " + player.getColor());
@@ -219,7 +221,8 @@ public class GomokuGame {
 
             int leftXDiff = x - minX;
             int bottomYDiff = maxY - y;
-            int bottomLeftDiff = bottomYDiff > leftXDiff ? leftXDiff : bottomYDiff;
+            int bottomLeftDiff = bottomYDiff > leftXDiff ? leftXDiff
+                    : bottomYDiff;
 
             int xPos = x + topRightDiff;
             int yPos = y - topRightDiff;
@@ -276,23 +279,19 @@ public class GomokuGame {
      *            the player placing the piece
      * @return true if piece was placed
      */
-    public boolean placePiece(int x, int y, int player) {
+    public void placePiece(int x, int y, int player) throws IllegalMoveException {
         if (gameOver)
-            return false;
+            throw new IllegalMoveException("Game over. Cannot place piece.");
         // not possible to compare "turn == player" because it is a reference
         // comparison. We must rely on comparison by value, which is
         // possible using the colors.
         if (turn.getColor() == player) {
-            if (board.placePiece(player, x, y)) {
-                checkBoard(x, y);
-                switchTurn();
-                return true;
-            }
-            info("Couldn't place on " + x + ", " + y);
-            return false;
+            board.placePiece(player, x, y);
+            checkBoard(x, y);
+            switchTurn();
+        } else {
+            throw new IllegalMoveException("Not " + getPlayer(player).getColorName() + "'s turn!");
         }
-        debug("Not " + getPlayer(player).getColorName() + "'s turn!");
-        return false;
     }
 
     /**

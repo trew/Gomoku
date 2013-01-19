@@ -76,7 +76,7 @@ public class GomokuClient extends StateBasedGame {
      */
     public static void main(String[] args) {
         try {
-            Log.setLevel(LEVEL_DEBUG);
+            Log.setLevel(LEVEL_TRACE);
 
             // create the StateBasedGame to be passed to the container
             GomokuClient game = new GomokuClient();

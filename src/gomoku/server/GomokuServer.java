@@ -243,8 +243,8 @@ public class GomokuServer extends Listener {
         playerColor = Board.BLACKPLAYER;
 
         GomokuNetworkGame newGame = new GomokuNetworkGame(this, server,
-                cgp.name, cgp.config);
-        info(playerName + " created new game \"" + cgp.name + "\".");
+                cgp.config);
+        info(playerName + " created new game \"" + cgp.config.getName() + "\".");
 
         games.put(newGame.getID(), newGame);
         playerInGame.put(conn.getID(), newGame);

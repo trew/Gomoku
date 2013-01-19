@@ -2,6 +2,8 @@ package gomoku.logic;
 
 public class GomokuConfig {
 
+    private String name;
+
     private int boardWidth;
     private int boardHeight;
 
@@ -16,6 +18,7 @@ public class GomokuConfig {
     private boolean swap2;
 
     public GomokuConfig() {
+        name = "Gomoku";
         boardWidth = 15;
         boardHeight = 15;
         victoryLength = 5;
@@ -25,9 +28,10 @@ public class GomokuConfig {
         swap2 = false;
     }
 
-    public GomokuConfig(int width, int height, int victoryLength,
+    public GomokuConfig(String name, int width, int height, int victoryLength,
             boolean allowOverLines, boolean threeAndThree, boolean fourAndFour,
             boolean swap2) {
+        this.name = name;
         this.boardWidth = width;
         this.boardHeight = height;
         this.victoryLength = victoryLength;
@@ -46,7 +50,7 @@ public class GomokuConfig {
     }
 
     static public GomokuConfig OmokPreset() {
-        return new GomokuConfig(15, 15, 5, true, true, false, false);
+        return new GomokuConfig("Omok", 15, 15, 5, true, true, false, false);
     }
 
     public int getVictoryLength() {
@@ -75,5 +79,9 @@ public class GomokuConfig {
 
     public boolean useFourAndFour() {
         return fourAndFour;
+    }
+
+    public String getName() {
+        return name;
     }
 }
