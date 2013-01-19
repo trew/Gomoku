@@ -48,6 +48,8 @@ public class GameplayState extends GomokuGameState {
 
     private String[] playerList;
 
+    private String errorMsg;
+
     public boolean initialLoading() {
         return loading;
     }
@@ -123,6 +125,8 @@ public class GameplayState extends GomokuGameState {
         client = gomokuClient;
         client.setPlayerName("(none)");
 
+        errorMsg = "";
+
         // add the board
         boardComponent = new BoardComponent(container, null, 100, 50, 30, 15,
                 15) {
@@ -166,8 +170,10 @@ public class GameplayState extends GomokuGameState {
             this.gomokuGame.placePiece(x, y, me.getColor());
             gomokuClient.client.sendTCP(new PlacePiecePacket(x, y, me
                     .getColor()));
+            errorMsg = "";
         } catch (IllegalMoveException e) {
             info(e.getMessage());
+            errorMsg = e.getMessage();
         }
     }
 
@@ -259,9 +265,12 @@ public class GameplayState extends GomokuGameState {
                     + gomokuGame.getWhite().getName();
             g.drawString(versus, 250, 10);
 
-            if (me.getColor() == Board.NOPLAYER) {
+            if (!errorMsg.equals("")) {
+                g.setColor(Color.white);
+                g.drawString(errorMsg, 200, 520);
+            }
 
-            } else {
+            if (me.getColor() != Board.NOPLAYER) {
                 String status = "";
                 if (gameOver) {
                     g.setColor(Color.white);
