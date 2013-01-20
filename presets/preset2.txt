@@ -1,0 +1,10 @@
+#
+#Sun Jan 20 19:21:14 CET 2013
+height=15
+threeandthree=true
+fourandfour=true
+name=GomokuABC
+width=15
+allowoverlines=true
+swap2=false
+victorylength=5

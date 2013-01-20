@@ -1,0 +1,10 @@
+#
+#Sun Jan 20 19:06:52 CET 2013
+height=15
+threeandthree=false
+fourandfour=false
+name=Gomoku
+width=15
+allowoverlines=false
+swap2=false
+victorylength=5

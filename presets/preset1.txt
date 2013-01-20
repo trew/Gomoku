@@ -1,0 +1,10 @@
+#
+#Sun Jan 20 19:21:55 CET 2013
+height=19
+threeandthree=false
+fourandfour=false
+name=MyGame
+width=19
+allowoverlines=true
+swap2=false
+victorylength=5
