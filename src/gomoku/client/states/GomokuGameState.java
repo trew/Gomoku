@@ -17,6 +17,7 @@ public abstract class GomokuGameState extends BasicGameState {
     public static final int CHOOSEGAMESTATE = 2;
     public static final int CREATEGAMESTATE = 3;
     public static final int GAMEPLAYSTATE = 4;
+    public static final int MAINMENUSTATE = 5;
 
     /**
      * @see BasicGameState#init(GameContainer, StateBasedGame)

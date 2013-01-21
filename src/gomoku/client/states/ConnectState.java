@@ -45,6 +45,7 @@ public class ConnectState extends GomokuGameState {
     private int port;
 
     private Button connectButton;
+    private Button backButton;
 
     /** Which state we're in */
     private CONNECTSTATE connectingState;
@@ -83,7 +84,14 @@ public class ConnectState extends GomokuGameState {
                 connect(game);
             }
         };
-
+        backButton = new Button(container, "Back", 20, 550) {
+            @Override
+            public void buttonClicked(int button, int x, int y) {
+                if (button == 0) {
+                    game.enterState(MAINMENUSTATE);
+                }
+            }
+        };
         game.client = new Client();
         game.client.start();
 
@@ -211,6 +219,7 @@ public class ConnectState extends GomokuGameState {
         addressField.render(container, g);
 
         connectButton.render(container, g);
+        backButton.render(container, g);
     }
 
     @Override

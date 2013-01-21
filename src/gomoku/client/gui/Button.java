@@ -64,7 +64,8 @@ public class Button extends AbstractComponent {
     public Button(GUIContext container, Image image, int x, int y, int width,
             int height) {
         super(container);
-        constructorHack(null, image, new Rectangle(x, y, width, height));
+        constructorHack(null, image, null, null, null, new Rectangle(x, y,
+                width, height));
     }
 
     /**
@@ -80,8 +81,9 @@ public class Button extends AbstractComponent {
         textHeight = font.getHeight(text) + textYModifier;
         textHeightPadding = 5;
         textWidthPadding = 10;
-        constructorHack(text, backgroundImage, new Rectangle(x, y, textWidth
-                + textWidthPadding * 2, textHeight + textHeightPadding * 2));
+        constructorHack(text, backgroundImage, null, null, null, new Rectangle(
+                x, y, textWidth + textWidthPadding * 2, textHeight
+                        + textHeightPadding * 2));
     }
 
     /**
@@ -100,15 +102,26 @@ public class Button extends AbstractComponent {
             textWidthPadding = 0;
         if (textHeightPadding < 0)
             textHeightPadding = 0;
-        constructorHack(text, backgroundImage, new Rectangle(x, y, textWidth
-                + textWidthPadding * 2, textHeight + textHeightPadding * 2));
+        constructorHack(text, backgroundImage, null, null, null, new Rectangle(
+                x, y, textWidth + textWidthPadding * 2, textHeight
+                        + textHeightPadding * 2));
+    }
+
+    public Button(GUIContext container, Image button, Image buttonHover,
+            Image buttonClick, Image buttonDisabled, int x, int y) {
+        super(container);
+        if (button == null) {
+            throw new IllegalArgumentException("Button image cannot be null.");
+        }
+        constructorHack(null, button, buttonHover, buttonClick, buttonDisabled,
+                new Rectangle(x, y, button.getWidth(), button.getHeight()));
     }
 
     /**
      * The final destination for all constructors
      * http://stackoverflow.com/questions/1168345/why-does-this-and-super-have -
      * to-be-the-first-statement-in-a-constructor
-     * 
+     *
      * @param text
      *            the text to be displayed on the button
      * @param image
@@ -116,16 +129,17 @@ public class Button extends AbstractComponent {
      * @param area
      *            the area which the button occupies
      */
-    private void constructorHack(String text, Image image, Rectangle area) {
+    private void constructorHack(String text, Image button, Image hover,
+            Image click, Image disabled, Rectangle area) {
         this.area = area;
         this.text = text;
 
         enabled = true;
 
-        normalImage = image;
-        mouseOverImage = image;
-        mouseDownImage = image;
-        disabledImage = image;
+        normalImage = button;
+        mouseOverImage = hover;
+        mouseDownImage = click;
+        disabledImage = disabled;
         currentImage = normalImage;
 
         normalColor = Color.white;

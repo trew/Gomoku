@@ -31,6 +31,7 @@ public class CreateGameState extends GomokuGameState {
     private CheckBox fourAndFourCB;
     private CheckBox swap2CB;
     private Button confirmButton;
+    private Button backButton;
 
     // presets
     private Button preset1Button;
@@ -50,7 +51,7 @@ public class CreateGameState extends GomokuGameState {
     }
 
     @Override
-    public void init(GameContainer container, GomokuClient game)
+    public void init(GameContainer container, final GomokuClient game)
             throws SlickException {
         gomokuClient = game;
         listener = new BounceListener(this);
@@ -87,6 +88,15 @@ public class CreateGameState extends GomokuGameState {
                     createNewGame();
                 } catch (IllegalArgumentException e) {
                     errorMsg = e.getMessage();
+                }
+            }
+        };
+
+        backButton = new Button(container, "Back", 20, 550) {
+            @Override
+            public void buttonClicked(int button, int x, int y) {
+                if (button == 0) {
+                    game.enterState(CHOOSEGAMESTATE);
                 }
             }
         };
@@ -255,6 +265,7 @@ public class CreateGameState extends GomokuGameState {
             g.drawString(errorMsg, 20, 500);
         }
         confirmButton.render(container, g);
+        backButton.render(container, g);
     }
 
     @Override

@@ -27,6 +27,8 @@ public class ChooseGameState extends GomokuGameState {
     private Button createNewGameButton;
     private Button joinGameButton;
 
+    private Button backButton;
+
     private GomokuClient gomokuClient;
 
     private BounceListener listener;
@@ -53,7 +55,7 @@ public class ChooseGameState extends GomokuGameState {
     }
 
     @Override
-    public void init(GameContainer container, GomokuClient game)
+    public void init(GameContainer container, final GomokuClient game)
             throws SlickException {
         listener = new BounceListener(this);
         gomokuClient = game;
@@ -75,6 +77,12 @@ public class ChooseGameState extends GomokuGameState {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 joinGame();
+            }
+        };
+        backButton = new Button(container, "Back", 20, 550) {
+            @Override
+            public void buttonClicked(int button, int x, int y) {
+                game.enterState(MAINMENUSTATE);
             }
         };
     }
@@ -101,6 +109,7 @@ public class ChooseGameState extends GomokuGameState {
         joinGameButton.render(container, g);
         g.drawString("GameID:", 460, 465);
         selectedGameIDField.render(container, g);
+        backButton.render(container, g);
     }
 
     public void addGame(String gameName, int gameID) {
@@ -110,7 +119,6 @@ public class ChooseGameState extends GomokuGameState {
     @Override
     public void update(GameContainer container, GomokuClient game, int delta)
             throws SlickException {
-
     }
 
     /**

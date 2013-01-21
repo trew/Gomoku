@@ -197,7 +197,7 @@ public class GameplayState extends GomokuGameState {
         Input input = container.getInput();
 
         if (input.isKeyPressed(Input.KEY_ESCAPE)) {
-            container.exit();
+            gomokuClient.enterState(MAINMENUSTATE);
         }
 
         /* *** NETWORK RELATED INPUT *** */

@@ -4,6 +4,7 @@ import gomoku.client.states.ChooseGameState;
 import gomoku.client.states.ConnectState;
 import gomoku.client.states.CreateGameState;
 import gomoku.client.states.GameplayState;
+import gomoku.client.states.MainMenuState;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;
@@ -61,6 +62,7 @@ public class GomokuClient extends StateBasedGame {
      */
     @Override
     public void initStatesList(GameContainer container) throws SlickException {
+        this.addState(new MainMenuState());
         this.addState(new ConnectState());
         this.addState(new ChooseGameState());
         this.addState(new CreateGameState());
