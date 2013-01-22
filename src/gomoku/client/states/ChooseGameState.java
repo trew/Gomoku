@@ -4,16 +4,15 @@ import gomoku.client.GomokuClient;
 
 import gomoku.client.gui.Button;
 import gomoku.client.gui.GameList;
+import gomoku.client.gui.TextField;
 import gomoku.net.GameListPacket;
-import gomoku.net.InitialClientDataPacket;
 import gomoku.net.InitialServerDataPacket;
 import gomoku.net.JoinGamePacket;
 
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.gui.TextField;
 
 import com.esotericsoftware.kryonet.Connection;
 
@@ -26,7 +25,6 @@ public class ChooseGameState extends GomokuGameState {
 
     private Button createNewGameButton;
     private Button joinGameButton;
-
     private Button backButton;
 
     private GomokuClient gomokuClient;
@@ -44,8 +42,6 @@ public class ChooseGameState extends GomokuGameState {
     public void enter(GameContainer container, GomokuClient gomokuClient)
             throws SlickException {
         gomokuClient.client.addListener(listener);
-        gomokuClient.client.sendTCP(new InitialClientDataPacket(gomokuClient
-                .getPlayerName()));
     }
 
     @Override
@@ -60,31 +56,41 @@ public class ChooseGameState extends GomokuGameState {
         listener = new BounceListener(this);
         gomokuClient = game;
 
-        gameList = new GameList(container, 100, 50, 600, 400);
-        selectedGameIDField = new TextField(container,
-                container.getDefaultFont(), 530, 460, 30, 25);
-        selectedGameIDField.setBackgroundColor(Color.darkGray);
-        selectedGameIDField.setBorderColor(Color.white);
-        selectedGameIDField.setMaxLength(2);
+        gameList = new GameList(container, 80, 50, 640, 300);
+        Image textfield = new Image("res/textfield.png");
+        selectedGameIDField = new TextField(container, textfield,
+                container.getDefaultFont(), 535, 435, 50);
 
-        createNewGameButton = new Button(container, "Create new game", 100, 460) {
+        Image cgBtn = new Image("res/buttons/creategamebutton.png");
+        createNewGameButton = new Button(cgBtn, 80, 360) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 gomokuClient.enterState(CREATEGAMESTATE);
             }
         };
-        joinGameButton = new Button(container, "Join Game", 330, 460) {
+        Image jgBtn = new Image("res/buttons/joingamebutton.png");
+        joinGameButton = new Button(jgBtn, 360, 360) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 joinGame();
             }
         };
-        backButton = new Button(container, "Back", 20, 550) {
+        joinGameButton.setRightX(gameList.getX() + gameList.getWidth());
+        Image bBtn = new Image("res/buttons/backbutton.png");
+        backButton = new Button(bBtn, 250, 500) {
             @Override
             public void buttonClicked(int button, int x, int y) {
-                game.enterState(MAINMENUSTATE);
+                if (button == 0) {
+                    game.enterState(MAINMENUSTATE);
+                }
             }
         };
+        backButton.setCenterX(container.getWidth() / 2);
+
+        addListener(selectedGameIDField);
+        addListener(createNewGameButton);
+        addListener(joinGameButton);
+        addListener(backButton);
     }
 
     public void joinGame() {
@@ -103,11 +109,12 @@ public class ChooseGameState extends GomokuGameState {
     @Override
     public void render(GameContainer container, GomokuClient game, Graphics g)
             throws SlickException {
+        g.drawImage(game.getBackground(), 0, 0);
 
         gameList.render(container, g);
         createNewGameButton.render(container, g);
         joinGameButton.render(container, g);
-        g.drawString("GameID:", 460, 465);
+        g.drawString("GameID:", 460, 440);
         selectedGameIDField.render(container, g);
         backButton.render(container, g);
     }

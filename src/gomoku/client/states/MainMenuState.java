@@ -7,11 +7,9 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.util.ResourceLoader;
 
 public class MainMenuState extends GomokuGameState {
 
-    private Image background;
     private Image gomokuTitle;
 
     private Button multiPlayerButton;
@@ -25,12 +23,11 @@ public class MainMenuState extends GomokuGameState {
     public void init(final GameContainer container, final GomokuClient game)
             throws SlickException {
         final GameContainer gamecontainer = container;
-        background = new Image("res/background.png");
+        game.setBackground(new Image("res/background.png"));
+
         gomokuTitle = new Image("res/gomoku.png");
-        Image mp = new Image("res/playmultiplayerbutton.png");
-        Image mpHover = new Image("res/playmultiplayerbuttonhover.png");
-        Image mpClick = new Image("res/playmultiplayerbuttonclick.png");
-        multiPlayerButton = new Button(container, mp, mpHover, mpClick, null, 250, 200) {
+        Image mp = new Image("res/buttons/playmultiplayerbutton.png");
+        multiPlayerButton = new Button(mp, 250, 200) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0) {
@@ -38,21 +35,18 @@ public class MainMenuState extends GomokuGameState {
                 }
             }
         };
-        Image op = new Image("res/optionsbutton.png");
-        Image opHover = new Image("res/optionsbuttonhover.png");
-        Image opClick = new Image("res/optionsbuttonclick.png");
-        optionsButton = new Button(gamecontainer, op, opHover, opClick, null, 250, 280) {
+        Image op = new Image("res/buttons/optionsbutton.png");
+        optionsButton = new Button(op, 250, 280) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0) {
+                    //TODO
 //                    game.enterState(OPTIONSSTATE);
                 }
             }
         };
-        Image ex = new Image("res/exitgamebutton.png");
-        Image exHover = new Image("res/exitgamebuttonhover.png");
-        Image exClick = new Image("res/exitgamebuttonclick.png");
-        exitButton = new Button(container, ex, exHover, exClick, null, 250, 360) {
+        Image ex = new Image("res/buttons/exitgamebutton.png");
+        exitButton = new Button(ex, 250, 360) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0) {
@@ -60,12 +54,16 @@ public class MainMenuState extends GomokuGameState {
                 }
             }
         };
+
+        addListener(multiPlayerButton);
+        addListener(optionsButton);
+        addListener(exitButton);
     }
 
     @Override
     public void render(GameContainer container, GomokuClient game, Graphics g)
             throws SlickException {
-        g.drawImage(background, 0, 0);
+        g.drawImage(game.getBackground(), 0, 0);
         g.drawImage(gomokuTitle, 16, 30);
 
         multiPlayerButton.render(container, g);
@@ -76,22 +74,16 @@ public class MainMenuState extends GomokuGameState {
     @Override
     public void update(GameContainer container, GomokuClient game, int delta)
             throws SlickException {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void enter(GameContainer container, GomokuClient game)
             throws SlickException {
-        // TODO Auto-generated method stub
-
     }
 
     @Override
     public void leave(GameContainer container, GomokuClient game)
             throws SlickException {
-        // TODO Auto-generated method stub
-
     }
 
     @Override

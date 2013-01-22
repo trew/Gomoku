@@ -6,16 +6,16 @@ import java.io.FileNotFoundException;
 import gomoku.client.GomokuClient;
 import gomoku.client.gui.Button;
 import gomoku.client.gui.CheckBox;
+import gomoku.client.gui.TextField;
 import gomoku.logic.GomokuConfig;
 import gomoku.net.CreateGamePacket;
 import gomoku.net.InitialServerDataPacket;
 
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.gui.GUIContext;
-import org.newdawn.slick.gui.TextField;
 
 import com.esotericsoftware.kryonet.Connection;
 
@@ -31,6 +31,7 @@ public class CreateGameState extends GomokuGameState {
     private CheckBox fourAndFourCB;
     private CheckBox swap2CB;
     private Button confirmButton;
+
     private Button backButton;
 
     // presets
@@ -56,32 +57,36 @@ public class CreateGameState extends GomokuGameState {
         gomokuClient = game;
         listener = new BounceListener(this);
 
-        gameNameField = new TextField(container, container.getDefaultFont(),
-                20, 50, 300, 25);
-        gameNameField.setBorderColor(Color.white);
-        gameNameField.setBackgroundColor(Color.darkGray);
+        Image textfield = new Image("res/textfield.png");
+        gameNameField = new TextField(container, textfield, container.getDefaultFont(),
+                20, 50, 300);
 
-        widthField = new TextField(container, container.getDefaultFont(), 20,
-                110, 40, 25);
-        widthField.setBorderColor(Color.white);
-        widthField.setBackgroundColor(Color.darkGray);
+        widthField = new TextField(container, textfield, container.getDefaultFont(), 20,
+                110, 60);
         widthField.setText("15");
         widthField.setCursorPos(2);
-        heightField = new TextField(container, container.getDefaultFont(), 70,
-                110, 40, 25);
-        heightField.setBorderColor(Color.white);
-        heightField.setBackgroundColor(Color.darkGray);
+        heightField = new TextField(container, textfield, container.getDefaultFont(), 90,
+                110, 60);
         heightField.setText("15");
         heightField.setCursorPos(2);
 
-        allowOverlinesCB = new CheckBox(container, 20, 150, 25, 25);
-        threeAndThreeCB = new CheckBox(container, 20, 180, 25, 25);
-        fourAndFourCB = new CheckBox(container, 20, 210, 25, 25);
-        swap2CB = new CheckBox(container, 20, 240, 25, 25);
+        allowOverlinesCB = new CheckBox(20, 150, 25, 25);
+        threeAndThreeCB = new CheckBox(20, 180, 25, 25);
+        fourAndFourCB = new CheckBox(20, 210, 25, 25);
+        swap2CB = new CheckBox(20, 240, 25, 25);
+
+        addListener(allowOverlinesCB);
+        addListener(threeAndThreeCB);
+        addListener(fourAndFourCB);
+        addListener(swap2CB);
+        addListener(gameNameField);
+        addListener(widthField);
+        addListener(heightField);
 
         initPresets(container);
 
-        confirmButton = new Button(container, "Create Game", 20, 350) {
+        Image cgBtn = new Image("res/buttons/creategamebutton.png");
+        confirmButton = new Button(cgBtn, 20, 380) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 try {
@@ -91,8 +96,10 @@ public class CreateGameState extends GomokuGameState {
                 }
             }
         };
+        confirmButton.setCenterX(container.getWidth() / 2);
 
-        backButton = new Button(container, "Back", 20, 550) {
+        Image bBtn = new Image("res/buttons/backbutton.png");
+        backButton = new Button(bBtn, 250, 500) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0) {
@@ -100,6 +107,13 @@ public class CreateGameState extends GomokuGameState {
                 }
             }
         };
+        backButton.setCenterX(container.getWidth() / 2);
+
+        addListener(confirmButton);
+        addListener(backButton);
+        addListener(preset1Button);
+        addListener(preset2Button);
+        addListener(preset3Button);
     }
 
     private void initPresets(GUIContext container) {
@@ -122,7 +136,7 @@ public class CreateGameState extends GomokuGameState {
         } catch (FileNotFoundException e) {
         }
 
-        preset1Button = new Button(container, "Preset 1", 600, 40) {
+        preset1Button = new Button("Preset 1", container.getDefaultFont(), 600, 40) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (preset1 != null && button == 0)
@@ -137,7 +151,7 @@ public class CreateGameState extends GomokuGameState {
                 }
             }
         };
-        preset2Button = new Button(container, "Preset 2", 600, 70) {
+        preset2Button = new Button("Preset 2", container.getDefaultFont(), 600, 70) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (preset2 != null && button == 0)
@@ -152,7 +166,7 @@ public class CreateGameState extends GomokuGameState {
                 }
             }
         };
-        preset3Button = new Button(container, "Preset 3", 600, 100) {
+        preset3Button = new Button("Preset 3", container.getDefaultFont(), 600, 100) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (preset3 != null && button == 0)
@@ -240,6 +254,8 @@ public class CreateGameState extends GomokuGameState {
     @Override
     public void render(GameContainer container, GomokuClient game, Graphics g)
             throws SlickException {
+        g.drawImage(game.getBackground(), 0, 0);
+
         g.drawString("Game Name", 20, 20);
         gameNameField.render(container, g);
         g.drawString("Width/Height", 20, 90);

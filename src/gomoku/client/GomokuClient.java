@@ -8,6 +8,7 @@ import gomoku.client.states.MainMenuState;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
 
@@ -40,6 +41,14 @@ public class GomokuClient extends StateBasedGame {
     public Client client;
 
     private String playerName;
+    private Image background;
+
+    public Image getBackground() {
+        return background;
+    }
+    public void setBackground(Image bg) {
+        background = bg;
+    }
 
     public void setPlayerName(String name) {
         playerName = name;

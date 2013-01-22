@@ -6,7 +6,6 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.geom.Circle;
 import org.newdawn.slick.geom.Rectangle;
-import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
 
 public class CheckBox extends AbstractComponent {
@@ -25,18 +24,17 @@ public class CheckBox extends AbstractComponent {
     private boolean active;
     private boolean hovered;
 
-    public CheckBox(GUIContext container, int x, int y, int width, int height) {
-        this(container, x, y, width, height, null, null, null, null);
+    public CheckBox(int x, int y, int width, int height) {
+        this(x, y, width, height, null, null, null, null);
     }
 
-    public CheckBox(GUIContext container, int x, int y, int width, int height,
+    public CheckBox(int x, int y, int width, int height,
             Image checkbox, Image checkedMark) {
-        this(container, x, y, width, height, checkbox, checkedMark, null, null);
+        this(x, y, width, height, checkbox, checkedMark, null, null);
     }
 
-    public CheckBox(GUIContext container, int x, int y, int width, int height,
+    public CheckBox(int x, int y, int width, int height,
             Image checkbox, Image checkedMark, Image hovered, Image active) {
-        super(container);
         enabled = true;
         area = new Rectangle(x, y, width, height);
         mark = new Circle(x + width / 2 + 1, y + height / 2 + 1, width / 2 - 2);

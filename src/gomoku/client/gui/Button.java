@@ -4,13 +4,12 @@ import org.newdawn.slick.Color;
 import org.newdawn.slick.Font;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
-import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.geom.Rectangle;
-import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
+import org.newdawn.slick.util.InputAdapter;
 
-public class Button extends AbstractComponent {
+public class Button extends InputAdapter {
 
     private Image currentImage;
     private Image normalImage;
@@ -44,38 +43,16 @@ public class Button extends AbstractComponent {
      * Create a button with automatic width/height depending on the size of the
      * text.
      */
-    public Button(GUIContext container, String text, int x, int y) {
-        this(container, text, null, x, y);
-    }
-
-    /**
-     * Create a button with automatic width/height depending on the size of the
-     * text.
-     */
-    public Button(GUIContext container, String text, int x, int y,
-            int minWidth, int minHeight) {
-        this(container, text, null, x, y, minWidth, minHeight);
-    }
-
-    /**
-     * Create a new button with an image and no text. This implies the image
-     * contains text or a description about what the button does.
-     */
-    public Button(GUIContext container, Image image, int x, int y, int width,
-            int height) {
-        super(container);
-        constructorHack(null, image, null, null, null, new Rectangle(x, y,
-                width, height));
+    public Button(String text, Font font, int x, int y) {
+        this(text, font, null, x, y);
     }
 
     /**
      * Create a button using a text string and a background image. The text
      * padding will default to width: 10px and height: 5px.
      */
-    public Button(GUIContext container, String text, Image backgroundImage,
-            int x, int y) {
-        super(container);
-        font = container.getDefaultFont();
+    public Button(String text, Font font, Image backgroundImage, int x, int y) {
+        this.font = font;
         textWidth = font.getWidth(text);
         textYModifier = font.getHeight(text) - font.getLineHeight();
         textHeight = font.getHeight(text) + textYModifier;
@@ -86,30 +63,17 @@ public class Button extends AbstractComponent {
                         + textHeightPadding * 2));
     }
 
-    /**
-     * Create a button using a text string and a background image.
-     */
-    public Button(GUIContext container, String text, Image backgroundImage,
-            int x, int y, int minWidth, int minHeight) {
-        super(container);
-        font = container.getDefaultFont();
-        textWidth = font.getWidth(text);
-        textYModifier = font.getHeight(text) - font.getLineHeight();
-        textHeight = font.getHeight(text) + textYModifier;
-        textWidthPadding = minWidth - textWidth;
-        textHeightPadding = minHeight - textHeight;
-        if (textWidthPadding < 0)
-            textWidthPadding = 0;
-        if (textHeightPadding < 0)
-            textHeightPadding = 0;
-        constructorHack(text, backgroundImage, null, null, null, new Rectangle(
-                x, y, textWidth + textWidthPadding * 2, textHeight
-                        + textHeightPadding * 2));
+    public Button(Image button, int x, int y) {
+        int imageHeight = button.getHeight() / 4;
+        Image btn = button.getSubImage(0, 0, button.getWidth(), imageHeight);
+        Image hover = button.getSubImage(0, imageHeight, button.getWidth(), imageHeight);
+        Image click = button.getSubImage(0, imageHeight*2, button.getWidth(), imageHeight);
+        Image disabled = button.getSubImage(0, imageHeight*3, button.getWidth(), imageHeight);
+        constructorHack(null, btn, hover, click, disabled, new Rectangle(x, y, button.getWidth(), imageHeight));
     }
 
-    public Button(GUIContext container, Image button, Image buttonHover,
-            Image buttonClick, Image buttonDisabled, int x, int y) {
-        super(container);
+    public Button(Image button, Image buttonHover, Image buttonClick,
+            Image buttonDisabled, int x, int y) {
         if (button == null) {
             throw new IllegalArgumentException("Button image cannot be null.");
         }
@@ -148,11 +112,9 @@ public class Button extends AbstractComponent {
         disabledColor = Color.lightGray;
         currentColor = normalColor;
 
-        Input input = container.getInput();
-        over = area.contains(input.getMouseX(), input.getMouseY());
+        over = false;
     }
 
-    @Override
     public void render(GUIContext container, Graphics g) throws SlickException {
         Color old = g.getColor();
         if (currentImage != null) {
@@ -192,10 +154,14 @@ public class Button extends AbstractComponent {
 
     public void disable() {
         enabled = false;
+        currentImage = disabledImage;
     }
 
     public void enable() {
         enabled = true;
+        if (currentImage == disabledImage) {
+            updateImage();
+        }
     }
 
     @Override
@@ -226,29 +192,40 @@ public class Button extends AbstractComponent {
     public void buttonClicked(int button, int x, int y) {
     }
 
-    @Override
     public void setLocation(int x, int y) {
         if (area != null) {
             area.setLocation(x, y);
         }
     }
 
-    @Override
+    public void setCenterX(int x) {
+        area.setCenterX(x);
+    }
+
+    public void setCenterY(int y) {
+        area.setCenterY(y);
+    }
+
+    public void setRightX(int x) {
+        area.setX(x - getWidth());
+    }
+
+    public void setBottomY(int y) {
+        area.setY(y - getHeight());
+    }
+
     public int getX() {
         return (int) area.getX();
     }
 
-    @Override
     public int getY() {
         return (int) area.getY();
     }
 
-    @Override
     public int getWidth() {
         return (int) area.getWidth();
     }
 
-    @Override
     public int getHeight() {
         return (int) area.getHeight();
     }

@@ -2,19 +2,19 @@ package gomoku.client.states;
 
 import gomoku.client.GomokuClient;
 import gomoku.client.gui.Button;
+import gomoku.client.gui.TextField;
 import gomoku.net.*;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
 
-import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.UnicodeFont;
 import org.newdawn.slick.font.effects.ColorEffect;
-import org.newdawn.slick.gui.TextField;
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
@@ -66,25 +66,27 @@ public class ConnectState extends GomokuGameState {
         ucf.loadGlyphs();
         container.setDefaultFont(ucf);
 
-        nameField = new TextField(container, container.getDefaultFont(), 300,
-                50, 300, 30);
-        nameField.setBorderColor(Color.white);
-        nameField.setBackgroundColor(Color.darkGray);
-
-        addressField = new TextField(container, container.getDefaultFont(),
-                300, 100, 300, 30);
-        addressField.setBorderColor(Color.white);
-        addressField.setBackgroundColor(Color.darkGray);
+        Image textfield = new Image("res/textfield.png");
+        nameField = new TextField(container, textfield, container.getDefaultFont(), 300,
+                50, 300);
+        addressField = new TextField(container, textfield, container.getDefaultFont(),
+                300, 100, 300);
         addressField.setText("127.0.0.1");
+        addressField.setCursorPos("127.0.0.1".length());
+
         port = 9123;
 
-        connectButton = new Button(container, "Connect", 340, 350, 120, 35) {
+        Image cBtn = new Image("res/buttons/connectbutton.png");
+        connectButton = new Button(cBtn, 250, 330) {
             @Override
             public void buttonClicked(int button, int x, int y) {
-                connect(game);
+                if (button == 0) {
+                    connect(game);
+                }
             }
         };
-        backButton = new Button(container, "Back", 20, 550) {
+        Image bBtn = new Image("res/buttons/backbutton.png");
+        backButton = new Button(bBtn, 250, 500) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0) {
@@ -92,6 +94,12 @@ public class ConnectState extends GomokuGameState {
                 }
             }
         };
+
+        addListener(nameField);
+        addListener(addressField);
+        addListener(connectButton);
+        addListener(backButton);
+
         game.client = new Client();
         game.client.start();
 
@@ -136,7 +144,7 @@ public class ConnectState extends GomokuGameState {
 
         // lock all settings
         connectButton.disable();
-        nameField.deactivate();
+        nameField.disable();
         game.setPlayerName(nameField.getText());
 
         connectingState = CONNECTSTATE.CONNECTING;
@@ -157,6 +165,8 @@ public class ConnectState extends GomokuGameState {
             public void run() {
                 try {
                     game.client.connect(5000, address, port);
+                    game.client.sendTCP(new InitialClientDataPacket(game
+                            .getPlayerName()));
                 } catch (UnknownHostException e) {
                     connectingState = CONNECTSTATE.CONNECTIONFAILED;
                     if (TRACE)
@@ -205,6 +215,7 @@ public class ConnectState extends GomokuGameState {
     public void render(GameContainer container, GomokuClient game, Graphics g)
             throws SlickException {
         g.setFont(container.getDefaultFont());
+        g.drawImage(game.getBackground(), 0, 0);
 
         int w = container.getDefaultFont().getWidth(connectMessage);
         g.drawString(connectMessage, center(0, container.getWidth(), w), 400);
@@ -230,6 +241,9 @@ public class ConnectState extends GomokuGameState {
     @Override
     public void enter(GameContainer container, GomokuClient game)
             throws SlickException {
+        if (connectingState == CONNECTSTATE.CONNECTED) {
+            game.enterState(CHOOSEGAMESTATE);
+        }
     }
 
     @Override

@@ -1,17 +1,22 @@
 package gomoku.client.states;
 
+import java.util.HashSet;
+
 import gomoku.client.GomokuClient;
 import gomoku.net.*;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.InputListener;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.BasicGameState;
+import org.newdawn.slick.state.GameState;
 import org.newdawn.slick.state.StateBasedGame;
 
 import com.esotericsoftware.kryonet.Connection;
 
-public abstract class GomokuGameState extends BasicGameState {
+public abstract class GomokuGameState implements GameState {
 
     public static final int CONNECTGAMESTATE = 1;
     public static final int CHOOSEGAMESTATE = 2;
@@ -19,12 +24,27 @@ public abstract class GomokuGameState extends BasicGameState {
     public static final int GAMEPLAYSTATE = 4;
     public static final int MAINMENUSTATE = 5;
 
+    private HashSet<InputListener> listeners;
+
+    private boolean pauseUpdate = false;
+    private boolean pauseRender = false;
+
+
+    public void addListener(InputListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeListener(InputListener listener) {
+        listeners.remove(listener);
+    }
+
     /**
      * @see BasicGameState#init(GameContainer, StateBasedGame)
      */
     @Override
     public void init(GameContainer container, StateBasedGame game)
             throws SlickException {
+        listeners = new HashSet<InputListener>();
         init(container, (GomokuClient) game);
     }
 
@@ -276,6 +296,159 @@ public abstract class GomokuGameState extends BasicGameState {
     }
 
     public void idle(Connection connection) {
+    }
+
+    @Override
+    public void mouseWheelMoved(int change) {
+        for (InputListener listener : listeners) {
+            listener.mouseWheelMoved(change);
+        }
+    }
+
+    @Override
+    public void mouseClicked(int button, int x, int y, int clickCount) {
+        for (InputListener listener : listeners) {
+            listener.mouseClicked(button, x, y, clickCount);
+        }
+    }
+
+    @Override
+    public void mousePressed(int button, int x, int y) {
+        for (InputListener listener : listeners) {
+            listener.mousePressed(button, x, y);
+        }
+    }
+
+    @Override
+    public void mouseReleased(int button, int x, int y) {
+        for (InputListener listener : listeners) {
+            listener.mouseReleased(button, x, y);
+        }
+    }
+
+    @Override
+    public void mouseMoved(int oldx, int oldy, int newx, int newy) {
+        for (InputListener listener : listeners) {
+            listener.mouseMoved(oldx, oldy, newx, newy);
+        }
+    }
+
+    @Override
+    public void mouseDragged(int oldx, int oldy, int newx, int newy) {
+        for (InputListener listener : listeners) {
+            listener.mouseDragged(oldx, oldy, newx, newy);
+        }
+    }
+
+    @Override
+    public void setInput(Input input) {
+    }
+
+    @Override
+    public boolean isAcceptingInput() {
+        return true;
+    }
+
+    @Override
+    public void inputEnded() {
+    }
+
+    @Override
+    public void inputStarted() {
+    }
+
+    @Override
+    public void keyPressed(int key, char c) {
+        for (InputListener listener : listeners) {
+            listener.keyPressed(key, c);
+        }
+    }
+
+    @Override
+    public void keyReleased(int key, char c) {
+        for (InputListener listener : listeners) {
+            listener.keyReleased(key, c);
+        }
+    }
+
+    @Override
+    public void controllerLeftPressed(int controller) {
+    }
+
+    @Override
+    public void controllerLeftReleased(int controller) {
+    }
+
+    @Override
+    public void controllerRightPressed(int controller) {
+    }
+
+    @Override
+    public void controllerRightReleased(int controller) {
+    }
+
+    @Override
+    public void controllerUpPressed(int controller) {
+    }
+
+    @Override
+    public void controllerUpReleased(int controller) {
+    }
+
+    @Override
+    public void controllerDownPressed(int controller) {
+    }
+
+    @Override
+    public void controllerDownReleased(int controller) {
+    }
+
+    @Override
+    public void controllerButtonPressed(int controller, int button) {
+    }
+
+    @Override
+    public void controllerButtonReleased(int controller, int button) {
+    }
+
+    @Override
+    public void pauseUpdate() {
+        pauseUpdate = true;
+    }
+
+    @Override
+    public void pauseRender() {
+        pauseRender = true;
+    }
+
+    @Override
+    public void unpauseUpdate() {
+        pauseUpdate = false;
+    }
+
+    @Override
+    public void unpauseRender() {
+        pauseRender = false;
+    }
+
+    @Override
+    public boolean isUpdatePaused() {
+        return pauseUpdate;
+    }
+
+    @Override
+    public boolean isRenderPaused() {
+        return pauseRender;
+    }
+
+    @Override
+    public void setUpdatePaused(boolean pause) {
+        pauseUpdate = pause;
+    }
+
+    @Override
+    public void setRenderPaused(boolean pause) {
+        pauseRender = pause;
     }
 
 }
