@@ -5,11 +5,13 @@ import java.util.HashSet;
 import gomoku.client.GomokuClient;
 import gomoku.net.*;
 
+import org.newdawn.slick.Font;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.InputListener;
 import org.newdawn.slick.SlickException;
+import org.newdawn.slick.gui.GUIContext;
 import org.newdawn.slick.state.BasicGameState;
 import org.newdawn.slick.state.GameState;
 import org.newdawn.slick.state.StateBasedGame;
@@ -164,8 +166,14 @@ public abstract class GomokuGameState implements GameState {
      *            The width of the object being centered
      * @return The left position
      */
-    public int center(float x1, float x2, float width) {
-        return (int) (x1 + (x2 - x1) / 2 - width / 2);
+    public int center(float x1, float x2, float objectWidth) {
+        return (int) (x1 + (x2 - x1) / 2 - objectWidth / 2);
+    }
+
+    public void drawCenteredString(String text, int y, GUIContext container, Graphics g) {
+        Font font = g.getFont();
+        int textW = font.getWidth(text);
+        g.drawString(text, center(0, container.getWidth(), textW), y);
     }
 
     public void connected(Connection connection) {

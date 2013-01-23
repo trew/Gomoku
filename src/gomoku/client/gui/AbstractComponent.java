@@ -21,4 +21,5 @@ public abstract class AbstractComponent extends InputAdapter {
     public abstract int getHeight();
 
     public abstract void setLocation(int x, int y);
+
 }

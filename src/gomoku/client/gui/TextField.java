@@ -91,7 +91,8 @@ public class TextField extends AbstractComponent {
         if (lastKey != -1) {
             if (input.isKeyDown(lastKey)) {
                 if (repeatTimer < System.currentTimeMillis()) {
-                    repeatTimer = System.currentTimeMillis() + KEY_REPEAT_INTERVAL;
+                    repeatTimer = System.currentTimeMillis()
+                            + KEY_REPEAT_INTERVAL;
                     keyPressed(lastKey, lastChar);
                 }
             } else {
@@ -103,7 +104,8 @@ public class TextField extends AbstractComponent {
         Font oldFont = g.getFont();
 
         g.drawImage(left, getX(), getY());
-        g.drawImage(right, getX() + textArea.getWidth() + left.getWidth(), getY());
+        g.drawImage(right, getX() + textArea.getWidth() + left.getWidth(),
+                getY());
 
         for (int i = 0; i < textArea.getWidth(); i++) {
             g.drawImage(mid, getX() + left.getWidth() + i, getY());
@@ -119,16 +121,18 @@ public class TextField extends AbstractComponent {
         int cCharWidth = 0;
         int cposmod = 0;
         if (cursorPos < value.length()) {
-            cCharWidth = font.getWidth(value.substring(cursorPos, cursorPos + 1));
+            cCharWidth = font.getWidth(value
+                    .substring(cursorPos, cursorPos + 1));
         } else {
             cCharWidth = font.getWidth("_");
         }
         cposmod += (cCharWidth - font.getWidth("_")) / 2;
-        if (cposmod < 0) cposmod = 0;
+        if (cposmod < 0)
+            cposmod = 0;
 
         int tx = 0;
         if (cpos > textArea.getWidth()) {
-            tx = ((int)textArea.getWidth()) - cpos - font.getWidth("_");
+            tx = ((int) textArea.getWidth()) - cpos - font.getWidth("_");
         }
 
         g.translate(tx + 2, 0);
@@ -137,7 +141,8 @@ public class TextField extends AbstractComponent {
         g.drawString(value, textArea.getX(), textArea.getY());
 
         if (hasFocus())
-            g.drawString("_", textArea.getX() + cpos + cposmod + 1, textArea.getY() + 1);
+            g.drawString("_", textArea.getX() + cpos + cposmod + 1,
+                    textArea.getY() + 1);
 
         g.translate(-tx - 2, 0);
 
@@ -175,8 +180,37 @@ public class TextField extends AbstractComponent {
 
     @Override
     public void setLocation(int x, int y) {
-        if (area != null)
+        if (area != null && textArea != null) {
             area.setLocation(x, y);
+            textArea.setLocation(x + left.getWidth(),
+                    y + left.getHeight() / 2 - font.getLineHeight() / 2);
+        }
+    }
+
+    public void setCenterX(float x) {
+        if (area != null && textArea != null) {
+            area.setCenterX(x);
+            textArea.setCenterX(x);
+        }
+    }
+
+    public void setCenterY(float y) {
+        if (area != null && textArea != null) {
+            area.setCenterY(y);
+            textArea.setCenterY(y);
+        }
+    }
+
+    public float getCenterX() {
+        if (area != null)
+            return area.getCenterX();
+        return 0;
+    }
+
+    public float getCenterY() {
+        if (area != null)
+            return area.getCenterY();
+        return 0;
     }
 
     public boolean isEnabled() {
@@ -194,19 +228,22 @@ public class TextField extends AbstractComponent {
 
     public void setCursorPos(int pos) {
         cursorPos = pos;
-        if (cursorPos < 0) cursorPos = 0;
-        if (cursorPos > value.length()) cursorPos = value.length();
+        if (cursorPos < 0)
+            cursorPos = 0;
+        if (cursorPos > value.length())
+            cursorPos = value.length();
     }
 
     /**
      * Do the paste into the field, overrideable for custom behaviour
      *
-     * @param text The text to be pasted in
+     * @param text
+     *            The text to be pasted in
      */
     protected void doPaste(String text) {
         recordOldPosition();
 
-        for (int i=0;i<text.length();i++) {
+        for (int i = 0; i < text.length(); i++) {
             if (text.charAt(i) == '\r')
                 break;
             keyPressed(-1, text.charAt(i));
@@ -224,8 +261,10 @@ public class TextField extends AbstractComponent {
     /**
      * Do the undo of the paste, overrideable for custom behaviour
      *
-     * @param oldCursorPos before the paste
-     * @param oldText The text before the last paste
+     * @param oldCursorPos
+     *            before the paste
+     * @param oldText
+     *            The text before the last paste
      */
     protected void doUndo(int oldCursorPos, String oldText) {
         if (oldText != null) {
@@ -265,7 +304,8 @@ public class TextField extends AbstractComponent {
 
             if (lastKey != key) {
                 lastKey = key;
-                repeatTimer = System.currentTimeMillis() + INITIAL_KEY_REPEAT_INTERVAL;
+                repeatTimer = System.currentTimeMillis()
+                        + INITIAL_KEY_REPEAT_INTERVAL;
             } else {
                 repeatTimer = System.currentTimeMillis() + KEY_REPEAT_INTERVAL;
             }

@@ -68,11 +68,13 @@ public class ConnectState extends GomokuGameState {
 
         Image textfield = new Image("res/textfield.png");
         nameField = new TextField(container, textfield, container.getDefaultFont(), 300,
-                50, 300);
+                130, 300);
+        nameField.setCenterX(container.getWidth() / 2);
         addressField = new TextField(container, textfield, container.getDefaultFont(),
-                300, 100, 300);
+                300, 200, 300);
         addressField.setText("127.0.0.1");
         addressField.setCursorPos("127.0.0.1".length());
+        addressField.setCenterX(container.getWidth() / 2);
 
         port = 9123;
 
@@ -85,6 +87,7 @@ public class ConnectState extends GomokuGameState {
                 }
             }
         };
+        connectButton.setCenterX(container.getWidth() / 2);
         Image bBtn = new Image("res/buttons/backbutton.png");
         backButton = new Button(bBtn, 250, 500) {
             @Override
@@ -94,6 +97,7 @@ public class ConnectState extends GomokuGameState {
                 }
             }
         };
+        backButton.setCenterX(container.getWidth() / 2);
 
         addListener(nameField);
         addListener(addressField);
@@ -217,16 +221,15 @@ public class ConnectState extends GomokuGameState {
         g.setFont(container.getDefaultFont());
         g.drawImage(game.getBackground(), 0, 0);
 
-        int w = container.getDefaultFont().getWidth(connectMessage);
-        g.drawString(connectMessage, center(0, container.getWidth(), w), 400);
+        drawCenteredString(connectMessage, 400, container, g);
         if (connectingState == CONNECTSTATE.CONNECTING) {
-            g.drawString(barString, 350, 430);
+            drawCenteredString(barString, 430, container, g);
         }
 
-        g.drawString("Enter your name", 300, 25);
+        drawCenteredString("Enter your name", 95, container, g);
         nameField.render(container, g);
 
-        g.drawString("Address", 300, 75);
+        drawCenteredString("Address", 175, container, g);
         addressField.render(container, g);
 
         connectButton.render(container, g);

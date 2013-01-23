@@ -60,20 +60,23 @@ public class CreateGameState extends GomokuGameState {
         Image textfield = new Image("res/textfield.png");
         gameNameField = new TextField(container, textfield, container.getDefaultFont(),
                 20, 50, 300);
+        gameNameField.setCenterX(container.getWidth() / 2);
 
-        widthField = new TextField(container, textfield, container.getDefaultFont(), 20,
+        widthField = new TextField(container, textfield, container.getDefaultFont(), 220,
                 110, 60);
         widthField.setText("15");
         widthField.setCursorPos(2);
-        heightField = new TextField(container, textfield, container.getDefaultFont(), 90,
+        heightField = new TextField(container, textfield, container.getDefaultFont(), 290,
                 110, 60);
         heightField.setText("15");
         heightField.setCursorPos(2);
+        widthField.setCenterX((container.getWidth() - heightField.getWidth() - 10) / 2);
+        heightField.setCenterX((container.getWidth() + widthField.getWidth() + 10) / 2);
 
-        allowOverlinesCB = new CheckBox(20, 150, 25, 25);
-        threeAndThreeCB = new CheckBox(20, 180, 25, 25);
-        fourAndFourCB = new CheckBox(20, 210, 25, 25);
-        swap2CB = new CheckBox(20, 240, 25, 25);
+        allowOverlinesCB = new CheckBox(250, 200, 25, 25);
+        threeAndThreeCB = new CheckBox(250, 230, 25, 25);
+        fourAndFourCB = new CheckBox(250, 260, 25, 25);
+        swap2CB = new CheckBox(250, 290, 25, 25);
 
         addListener(allowOverlinesCB);
         addListener(threeAndThreeCB);
@@ -136,7 +139,7 @@ public class CreateGameState extends GomokuGameState {
         } catch (FileNotFoundException e) {
         }
 
-        preset1Button = new Button("Preset 1", container.getDefaultFont(), 600, 40) {
+        preset1Button = new Button("Preset 1", container.getDefaultFont(), 500, 220) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (preset1 != null && button == 0)
@@ -151,7 +154,7 @@ public class CreateGameState extends GomokuGameState {
                 }
             }
         };
-        preset2Button = new Button("Preset 2", container.getDefaultFont(), 600, 70) {
+        preset2Button = new Button("Preset 2", container.getDefaultFont(), 500, 250) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (preset2 != null && button == 0)
@@ -166,7 +169,7 @@ public class CreateGameState extends GomokuGameState {
                 }
             }
         };
-        preset3Button = new Button("Preset 3", container.getDefaultFont(), 600, 100) {
+        preset3Button = new Button("Preset 3", container.getDefaultFont(), 500, 280) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (preset3 != null && button == 0)
@@ -256,29 +259,29 @@ public class CreateGameState extends GomokuGameState {
             throws SlickException {
         g.drawImage(game.getBackground(), 0, 0);
 
-        g.drawString("Game Name", 20, 20);
+        drawCenteredString("Game Name", 20, container, g);
         gameNameField.render(container, g);
-        g.drawString("Width/Height", 20, 90);
+        drawCenteredString("Width / Height", 90, container, g);
         widthField.render(container, g);
         heightField.render(container, g);
 
         allowOverlinesCB.render(container, g);
-        g.drawString("Allow Overlines", 50, 153);
+        g.drawString("Allow Overlines", 285, 203);
         threeAndThreeCB.render(container, g);
-        g.drawString("Three And Three", 50, 183);
+        g.drawString("Three And Three", 285, 233);
         fourAndFourCB.render(container, g);
-        g.drawString("Four And Four", 50, 213);
+        g.drawString("Four And Four", 285, 263);
         swap2CB.render(container, g);
-        g.drawString("Swap 2 opening", 50, 243);
+        g.drawString("Swap 2 opening", 285, 293);
 
         // presets to the right
-        g.drawString("PRESETS", 600, 20);
+        g.drawString("PRESETS", 500, 220);
         preset1Button.render(container, g);
         preset2Button.render(container, g);
         preset3Button.render(container, g);
 
         if (errorMsg != null && errorMsg != "") {
-            g.drawString(errorMsg, 20, 500);
+            drawCenteredString(errorMsg, 450, container, g);
         }
         confirmButton.render(container, g);
         backButton.render(container, g);
