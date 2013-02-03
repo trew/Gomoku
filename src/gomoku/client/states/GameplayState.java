@@ -216,7 +216,6 @@ public class GameplayState extends GomokuNetworkGameState {
     public void render(GameContainer container, GomokuClient gomokuClient,
             Graphics g) throws SlickException {
         g.setFont(container.getDefaultFont());
-        g.drawImage(gomokuClient.getBackground(), 0, 0);
 
         // draw the board
         if (loading) {

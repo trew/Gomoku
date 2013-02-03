@@ -23,7 +23,6 @@ public class MainMenuState extends GomokuGameState {
     public void init(final GameContainer container, final GomokuClient game)
             throws SlickException {
         final GameContainer gamecontainer = container;
-        game.setBackground(new Image("res/background.png"));
 
         gomokuTitle = new Image("res/gomoku.png");
         Image mp = new Image("res/buttons/playmultiplayerbutton.png");
@@ -63,7 +62,6 @@ public class MainMenuState extends GomokuGameState {
     @Override
     public void render(GameContainer container, GomokuClient game, Graphics g)
             throws SlickException {
-        g.drawImage(game.getBackground(), 0, 0);
         g.drawImage(gomokuTitle, 16, 30);
 
         multiPlayerButton.render(container, g);

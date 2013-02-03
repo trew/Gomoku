@@ -58,7 +58,6 @@ public class ChooseGameState extends GomokuNetworkGameState {
     @Override
     public RootPane createRootPane() {
         RootPane rp = super.createRootPane();
-        rp.setTheme("gomokuclient");
 
         gameListModel = new SimpleChangableListModel<GameListObject>();
         gameList = new ListBox(gameListModel);
@@ -91,12 +90,18 @@ public class ChooseGameState extends GomokuNetworkGameState {
             }
         };
         joinGameButton.setRightX(gameList.getX() + gameList.getWidth());
+        joinGameButton.disable();
 
         gameList.addCallback(new CallbackWithReason<ListBox.CallbackReason>() {
             @Override
             public void callback(CallbackReason reason) {
                 if (reason.actionRequested())
                     joinGame();
+                else if (gameList.getSelected() >= 0) {
+                    joinGameButton.enable();
+                } else {
+                    joinGameButton.disable();
+                }
             }
         });
 

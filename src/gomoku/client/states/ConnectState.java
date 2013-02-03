@@ -2,7 +2,6 @@ package gomoku.client.states;
 
 import gomoku.client.GomokuClient;
 import gomoku.client.gui.Button;
-import gomoku.client.gui.TextField;
 import gomoku.net.*;
 
 import java.io.IOException;
@@ -13,12 +12,15 @@ import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.UnicodeFont;
-import org.newdawn.slick.font.effects.ColorEffect;
+
+import TWLSlick.RootPane;
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
+
+import de.matthiasmann.twl.EditField;
+import de.matthiasmann.twl.ProgressBar;
 
 import static org.trew.log.Log.*;
 
@@ -35,11 +37,11 @@ public class ConnectState extends GomokuGameState {
     }
 
     /** The possible connection stages */
-    private String barString;
+    private ProgressBar connectionBar;
     private int barTimer;
 
-    private TextField nameField;
-    private TextField addressField;
+    private EditField nameField;
+    private EditField addressField;
 
     private String address;
     private int port;
@@ -53,28 +55,33 @@ public class ConnectState extends GomokuGameState {
     /** The message to be displayed showing the connection state */
     private String connectMessage;
 
-    @SuppressWarnings("unchecked")
+    @Override
+    protected RootPane createRootPane() {
+        RootPane rp = super.createRootPane();
+
+        nameField = new EditField();
+        nameField.setSize(300, 20);
+        nameField.setPosition(250, 130);
+
+        addressField = new EditField();
+        addressField.setSize(300, 20);
+        addressField.setPosition(250, 200);
+        addressField.setText("127.0.0.1");
+
+        connectionBar = new ProgressBar();
+        connectionBar.setSize(300, 10);
+        connectionBar.setPosition(250, 395);
+        connectionBar.setVisible(false);
+
+        rp.add(connectionBar);
+        rp.add(nameField);
+        rp.add(addressField);
+        return rp;
+    }
+
     @Override
     public void init(GameContainer container, final GomokuClient game)
             throws SlickException {
-
-        // setup game default font
-        UnicodeFont ucf = new UnicodeFont("res/fonts/Monda-Regular.ttf", 18,
-                false, false);
-        ucf.addAsciiGlyphs();
-        ucf.getEffects().add(new ColorEffect());
-        ucf.loadGlyphs();
-        container.setDefaultFont(ucf);
-
-        Image textfield = new Image("res/textfield.png");
-        nameField = new TextField(container, textfield, container.getDefaultFont(), 300,
-                130, 300);
-        nameField.setCenterX(container.getWidth() / 2);
-        addressField = new TextField(container, textfield, container.getDefaultFont(),
-                300, 200, 300);
-        addressField.setText("127.0.0.1");
-        addressField.setCursorPos("127.0.0.1".length());
-        addressField.setCenterX(container.getWidth() / 2);
 
         port = 9123;
 
@@ -99,8 +106,6 @@ public class ConnectState extends GomokuGameState {
         };
         backButton.setCenterX(container.getWidth() / 2);
 
-        addListener(nameField);
-        addListener(addressField);
         addListener(connectButton);
         addListener(backButton);
 
@@ -111,10 +116,10 @@ public class ConnectState extends GomokuGameState {
 
         connectMessage = "";
         connectingState = CONNECTSTATE.IDLE;
-        barString = ".";
     }
 
     public boolean parseAddress(String address) {
+        address = address.trim();
         String[] parts = address.split(":", 2);
         if (parts.length == 1) {
             this.address = parts[0];
@@ -141,14 +146,14 @@ public class ConnectState extends GomokuGameState {
         if (!parseAddress(addressField.getText())) {
             return;
         }
-        if (nameField.getText() == "") {
+        if (nameField.getText().trim().equals("")) {
             return;
         }
         connectMessage = "Connecting...";
 
         // lock all settings
         connectButton.disable();
-        nameField.disable();
+        nameField.setEnabled(false);
         game.setPlayerName(nameField.getText());
 
         connectingState = CONNECTSTATE.CONNECTING;
@@ -198,17 +203,19 @@ public class ConnectState extends GomokuGameState {
         }
 
         if (connectingState == CONNECTSTATE.CONNECTING) {
+            connectionBar.setVisible(true);
             // display a little bar while waiting for server response
-            // increase the length of it every 0.1 seconds
+            // increase the length of it every 0.025 seconds
             barTimer += delta;
-            if (barTimer > 100) {
+            if (barTimer > 20) {
                 barTimer = 0;
-                barString += ".";
-                if (barString.length() > 10) {
-                    barString = ".";
-                }
+                if (connectionBar.getValue() == 1.0f)
+                    connectionBar.setValue(0);
+                else
+                    connectionBar.setValue(connectionBar.getValue() + 0.05f);
             }
         } else if (connectingState == CONNECTSTATE.CONNECTIONFAILED) {
+            connectionBar.setVisible(false);
             if (container.getInput().isKeyPressed(Input.KEY_SPACE)) {
                 container.exit();
             }
@@ -219,18 +226,12 @@ public class ConnectState extends GomokuGameState {
     public void render(GameContainer container, GomokuClient game, Graphics g)
             throws SlickException {
         g.setFont(container.getDefaultFont());
-        g.drawImage(game.getBackground(), 0, 0);
 
-        drawCenteredString(connectMessage, 400, container, g);
-        if (connectingState == CONNECTSTATE.CONNECTING) {
-            drawCenteredString(barString, 430, container, g);
-        }
+        drawCenteredString(connectMessage, 410, container, g);
 
         drawCenteredString("Enter your name", 95, container, g);
-        nameField.render(container, g);
 
         drawCenteredString("Address", 175, container, g);
-        addressField.render(container, g);
 
         connectButton.render(container, g);
         backButton.render(container, g);

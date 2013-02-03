@@ -5,8 +5,6 @@ import java.io.FileNotFoundException;
 
 import gomoku.client.GomokuClient;
 import gomoku.client.gui.Button;
-import gomoku.client.gui.CheckBox;
-import gomoku.client.gui.TextField;
 import gomoku.logic.GomokuConfig;
 import gomoku.net.CreateGamePacket;
 import gomoku.net.InitialServerDataPacket;
@@ -17,19 +15,28 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.gui.GUIContext;
 
+import TWLSlick.RootPane;
+
 import com.esotericsoftware.kryonet.Connection;
+
+import de.matthiasmann.twl.ComboBox;
+import de.matthiasmann.twl.EditField;
+import de.matthiasmann.twl.ToggleButton;
+import de.matthiasmann.twl.model.SimpleChangableListModel;
 
 import static org.trew.log.Log.*;
 
 public class CreateGameState extends GomokuNetworkGameState {
 
-    private TextField gameNameField;
-    private TextField widthField;
-    private TextField heightField;
-    private CheckBox allowOverlinesCB;
-    private CheckBox threeAndThreeCB;
-    private CheckBox fourAndFourCB;
-    private CheckBox swap2CB;
+    private EditField gameNameField;
+    SimpleChangableListModel<Integer> widthBoxModel;
+    SimpleChangableListModel<Integer> heightBoxModel;
+    private ComboBox<Integer> widthBox;
+    private ComboBox<Integer> heightBox;
+    private ToggleButton allowOverlinesCB;
+    private ToggleButton threeAndThreeCB;
+    private ToggleButton fourAndFourCB;
+    private ToggleButton swap2CB;
     private Button confirmButton;
 
     private Button backButton;
@@ -50,38 +57,62 @@ public class CreateGameState extends GomokuNetworkGameState {
     }
 
     @Override
+    public RootPane createRootPane() {
+        RootPane rp = super.createRootPane();
+
+        gameNameField = new EditField();
+        gameNameField.setPosition(250, 50);
+        gameNameField.setSize(300, 20);
+        rp.add(gameNameField);
+
+        widthBoxModel = new SimpleChangableListModel<Integer>();
+        heightBoxModel = new SimpleChangableListModel<Integer>();
+        for (int i = 5; i <= 40; i++) {
+            widthBoxModel.addElement(i);
+            heightBoxModel.addElement(i);
+        }
+
+        widthBox = new ComboBox<Integer>(widthBoxModel);
+        widthBox.setPosition(330, 110);
+        widthBox.setSize(60, 20);
+        widthBox.setSelected(widthBoxModel.findElement(Integer.valueOf(15)));
+
+        heightBox = new ComboBox<Integer>(heightBoxModel);
+        heightBox.setPosition(400, 110);
+        heightBox.setSize(60, 20);
+        heightBox.setSelected(widthBoxModel.findElement(Integer.valueOf(15)));
+
+        rp.add(widthBox);
+        rp.add(heightBox);
+
+        allowOverlinesCB = new ToggleButton("Allow Overlines");
+        allowOverlinesCB.setPosition(250, 200);
+        allowOverlinesCB.setSize(130, 20);
+
+        threeAndThreeCB = new ToggleButton("Three And Three");
+        threeAndThreeCB.setPosition(250, 230);
+        threeAndThreeCB.setSize(130, 20);
+
+        fourAndFourCB = new ToggleButton("Four And Four");
+        fourAndFourCB.setPosition(250, 260);
+        fourAndFourCB.setSize(130, 20);
+
+        swap2CB = new ToggleButton("Swap 2 Rule");
+        swap2CB.setPosition(250, 290);
+        swap2CB.setSize(130, 20);
+
+        rp.add(allowOverlinesCB);
+        rp.add(threeAndThreeCB);
+        rp.add(fourAndFourCB);
+        rp.add(swap2CB);
+
+        return rp;
+    }
+
+    @Override
     public void init(GameContainer container, final GomokuClient game)
             throws SlickException {
         gomokuClient = game;
-
-        Image textfield = new Image("res/textfield.png");
-        gameNameField = new TextField(container, textfield, container.getDefaultFont(),
-                20, 50, 300);
-        gameNameField.setCenterX(container.getWidth() / 2);
-
-        widthField = new TextField(container, textfield, container.getDefaultFont(), 220,
-                110, 60);
-        widthField.setText("15");
-        widthField.setCursorPos(2);
-        heightField = new TextField(container, textfield, container.getDefaultFont(), 290,
-                110, 60);
-        heightField.setText("15");
-        heightField.setCursorPos(2);
-        widthField.setCenterX((container.getWidth() - heightField.getWidth() - 10) / 2);
-        heightField.setCenterX((container.getWidth() + widthField.getWidth() + 10) / 2);
-
-        allowOverlinesCB = new CheckBox(250, 200, 25, 25);
-        threeAndThreeCB = new CheckBox(250, 230, 25, 25);
-        fourAndFourCB = new CheckBox(250, 260, 25, 25);
-        swap2CB = new CheckBox(250, 290, 25, 25);
-
-        addListener(allowOverlinesCB);
-        addListener(threeAndThreeCB);
-        addListener(fourAndFourCB);
-        addListener(swap2CB);
-        addListener(gameNameField);
-        addListener(widthField);
-        addListener(heightField);
 
         initPresets(container);
 
@@ -136,7 +167,8 @@ public class CreateGameState extends GomokuNetworkGameState {
         } catch (FileNotFoundException e) {
         }
 
-        preset1Button = new Button("Preset 1", container.getDefaultFont(), 500, 220) {
+        preset1Button = new Button("Preset 1", container.getDefaultFont(), 500,
+                220) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (preset1 != null && button == 0)
@@ -151,7 +183,8 @@ public class CreateGameState extends GomokuNetworkGameState {
                 }
             }
         };
-        preset2Button = new Button("Preset 2", container.getDefaultFont(), 500, 250) {
+        preset2Button = new Button("Preset 2", container.getDefaultFont(), 500,
+                250) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (preset2 != null && button == 0)
@@ -166,7 +199,8 @@ public class CreateGameState extends GomokuNetworkGameState {
                 }
             }
         };
-        preset3Button = new Button("Preset 3", container.getDefaultFont(), 500, 280) {
+        preset3Button = new Button("Preset 3", container.getDefaultFont(), 500,
+                280) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (preset3 != null && button == 0)
@@ -185,41 +219,29 @@ public class CreateGameState extends GomokuNetworkGameState {
 
     private void applyPreset(GomokuConfig config) {
         gameNameField.setText(config.getName());
-        widthField.setText(String.valueOf(config.getWidth()));
-        heightField.setText(String.valueOf(config.getHeight()));
+        widthBox.setSelected(widthBoxModel.findElement(new Integer(String
+                .valueOf(config.getWidth()))));
+        heightBox.setSelected(heightBoxModel.findElement(new Integer(String
+                .valueOf(config.getHeight()))));
 
-        allowOverlinesCB.setChecked(config.getAllowOverlines());
-        threeAndThreeCB.setChecked(config.useThreeAndThree());
-        fourAndFourCB.setChecked(config.useFourAndFour());
-        swap2CB.setChecked(config.useSwap2());
+        allowOverlinesCB.setActive(config.getAllowOverlines());
+        threeAndThreeCB.setActive(config.useThreeAndThree());
+        fourAndFourCB.setActive(config.useFourAndFour());
+        swap2CB.setActive(config.useSwap2());
     }
 
     public GomokuConfig getCurrentConfig() {
-        int w, h;
-        try {
-            w = Integer.parseInt(widthField.getText());
-            if (w < 3 || w > 127) {
-                throw new IllegalArgumentException(
-                        "Width must be between 3-127");
-            }
-            h = Integer.parseInt(heightField.getText());
-            if (h < 3 || h > 127) {
-                throw new IllegalArgumentException(
-                        "Height must be between 3-127");
-            }
-        } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(
-                    "Width or height must be valid numbers");
-        }
-        return new GomokuConfig(gameNameField.getText(), w, h,
-                5, allowOverlinesCB.isChecked(), threeAndThreeCB.isChecked(),
-                fourAndFourCB.isChecked(), swap2CB.isChecked());
+        int w = widthBoxModel.getEntry(widthBox.getSelected());
+        int h = heightBoxModel.getEntry(heightBox.getSelected());
+        return new GomokuConfig(gameNameField.getText().trim(), w, h, 5,
+                allowOverlinesCB.isActive(), threeAndThreeCB.isActive(),
+                fourAndFourCB.isActive(), swap2CB.isActive());
     }
 
     public void createNewGame() {
         GomokuConfig config = getCurrentConfig();
 
-        if (gameNameField.getText() == "") {
+        if (gameNameField.getText().trim().equals("")) {
             throw new IllegalArgumentException("You must provide a game name");
         }
 
@@ -244,22 +266,8 @@ public class CreateGameState extends GomokuNetworkGameState {
     @Override
     public void render(GameContainer container, GomokuClient game, Graphics g)
             throws SlickException {
-        g.drawImage(game.getBackground(), 0, 0);
-
         drawCenteredString("Game Name", 20, container, g);
-        gameNameField.render(container, g);
         drawCenteredString("Width / Height", 90, container, g);
-        widthField.render(container, g);
-        heightField.render(container, g);
-
-        allowOverlinesCB.render(container, g);
-        g.drawString("Allow Overlines", 285, 203);
-        threeAndThreeCB.render(container, g);
-        g.drawString("Three And Three", 285, 233);
-        fourAndFourCB.render(container, g);
-        g.drawString("Four And Four", 285, 263);
-        swap2CB.render(container, g);
-        g.drawString("Swap 2 opening", 285, 293);
 
         // presets to the right
         g.drawString("PRESETS", 500, 220);

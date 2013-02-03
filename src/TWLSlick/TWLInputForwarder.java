@@ -36,7 +36,7 @@ import org.newdawn.slick.util.InputAdapter;
 
 /**
  * Forwards input events from Slick to TWL
- * 
+ *
  * @author Matthias Mann
  */
 class TWLInputForwarder extends InputAdapter {
