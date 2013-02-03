@@ -13,7 +13,7 @@ import com.esotericsoftware.kryonet.Connection;
  * A NetworkGameState adds a BounceListener to the client which enables the
  * state to have its own callback functions from the network.
  *
- * @author Cosmic
+ * @author Samuel Andersson
  *
  */
 public abstract class GomokuNetworkGameState extends GomokuGameState {
