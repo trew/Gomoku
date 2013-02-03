@@ -4,6 +4,7 @@ import static gomoku.net.Request.*;
 
 import gomoku.client.GomokuClient;
 import gomoku.client.gui.BoardComponent;
+import gomoku.client.gui.Fonts;
 import gomoku.logic.Board;
 import gomoku.logic.GomokuConfig;
 import gomoku.logic.IllegalMoveException;
@@ -224,6 +225,7 @@ public class GameplayState extends GomokuNetworkGameState {
             boardComponent.render(container, g);
 
             // draw game info
+            g.setFont(Fonts.getDefaultFont(14));
             int xPos = 600;
             rowYPos = 20;
             drawRow("Your name: " + me.getName(), xPos, g);
@@ -244,10 +246,13 @@ public class GameplayState extends GomokuNetworkGameState {
                 drawRow(p, xPos, g);
             }
 
+            // top
+            g.setFont(container.getDefaultFont());
             String versus = gomokuGame.getBlack().getName() + " vs "
                     + gomokuGame.getWhite().getName();
             g.drawString(versus, 250, 10);
 
+            // error msg
             if (!errorMsg.equals("")) {
                 g.setColor(Color.white);
                 g.drawString(errorMsg, 200, 520);

@@ -2,6 +2,7 @@ package gomoku.client;
 
 import java.net.URL;
 
+import gomoku.client.gui.Fonts;
 import gomoku.client.states.ChooseGameState;
 import gomoku.client.states.ConnectState;
 import gomoku.client.states.CreateGameState;
@@ -11,8 +12,6 @@ import gomoku.client.states.MainMenuState;
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.SlickException;
-import org.newdawn.slick.UnicodeFont;
-import org.newdawn.slick.font.effects.ColorEffect;
 import org.newdawn.slick.state.StateBasedGame;
 import org.newdawn.slick.util.ResourceLoader;
 
@@ -67,16 +66,9 @@ public class GomokuClient extends TWLStateBasedGame {
     /**
      * @see StateBasedGame#initStatesList(GameContainer)
      */
-    @SuppressWarnings("unchecked")
     @Override
     public void initStatesList(GameContainer container) throws SlickException {
-        // setup game default font
-        UnicodeFont ucf = new UnicodeFont("res/fonts/Monda-Regular.ttf", 18,
-                false, false);
-        ucf.addAsciiGlyphs();
-        ucf.getEffects().add(new ColorEffect());
-        ucf.loadGlyphs();
-        container.setDefaultFont(ucf);
+        container.setDefaultFont(Fonts.getDefaultFont());
 
         this.addState(new MainMenuState());
         this.addState(new ConnectState());
