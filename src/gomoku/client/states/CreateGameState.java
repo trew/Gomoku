@@ -21,7 +21,7 @@ import com.esotericsoftware.kryonet.Connection;
 
 import static org.trew.log.Log.*;
 
-public class CreateGameState extends GomokuGameState {
+public class CreateGameState extends GomokuNetworkGameState {
 
     private TextField gameNameField;
     private TextField widthField;

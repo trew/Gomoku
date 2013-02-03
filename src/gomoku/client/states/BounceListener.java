@@ -13,9 +13,9 @@ import com.esotericsoftware.kryonet.Listener;
  */
 public class BounceListener extends Listener {
 
-    private GomokuGameState state;
+    private GomokuNetworkGameState state;
 
-    public BounceListener(GomokuGameState state) {
+    public BounceListener(GomokuNetworkGameState state) {
         this.state = state;
     }
 

@@ -8,7 +8,6 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.geom.Rectangle;
-import org.newdawn.slick.gui.AbstractComponent;
 import org.newdawn.slick.gui.GUIContext;
 
 import static org.trew.log.Log.*;
@@ -95,7 +94,6 @@ public class BoardComponent extends AbstractComponent {
      */
     public BoardComponent(GUIContext container, Board board, int x, int y,
             int squareSize, int displayWidth, int displayHeight) {
-        super(container);
         this.area = new Rectangle(x, y, squareSize * displayWidth, squareSize
                 * displayHeight);
         this.board = board;

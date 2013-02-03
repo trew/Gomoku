@@ -1,5 +1,7 @@
 package gomoku.client;
 
+import java.net.URL;
+
 import gomoku.client.states.ChooseGameState;
 import gomoku.client.states.ConnectState;
 import gomoku.client.states.CreateGameState;
@@ -11,6 +13,9 @@ import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
+import org.newdawn.slick.util.ResourceLoader;
+
+import TWLSlick.TWLStateBasedGame;
 
 import com.esotericsoftware.kryonet.Client;
 import org.trew.log.Log;
@@ -23,7 +28,7 @@ import static org.trew.log.Log.*;
  * @author Samuel Andersson
  *
  */
-public class GomokuClient extends StateBasedGame {
+public class GomokuClient extends TWLStateBasedGame {
 
     /* ********** STATIC ********** */
     /** The width of the screen */
@@ -112,5 +117,9 @@ public class GomokuClient extends StateBasedGame {
             else
                 error(e.getMessage());
         }
+    }
+    @Override
+    protected URL getThemeURL() {
+        return ResourceLoader.getResource("res/theme.xml");
     }
 }

@@ -3,7 +3,6 @@ package gomoku.client.states;
 import java.util.HashSet;
 
 import gomoku.client.GomokuClient;
-import gomoku.net.*;
 
 import org.newdawn.slick.Font;
 import org.newdawn.slick.GameContainer;
@@ -12,13 +11,12 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.InputListener;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.gui.GUIContext;
-import org.newdawn.slick.state.BasicGameState;
-import org.newdawn.slick.state.GameState;
 import org.newdawn.slick.state.StateBasedGame;
 
-import com.esotericsoftware.kryonet.Connection;
+import TWLSlick.RootPane;
+import TWLSlick.TWLGameState;
 
-public abstract class GomokuGameState implements GameState {
+public abstract class GomokuGameState extends TWLGameState {
 
     public static final int CONNECTGAMESTATE = 1;
     public static final int CHOOSEGAMESTATE = 2;
@@ -31,6 +29,7 @@ public abstract class GomokuGameState implements GameState {
     private boolean pauseUpdate = false;
     private boolean pauseRender = false;
 
+    private int nextState;
 
     public void addListener(InputListener listener) {
         listeners.add(listener);
@@ -40,6 +39,13 @@ public abstract class GomokuGameState implements GameState {
         listeners.remove(listener);
     }
 
+    @Override
+    protected RootPane createRootPane() {
+        RootPane rp = super.createRootPane();
+        rp.setTheme("gomokuclient");
+        return rp;
+    }
+
     /**
      * @see BasicGameState#init(GameContainer, StateBasedGame)
      */
@@ -47,6 +53,8 @@ public abstract class GomokuGameState implements GameState {
     public void init(GameContainer container, StateBasedGame game)
             throws SlickException {
         listeners = new HashSet<InputListener>();
+        getRootPane();
+        nextState = -1;
         init(container, (GomokuClient) game);
     }
 
@@ -86,12 +94,21 @@ public abstract class GomokuGameState implements GameState {
             Graphics g) throws SlickException;
 
     /**
+     * Synchronizes state changes because TWL use a new thread for each widget
+     * action, thus freaking OpenGL out because it needs its context to be in
+     * the same thread.
+     *
      * @see BasicGameState#update(GameContainer, StateBasedGame, int)
      */
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta)
             throws SlickException {
-        update(container, (GomokuClient) game, delta);
+        if (nextState >= 0) {
+            game.enterState(nextState);
+            nextState = -1;
+        } else {
+            update(container, (GomokuClient) game, delta);
+        }
 
     }
 
@@ -116,6 +133,7 @@ public abstract class GomokuGameState implements GameState {
     @Override
     public void enter(GameContainer container, StateBasedGame game)
             throws SlickException {
+        super.enter(container, game);
         enter(container, (GomokuClient) game);
     }
 
@@ -131,8 +149,8 @@ public abstract class GomokuGameState implements GameState {
      *             standard framework mechanism
      * @see #enter(GameContainer, StateBasedGame)
      */
-    public abstract void enter(GameContainer container, GomokuClient game)
-            throws SlickException;
+    public void enter(GameContainer container, GomokuClient game) throws SlickException {
+    }
 
     @Override
     public void leave(GameContainer container, StateBasedGame game)
@@ -152,8 +170,8 @@ public abstract class GomokuGameState implements GameState {
      *             standard framework mechanism
      * @see #leave(GameContainer, StateBasedGame)
      */
-    public abstract void leave(GameContainer container, GomokuClient game)
-            throws SlickException;
+    public void leave(GameContainer container, GomokuClient game) throws SlickException {
+    }
 
     /**
      * Calculate the left X position for centering something within borders
@@ -170,140 +188,24 @@ public abstract class GomokuGameState implements GameState {
         return (int) (x1 + (x2 - x1) / 2 - objectWidth / 2);
     }
 
-    public void drawCenteredString(String text, int y, GUIContext container, Graphics g) {
+    /**
+     * Allowing state changes to happen in the main thread only. This method can
+     * be called from any thread, and the state change will be invoked in the
+     * main update function.
+     *
+     * @param stateID
+     *            the state id to change to
+     * @see #update(GameContainer, StateBasedGame, int)
+     */
+    public void enterState(int stateID) {
+        nextState = stateID;
+    }
+
+    public void drawCenteredString(String text, int y, GUIContext container,
+            Graphics g) {
         Font font = g.getFont();
         int textW = font.getWidth(text);
         g.drawString(text, center(0, container.getWidth(), textW), y);
-    }
-
-    public void connected(Connection connection) {
-    }
-
-    public void disconnected(Connection connection) {
-    }
-
-    /**
-     * This function is called from {@link BounceListener}s. It will distribute
-     * the call out to specific functions depending on the packet type. The
-     * function name is "handle&lt;PacketType&gt;". Packets can be found in
-     * {@link gomoku.net}.
-     *
-     * @param connection
-     *            the connection that sent the packet
-     * @param object
-     *            the object
-     */
-    public void received(Connection connection, Object object) {
-        if (object instanceof BoardPacket)
-            handleBoard(connection, (BoardPacket) object);
-        else if (object instanceof GameListPacket)
-            handleGameList(connection, (GameListPacket) object);
-        else if (object instanceof GenericRequestPacket)
-            handleGenericRequest(connection, (GenericRequestPacket) object);
-        else if (object instanceof InitialServerDataPacket)
-            handleInitialServerData(connection,
-                    (InitialServerDataPacket) object);
-        else if (object instanceof NotifyTurnPacket)
-            handleNotifyTurn(connection, (NotifyTurnPacket) object);
-        else if (object instanceof PlacePiecePacket)
-            handlePlacePiece(connection, (PlacePiecePacket) object);
-        else if (object instanceof PlayerListPacket)
-            handlePlayerList(connection, (PlayerListPacket) object);
-        else if (object instanceof VictoryPacket)
-            handleVictory(connection, (VictoryPacket) object);
-    }
-
-    /**
-     * Handles how a received BoardPacket should be treated.
-     *
-     * @param connection
-     *            the connection that sent the BoardPacket
-     * @param bp
-     *            the BoardPacket
-     */
-    protected void handleBoard(Connection connection, BoardPacket bp) {
-    }
-
-    /**
-     * Handles how a received GameListPacket should be treated.
-     *
-     * @param connection
-     *            the connection that sent the GameListPacket
-     * @param glp
-     *            the GameListPacket
-     */
-    protected void handleGameList(Connection connection, GameListPacket glp) {
-    }
-
-    /**
-     * Handles how a received GenericRequestPacket should be treated.
-     *
-     * @param connection
-     *            the connection that sent the GenericRequestPacket
-     * @param grp
-     *            the GenericRequestPacket
-     */
-    protected void handleGenericRequest(Connection connection,
-            GenericRequestPacket grp) {
-    }
-
-    /**
-     * Handles how a received InitialServerDataPacket should be treated.
-     *
-     * @param connection
-     *            the connection that sent the InitialServerDataPacket
-     * @param isdp
-     *            the InitialServerDataPacket
-     */
-    protected void handleInitialServerData(Connection connection,
-            InitialServerDataPacket isdp) {
-    }
-
-    /**
-     * Handles how a received NotifyTurnPacket should be treated.
-     *
-     * @param connection
-     *            the connection that sent the NotifyTurnPacket
-     * @param ntp
-     *            the NotifyTurnPacket
-     */
-    protected void handleNotifyTurn(Connection connection, NotifyTurnPacket ntp) {
-    }
-
-    /**
-     * Handles how a received PlacePiecePacket should be treated.
-     *
-     * @param connection
-     *            the connection that sent the PlacePiecePacket
-     * @param ppp
-     *            the PlacePiecePacket
-     */
-    protected void handlePlacePiece(Connection connection, PlacePiecePacket ppp) {
-    }
-
-    /**
-     * Handles how a received PlayerListPacket should be treated.
-     *
-     * @param connection
-     *            the connection that sent the PlayerListPacket
-     * @param plp
-     *            the PlayerListPacket
-     */
-    protected void handlePlayerList(Connection connection, PlayerListPacket plp) {
-    }
-
-    /**
-     * Handles how a received VictoryPacket should be treated.
-     *
-     * @param connection
-     *            the connection that sent the VictoryPacket
-     * @param vp
-     *            the VictoryPacket
-     */
-    protected void handleVictory(Connection connection, VictoryPacket vp) {
-    }
-
-    public void idle(Connection connection) {
     }
 
     @Override

@@ -18,7 +18,7 @@ import com.esotericsoftware.kryonet.Connection;
 
 import static org.trew.log.Log.*;
 
-public class ChooseGameState extends GomokuGameState {
+public class ChooseGameState extends GomokuNetworkGameState {
 
     private GameList gameList;
     private TextField selectedGameIDField;

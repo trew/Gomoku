@@ -26,7 +26,7 @@ import static org.trew.log.Log.*;
  *
  * @author Samuel Andersson
  */
-public class GameplayState extends GomokuGameState {
+public class GameplayState extends GomokuNetworkGameState {
 
     /** Contains the game logic */
     public GomokuGame gomokuGame;
@@ -137,6 +137,7 @@ public class GameplayState extends GomokuGameState {
                 placePiece(gomokuClient, x, y);
             }
         };
+        addListener(boardComponent);
 
         listener = new BounceListener(this);
     }
