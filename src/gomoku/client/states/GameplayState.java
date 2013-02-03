@@ -39,9 +39,6 @@ public class GameplayState extends GomokuNetworkGameState {
     /** The board displayed */
     private BoardComponent boardComponent;
 
-    /** Enables network events to be passed to this state */
-    private BounceListener listener;
-
     private boolean loading;
     private boolean gameOver;
     private int gameOverVictoryState;
@@ -138,21 +135,6 @@ public class GameplayState extends GomokuNetworkGameState {
             }
         };
         addListener(boardComponent);
-
-        listener = new BounceListener(this);
-    }
-
-    @Override
-    public void enter(GameContainer container, GomokuClient gomokuClient)
-            throws SlickException {
-        // add network listener
-        gomokuClient.client.addListener(listener);
-    }
-
-    @Override
-    public void leave(GameContainer container, GomokuClient gomokuClient)
-            throws SlickException {
-        gomokuClient.client.removeListener(listener);
     }
 
     /**
@@ -198,7 +180,7 @@ public class GameplayState extends GomokuNetworkGameState {
         Input input = container.getInput();
 
         if (input.isKeyPressed(Input.KEY_ESCAPE)) {
-            gomokuClient.enterState(MAINMENUSTATE);
+            enterState(MAINMENUSTATE);
         }
 
         /* *** NETWORK RELATED INPUT *** */

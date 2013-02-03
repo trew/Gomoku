@@ -44,8 +44,6 @@ public class CreateGameState extends GomokuNetworkGameState {
 
     private GomokuClient gomokuClient;
 
-    private BounceListener listener;
-
     private String errorMsg;
 
     public CreateGameState() {
@@ -55,7 +53,6 @@ public class CreateGameState extends GomokuNetworkGameState {
     public void init(GameContainer container, final GomokuClient game)
             throws SlickException {
         gomokuClient = game;
-        listener = new BounceListener(this);
 
         Image textfield = new Image("res/textfield.png");
         gameNameField = new TextField(container, textfield, container.getDefaultFont(),
@@ -106,7 +103,7 @@ public class CreateGameState extends GomokuNetworkGameState {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0) {
-                    game.enterState(CHOOSEGAMESTATE);
+                    enterState(CHOOSEGAMESTATE);
                 }
             }
         };
@@ -236,17 +233,7 @@ public class CreateGameState extends GomokuNetworkGameState {
         ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE)).setInitialData(
                 isdp.getBoard(), isdp.getConfig(), isdp.getColor(),
                 isdp.getTurn(), isdp.getPlayerList());
-        gomokuClient.enterState(GAMEPLAYSTATE);
-    }
-
-    @Override
-    public void enter(GameContainer container, GomokuClient game) {
-        game.client.addListener(listener);
-    }
-
-    @Override
-    public void leave(GameContainer container, GomokuClient game) {
-        game.client.removeListener(listener);
+        enterState(GAMEPLAYSTATE);
     }
 
     @Override

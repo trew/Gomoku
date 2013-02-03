@@ -93,7 +93,7 @@ public class ConnectState extends GomokuGameState {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0) {
-                    game.enterState(MAINMENUSTATE);
+                    enterState(MAINMENUSTATE);
                 }
             }
         };
@@ -158,7 +158,7 @@ public class ConnectState extends GomokuGameState {
                 connectingState = CONNECTSTATE.CONNECTED;
                 connectMessage = "Connected.";
                 game.client.removeListener(this);
-                game.enterState(CHOOSEGAMESTATE);
+                enterState(CHOOSEGAMESTATE);
             }
         };
         game.client.addListener(listener);
@@ -245,7 +245,7 @@ public class ConnectState extends GomokuGameState {
     public void enter(GameContainer container, GomokuClient game)
             throws SlickException {
         if (connectingState == CONNECTSTATE.CONNECTED) {
-            game.enterState(CHOOSEGAMESTATE);
+            enterState(CHOOSEGAMESTATE);
         }
     }
 
