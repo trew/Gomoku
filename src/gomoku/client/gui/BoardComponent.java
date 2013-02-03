@@ -115,8 +115,10 @@ public class BoardComponent extends AbstractComponent {
         }
         this.leftBorder = 0;
         this.topBorder = 0;
-        this.displayWidth = displayWidth;
-        this.displayHeight = displayHeight;
+        setDisplaySize(displayWidth, displayHeight, squareSize);
+        /*
+         * this.displayWidth = displayWidth; this.displayHeight = displayHeight;
+         */
 
         changeable = true;
 
@@ -133,19 +135,14 @@ public class BoardComponent extends AbstractComponent {
      *            the board which this component will represent
      */
     public void setBoard(Board board) {
-        boolean changed = false;
         if (board.getWidth() < displayWidth) {
             displayWidth = board.getWidth();
-            changed = true;
         }
         if (board.getHeight() < displayHeight) {
             displayHeight = board.getHeight();
-            changed = true;
-        }
-        if (changed) {
-            setDisplaySize(displayWidth, displayHeight, squareSize);
         }
         this.board = board;
+        setDisplaySize(displayWidth, displayHeight, squareSize);
     }
 
     /**
@@ -428,12 +425,23 @@ public class BoardComponent extends AbstractComponent {
             displayWidth = width;
             displayHeight = height;
         } else if (board != null) {
+            // default to the size of the board
             displayWidth = board.getWidth();
             displayHeight = board.getHeight();
         } else {
             // board was null and bad width/height was given, I should really
             // slap the caller
             return;
+        }
+        if (board != null) {
+            // adjust the topleft border so our default view of the board is in
+            // the middle
+            leftBorder = (board.getWidth() - displayWidth) / 2;
+            topBorder = (board.getHeight() - displayHeight) / 2;
+            if (leftBorder < 0)
+                leftBorder = 0;
+            if (topBorder < 0)
+                topBorder = 0;
         }
         area.setWidth(squareSize * displayWidth);
         area.setHeight(squareSize * displayHeight);
