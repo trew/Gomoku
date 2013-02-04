@@ -29,6 +29,9 @@ public class GomokuGame {
 
     private GomokuConfig config;
 
+    /** The recorder of this game */
+    protected ActionRecorder actionRecorder;
+
     private ArrayList<GomokuGameListener> listeners;
 
     /**
@@ -39,8 +42,8 @@ public class GomokuGame {
      * @param height
      *            the height of the board
      */
-    public GomokuGame(GomokuConfig config) {
-        this(new Board(config), config);
+    public GomokuGame(GomokuConfig config, boolean record) {
+        this(new Board(config), config, record);
     }
 
     /**
@@ -49,8 +52,9 @@ public class GomokuGame {
      * @param board
      *            The board
      */
-    public GomokuGame(Board board, GomokuConfig config) {
+    public GomokuGame(Board board, GomokuConfig config, boolean record) {
         this.board = board;
+
         black = new Player("Black", Board.BLACKPLAYER);
         white = new Player("White", Board.WHITEPLAYER);
         turn = black;
@@ -58,6 +62,11 @@ public class GomokuGame {
 
         // game rules
         this.config = config;
+
+        if (record) {
+            actionRecorder = new ActionRecorder();
+            this.board.registerRecorder(actionRecorder);
+        }
 
         listeners = new ArrayList<GomokuGameListener>();
     }
@@ -279,9 +288,9 @@ public class GomokuGame {
      *            the player placing the piece
      * @return true if piece was placed
      */
-    public void placePiece(int x, int y, int player) throws IllegalMoveException {
+    public void placePiece(int x, int y, int player) throws IllegalActionException {
         if (gameOver)
-            throw new IllegalMoveException("Game over. Cannot place piece.");
+            throw new IllegalActionException("Game over. Cannot place piece.");
         // not possible to compare "turn == player" because it is a reference
         // comparison. We must rely on comparison by value, which is
         // possible using the colors.
@@ -290,7 +299,7 @@ public class GomokuGame {
             checkBoard(x, y);
             switchTurn();
         } else {
-            throw new IllegalMoveException("Not " + getPlayer(player).getColorName() + "'s turn!");
+            throw new IllegalActionException("Not " + getPlayer(player).getColorName() + "'s turn!");
         }
     }
 

@@ -25,13 +25,124 @@ public class Board {
     /** The Gomoku game configuration */
     protected GomokuConfig config;
 
+    /** The recorder of this game */
+    protected ActionRecorder recorder;
+
+    /**
+     * Basic interface for an action on the board
+     *
+     * @author Samuel Andersson
+     */
+    static public interface BoardAction {
+        public int getPlayer();
+
+        public int getX();
+
+        public int getY();
+
+        /**
+         * Performs the action on the board. If unsuccessful,
+         * IllegalActionException will be thrown and the action should not be
+         * performed. The action can be undone by calling {@link #undoAction(Board)}.
+         *
+         * @param board
+         *            the board to modify
+         * @throws IllegalActionException
+         *             If the action could not be fulfilled
+         */
+        public void doAction(Board board) throws IllegalActionException;
+
+        /**
+         * Undoes the action on the board if it was completed in {@link #doAction(Board)}
+         *
+         * @param board
+         *            the board to modify
+         */
+        public void undoAction(Board board);
+    }
+
+    /**
+     * Action for placing a piece on the board
+     *
+     * @author Samuel Andersson
+     */
+    static public class PlacePiece implements BoardAction {
+
+        protected int player;
+        protected int x;
+        protected int y;
+        protected boolean done;
+
+        public PlacePiece(int player, int x, int y) {
+            this.player = player;
+            this.x = x;
+            this.y = y;
+            done = false;
+        }
+
+        @Override
+        public int getPlayer() {
+            return player;
+        }
+
+        @Override
+        public int getX() {
+            return x;
+        }
+
+        @Override
+        public int getY() {
+            return y;
+        }
+
+        @Override
+        public void doAction(Board board) throws IllegalActionException {
+            if (board.getPiece(x, y) != Board.NOPLAYER)
+                throw new IllegalActionException(
+                        "That position is already occupied!");
+            if (board.config.useThreeAndThree()) {
+                if (!board.tryXAndX(3, player, x, y, true)) {
+                    throw new IllegalActionException(
+                            "Unable to place because of Three And Three-rule.");
+                }
+            }
+            if (board.config.useFourAndFour()) {
+                if (!board.tryXAndX(4, player, x, y, false)) {
+                    throw new IllegalActionException(
+                            "Unable to place because of Four And Four-rule.");
+                }
+            }
+
+            board.setPiece(x, y, player);
+            done = true;
+        }
+
+        @Override
+        public void undoAction(Board board) {
+            if (done) {
+                board.setPiece(x, y, NOPLAYER);
+                done = false;
+            }
+        }
+
+    }
+
+    protected void record(BoardAction action) {
+        if (recorder != null)
+            recorder.add(action);
+    }
+
+    public void registerRecorder(ActionRecorder recorder) {
+        this.recorder = recorder;
+    }
+
     /** Empty constructor for Kryonet */
     @SuppressWarnings("unused")
     private Board() {
     }
 
     /**
-     * Construct a new Gomoku board.
+     * Construct a new Gomoku board and reset the recorder.
      *
      * @param width
      *            the width of the board
@@ -44,7 +155,8 @@ public class Board {
     }
 
     /**
-     * Reset the board, making it all empty spaces
+     * Reset the board, making it all empty spaces. Also reset the
+     * actionRecorder.
      */
     public void reset() {
         board = new int[config.getWidth() * config.getHeight()];
@@ -62,12 +174,30 @@ public class Board {
     }
 
     /**
+     * Does an action on the board. This is most likely an instance of
+     * {@link PlacePiece}
+     *
+     * @param action
+     *            the action to be made
+     * @throws IllegalActionException
+     *             if the action couldn't be completed
+     */
+    protected void doAction(BoardAction action) throws IllegalActionException {
+        try {
+            action.doAction(this);
+            record(action);
+        } catch (IllegalActionException e) {
+            throw e;
+        }
+    }
+
+    /**
      * Place a new piece on the board
      *
      * @see #placePiece(int, int, int)
      */
     public void placePiece(Player player, int x, int y)
-            throws IllegalMoveException {
+            throws IllegalActionException {
         placePiece(player.getColor(), x, y);
     }
 
@@ -296,18 +426,19 @@ public class Board {
      * @return True if piece was placed
      */
     public void placePiece(int player, int x, int y)
-            throws IllegalMoveException {
+            throws IllegalActionException {
         if (getPiece(x, y) != Board.NOPLAYER)
-            throw new IllegalMoveException("That position is already occupied!");
+            throw new IllegalActionException(
+                    "That position is already occupied!");
         if (config.useThreeAndThree()) {
             if (!tryXAndX(3, player, x, y, true)) {
-                throw new IllegalMoveException(
+                throw new IllegalActionException(
                         "Unable to place because of Three And Three-rule.");
             }
         }
         if (config.useFourAndFour()) {
             if (!tryXAndX(4, player, x, y, false)) {
-                throw new IllegalMoveException(
+                throw new IllegalActionException(
                         "Unable to place because of Four And Four-rule.");
             }
         }

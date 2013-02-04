@@ -12,7 +12,7 @@ import gomoku.logic.Board;
 import gomoku.logic.GomokuConfig;
 import gomoku.logic.GomokuGame;
 import gomoku.logic.GomokuGameListener;
-import gomoku.logic.IllegalMoveException;
+import gomoku.logic.IllegalActionException;
 import gomoku.net.BoardPacket;
 import gomoku.net.GenericRequestPacket;
 import gomoku.net.NotifyTurnPacket;
@@ -83,7 +83,7 @@ public class GomokuNetworkGame implements GomokuGameListener {
         this.gomokuServer = gomokuServer;
         this.server = server;
         this.name = config.getName();
-        game = new GomokuGame(config);
+        game = new GomokuGame(config, false);
         game.addListener(this);
         isEnding = false;
         id = IDCOUNTER++;
@@ -297,7 +297,7 @@ public class GomokuNetworkGame implements GomokuGameListener {
             debug(playerList.get(conn.getID()) + " placed a piece on " + ppp.x
                     + ", " + ppp.y);
             broadcast(conn, ppp);
-        } catch (IllegalMoveException e) {
+        } catch (IllegalActionException e) {
             // placement was not possible, update the board at client
             conn.sendTCP(new BoardPacket(game.getBoard()));
             error(e.getMessage());

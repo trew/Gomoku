@@ -7,7 +7,7 @@ import gomoku.client.gui.BoardComponent;
 import gomoku.client.gui.Fonts;
 import gomoku.logic.Board;
 import gomoku.logic.GomokuConfig;
-import gomoku.logic.IllegalMoveException;
+import gomoku.logic.IllegalActionException;
 import gomoku.logic.Player;
 import gomoku.logic.GomokuGame;
 import gomoku.net.*;
@@ -61,7 +61,7 @@ public class GameplayState extends GomokuNetworkGameState {
             int playerColor, int turn, String[] playerList) {
         // create a new game
         this.playerList = playerList;
-        gomokuGame = new GomokuGame(board, config);
+        gomokuGame = new GomokuGame(board, config, true);
         gomokuGame.setTurn(gomokuGame.getPlayer(turn));
         setupPlayers(playerColor);
 
@@ -162,7 +162,7 @@ public class GameplayState extends GomokuNetworkGameState {
             this.gomokuGame.placePiece(x, y, me.getColor());
             gomokuClient.client.sendTCP(new PlacePiecePacket(x, y, me
                     .getColor()));
-        } catch (IllegalMoveException e) {
+        } catch (IllegalActionException e) {
             info(e.getMessage());
             setErrorMsg(e.getMessage());
 
@@ -327,7 +327,7 @@ public class GameplayState extends GomokuNetworkGameState {
             Player player = gomokuGame.getPlayer(ppp.playerColor);
             info(player.getColorName() + " piece placed on " + ppp.x + ", "
                     + ppp.y);
-        } catch (IllegalMoveException e) {
+        } catch (IllegalActionException e) {
             warn("Piece couldn't be placed: " + e.getMessage());
             info("Requesting boardupdate...");
             conn.sendTCP(new GenericRequestPacket(BoardUpdate));
