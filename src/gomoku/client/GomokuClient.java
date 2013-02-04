@@ -68,8 +68,9 @@ public class GomokuClient extends TWLStateBasedGame {
      */
     @Override
     public void initStatesList(GameContainer container) throws SlickException {
+        Fonts.loadAngelCodeFonts("res/fonts/messagebox", "res/fonts/nametag");
+        Fonts.loadFonts(14, 16, 18, 24, 32);
         container.setDefaultFont(Fonts.getDefaultFont());
-
         this.addState(new MainMenuState());
         this.addState(new ConnectState());
         this.addState(new ChooseGameState());

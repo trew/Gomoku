@@ -15,6 +15,7 @@ import gomoku.net.*;
 import org.newdawn.slick.Color;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
@@ -40,6 +41,11 @@ public class GameplayState extends GomokuNetworkGameState {
     /** The board displayed */
     private BoardComponent boardComponent;
 
+    private Image versus;
+    private Image nametag;
+    private Image infobar;
+    private Image messagebox;
+
     private boolean loading;
     private boolean gameOver;
     private int gameOverVictoryState;
@@ -47,6 +53,7 @@ public class GameplayState extends GomokuNetworkGameState {
     private String[] playerList;
 
     private String errorMsg;
+    private long errorTimer;
 
     public boolean initialLoading() {
         return loading;
@@ -126,7 +133,7 @@ public class GameplayState extends GomokuNetworkGameState {
         errorMsg = "";
 
         // add the board
-        boardComponent = new BoardComponent(container, null, 100, 50, 30, 15,
+        boardComponent = new BoardComponent(container, null, 80, 70, 28, 15,
                 15) {
             @Override
             public void squareClicked(int x, int y) {
@@ -135,6 +142,14 @@ public class GameplayState extends GomokuNetworkGameState {
                 placePiece(gomokuClient, x, y);
             }
         };
+        boardComponent.setCenterLocation(320, 300);
+
+
+        versus = new Image("res/versus.png");
+        nametag = new Image("res/nametag.png");
+        infobar = new Image("res/infobar.png");
+        messagebox = new Image("res/bottommessagebox.png");
+
         addListener(boardComponent);
     }
 
@@ -154,11 +169,16 @@ public class GameplayState extends GomokuNetworkGameState {
             this.gomokuGame.placePiece(x, y, me.getColor());
             gomokuClient.client.sendTCP(new PlacePiecePacket(x, y, me
                     .getColor()));
-            errorMsg = "";
         } catch (IllegalMoveException e) {
             info(e.getMessage());
-            errorMsg = e.getMessage();
+            setErrorMsg(e.getMessage());
+
         }
+    }
+
+    protected void setErrorMsg(String msg) {
+        errorMsg = msg;
+        errorTimer = 5000;
     }
 
     /**
@@ -177,6 +197,11 @@ public class GameplayState extends GomokuNetworkGameState {
     @Override
     public void update(GameContainer container, GomokuClient gomokuClient,
             int delta) throws SlickException {
+
+        errorTimer -= delta;
+        if (errorTimer < 0)
+            errorTimer = 0;
+
 
         Input input = container.getInput();
 
@@ -205,7 +230,7 @@ public class GameplayState extends GomokuNetworkGameState {
         /* *** END NETWORK RELATED INPUT *** */
     }
 
-    private static int rowYPos = 20;
+    private static int rowYPos = 85;
 
     private void drawRow(String str, int x, Graphics g) {
         int textHeight = g.getFont().getHeight(str);
@@ -222,12 +247,18 @@ public class GameplayState extends GomokuNetworkGameState {
         if (loading) {
             g.drawString("Loading...", 200, 200);
         } else {
+            g.drawImage(versus, 400 - 117 / 2, 0);
+            g.drawImage(nametag, 20, 10);
+            g.drawImage(nametag, 490, 10);
+            g.drawImage(infobar, 800 - 225 , (600 - 454) / 2 + 8);
+            g.drawImage(messagebox, 0, 600 - 63);
+
             boardComponent.render(container, g);
 
             // draw game info
             g.setFont(Fonts.getDefaultFont(14));
-            int xPos = 600;
-            rowYPos = 20;
+            int xPos = 590;
+            rowYPos = 85;
             drawRow("Your name: " + me.getName(), xPos, g);
             if (me.getColor() != Board.NOPLAYER) {
                 drawRow("Your color: " + me.getColorName(), xPos, g);
@@ -241,24 +272,30 @@ public class GameplayState extends GomokuNetworkGameState {
             drawRow("Connected players", xPos, g);
             drawRow("-----------------", xPos, g);
             for (String p : this.playerList) {
-                if (p == "(none)")
+                if (p.equals("(none)"))
                     break;
                 drawRow(p, xPos, g);
             }
 
             // top
-            g.setFont(container.getDefaultFont());
-            String versus = gomokuGame.getBlack().getName() + " vs "
-                    + gomokuGame.getWhite().getName();
-            g.drawString(versus, 250, 10);
+            g.setColor(Color.white);
+            g.setFont(Fonts.getAngelCodeFont("res/fonts/nametag"));
+            String name = gomokuGame.getBlack().getName();
+            int stringWidth = g.getFont().getWidth(name);
+            g.drawString(name, center(20, 20 + 290, stringWidth), 13);
+
+            name = gomokuGame.getWhite().getName();
+            stringWidth = g.getFont().getWidth(name);
+            g.drawString(name, center(490, 490 + 290, stringWidth), 13);
 
             // error msg
-            if (!errorMsg.equals("")) {
-                g.setColor(Color.white);
-                g.drawString(errorMsg, 200, 520);
-            }
-
-            if (me.getColor() != Board.NOPLAYER) {
+            g.setColor(Color.black);
+            g.setFont(Fonts.getAngelCodeFont("res/fonts/messagebox"));
+            if (errorTimer > 0) {
+                g.setColor(Color.red);
+                stringWidth = g.getFont().getWidth(errorMsg);
+                g.drawString(errorMsg, center(0, 800, stringWidth), 550);
+            } else if (me.getColor() != Board.NOPLAYER) {
                 String status = "";
                 if (gameOver) {
                     g.setColor(Color.white);
@@ -277,7 +314,8 @@ public class GameplayState extends GomokuNetworkGameState {
                     g.setColor(Color.green);
                     status += "Your turn!";
                 }
-                g.drawString(status, 250, 550);
+                stringWidth = g.getFont().getWidth(status);
+                g.drawString(status, center(0, 800, stringWidth), 550);
             }
 
             g.setColor(Color.white);

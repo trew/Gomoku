@@ -42,6 +42,11 @@ public class BoardComponent extends AbstractComponent {
     /** The size of each individual square on the board */
     protected int squareSize;
 
+    /** The center position of the board in pixels */
+    protected int centerX;
+    /** The center position of the board in pixels */
+    protected int centerY;
+
     /** The board */
     protected Board board;
 
@@ -96,6 +101,8 @@ public class BoardComponent extends AbstractComponent {
             int squareSize, int displayWidth, int displayHeight) {
         this.area = new Rectangle(x, y, squareSize * displayWidth, squareSize
                 * displayHeight);
+        centerX = (int) area.getCenterX();
+        centerY = (int) area.getCenterY();
         this.board = board;
 
         this.squareSize = squareSize;
@@ -114,9 +121,6 @@ public class BoardComponent extends AbstractComponent {
         this.leftBorder = 0;
         this.topBorder = 0;
         setDisplaySize(displayWidth, displayHeight, squareSize);
-        /*
-         * this.displayWidth = displayWidth; this.displayHeight = displayHeight;
-         */
 
         changeable = true;
 
@@ -371,6 +375,15 @@ public class BoardComponent extends AbstractComponent {
             area.setLocation(x, y);
     }
 
+    public void setCenterLocation(int x, int y) {
+        if (area != null) {
+            area.setCenterX(x);
+            area.setCenterY(y);
+            centerX = x;
+            centerY = y;
+        }
+    }
+
     @Override
     public int getWidth() {
         return (int) area.getWidth();
@@ -443,6 +456,8 @@ public class BoardComponent extends AbstractComponent {
         }
         area.setWidth(squareSize * displayWidth);
         area.setHeight(squareSize * displayHeight);
+        area.setCenterX(centerX);
+        area.setCenterY(centerY);
         bgRect.setSize(squareSize, squareSize);
     }
 }
