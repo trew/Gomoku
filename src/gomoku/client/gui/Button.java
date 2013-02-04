@@ -64,7 +64,10 @@ public class Button extends InputAdapter {
     }
 
     public Button(Image button, int x, int y) {
-        int imageHeight = button.getHeight() / 4;
+        this(button, x, y, 4);
+    }
+    public Button(Image button, int x, int y, int images) {
+        int imageHeight = button.getHeight() / images;
         Image btn = button.getSubImage(0, 0, button.getWidth(), imageHeight);
         Image hover = button.getSubImage(0, imageHeight, button.getWidth(), imageHeight);
         Image click = button.getSubImage(0, imageHeight*2, button.getWidth(), imageHeight);

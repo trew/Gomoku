@@ -4,6 +4,7 @@ import static gomoku.net.Request.*;
 
 import gomoku.client.GomokuClient;
 import gomoku.client.gui.BoardComponent;
+import gomoku.client.gui.Button;
 import gomoku.client.gui.Fonts;
 import gomoku.logic.Board;
 import gomoku.logic.GomokuConfig;
@@ -38,6 +39,8 @@ public class GameplayState extends GomokuNetworkGameState {
 
     /** The board displayed */
     private BoardComponent boardComponent;
+    private Button confirmMoveButton;
+    private Button cancelMoveButton;
 
     private Image versus;
     private Image nametag;
@@ -52,6 +55,8 @@ public class GameplayState extends GomokuNetworkGameState {
 
     private String errorMsg;
     private long errorTimer;
+
+    private boolean pendingMove;
 
     public boolean initialLoading() {
         return loading;
@@ -124,6 +129,7 @@ public class GameplayState extends GomokuNetworkGameState {
         loading = true; // will be set to false once we receive data from the
                         // server
         gameOver = false;
+        pendingMove = false;
 
         errorMsg = "";
 
@@ -138,12 +144,19 @@ public class GameplayState extends GomokuNetworkGameState {
         };
         boardComponent.setCenterLocation(320, 300);
 
+        Image ok = new Image("res/buttons/ok.png");
+        Image cancel = new Image("res/buttons/cancel.png");
+        confirmMoveButton = new Button(ok, 590, 482, 3);
+        cancelMoveButton = new Button(cancel, 690, 482, 3);
+
         versus = new Image("res/versus.png");
         nametag = new Image("res/nametag.png");
         infobar = new Image("res/infobar.png");
         messagebox = new Image("res/bottommessagebox.png");
 
         addListener(boardComponent);
+        addListener(confirmMoveButton);
+        addListener(cancelMoveButton);
     }
 
     /**
@@ -272,6 +285,13 @@ public class GameplayState extends GomokuNetworkGameState {
                 if (p.equals("(none)"))
                     break;
                 drawRow(p, xPos, g);
+            }
+            if (pendingMove) {
+                g.setFont(Fonts.getAngelCodeFont("res/fonts/messagebox"));
+                g.drawString("Confirm move?", 600, 440);
+                confirmMoveButton.render(container, g);
+                cancelMoveButton.setLocation(698, 482);
+                cancelMoveButton.render(container, g);
             }
 
             // top
