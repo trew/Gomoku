@@ -7,6 +7,7 @@ import org.newdawn.slick.state.StateBasedGame;
 import gomoku.client.GomokuClient;
 import gomoku.net.*;
 
+import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 
 /**
@@ -20,6 +21,9 @@ public abstract class GomokuNetworkGameState extends GomokuGameState {
 
     BounceListener listener;
 
+    /**
+     * Initialize the Network state by adding creating a {@link BounceListener}
+     */
     @Override
     public void init(GameContainer container, StateBasedGame game)
             throws SlickException {
@@ -27,6 +31,14 @@ public abstract class GomokuNetworkGameState extends GomokuGameState {
         listener = new BounceListener(this);
     }
 
+    /**
+     * Adds the {@link BounceListener} to the {@link Client} that exists in
+     * {@link GomokuClient}. Proceeds by calling
+     * {@link GomokuGameState#enter(GameContainer, GomokuClient)}
+     *
+     * @throws IllegalArgumentException
+     *             if the StateBasedGame isn't a {@link GomokuClient}
+     */
     @Override
     public void enter(GameContainer container, StateBasedGame game)
             throws SlickException {
@@ -35,10 +47,16 @@ public abstract class GomokuNetworkGameState extends GomokuGameState {
             throw new IllegalArgumentException("game must be a GomokuClient");
         }
         GomokuClient gomokuClient = (GomokuClient) game;
-        gomokuClient.client.addListener(listener);
+        if (gomokuClient.client != null)
+            gomokuClient.client.addListener(listener);
         enter(container, gomokuClient);
     }
 
+    /**
+     * Removes the {@link BounceListener} to the {@link Client} that exists in
+     * {@link GomokuClient}. Proceeds by calling
+     * {@link GomokuGameState#leave(GameContainer, GomokuClient)}
+     */
     @Override
     public void leave(GameContainer container, StateBasedGame game)
             throws SlickException {
@@ -47,13 +65,24 @@ public abstract class GomokuNetworkGameState extends GomokuGameState {
             throw new IllegalArgumentException("game must be a GomokuClient");
         }
         GomokuClient gomokuClient = (GomokuClient) game;
-        gomokuClient.client.removeListener(listener);
+        if (gomokuClient.client != null)
+            gomokuClient.client.removeListener(listener);
         leave(container, gomokuClient);
     }
 
+    /**
+     * Called when the client is connected to the remote end.
+     *
+     * @param connection
+     */
     public void connected(Connection connection) {
     }
 
+    /**
+     * Called when the client is disconnected from the remote end.
+     *
+     * @param connection
+     */
     public void disconnected(Connection connection) {
     }
 

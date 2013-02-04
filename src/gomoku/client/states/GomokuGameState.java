@@ -31,10 +31,26 @@ public abstract class GomokuGameState extends TWLGameState {
 
     private int nextState;
 
+    private GomokuClient game;
+
+    public GomokuClient getGame() {
+        return game;
+    }
+
+    /**
+     * Adds a listener that the state will forward input events to
+     *
+     * @param listener
+     */
     public void addListener(InputListener listener) {
         listeners.add(listener);
     }
 
+    /**
+     * Removes a listener that the state will forward input events to
+     *
+     * @param listener
+     */
     public void removeListener(InputListener listener) {
         listeners.remove(listener);
     }
@@ -52,10 +68,11 @@ public abstract class GomokuGameState extends TWLGameState {
     @Override
     public void init(GameContainer container, StateBasedGame game)
             throws SlickException {
+        this.game =(GomokuClient)game;
         listeners = new HashSet<InputListener>();
         getRootPane();
         nextState = -1;
-        init(container, (GomokuClient) game);
+        init(container, this.game);
     }
 
     /**
@@ -149,7 +166,8 @@ public abstract class GomokuGameState extends TWLGameState {
      *             standard framework mechanism
      * @see #enter(GameContainer, StateBasedGame)
      */
-    public void enter(GameContainer container, GomokuClient game) throws SlickException {
+    public void enter(GameContainer container, GomokuClient game)
+            throws SlickException {
     }
 
     @Override
@@ -170,7 +188,8 @@ public abstract class GomokuGameState extends TWLGameState {
      *             standard framework mechanism
      * @see #leave(GameContainer, StateBasedGame)
      */
-    public void leave(GameContainer container, GomokuClient game) throws SlickException {
+    public void leave(GameContainer container, GomokuClient game)
+            throws SlickException {
     }
 
     /**
@@ -201,6 +220,18 @@ public abstract class GomokuGameState extends TWLGameState {
         nextState = stateID;
     }
 
+    /**
+     * Draw a string centered on the container at a given Y-coordinate
+     *
+     * @param text
+     *            the text to be written
+     * @param y
+     *            the y coordinate
+     * @param container
+     *            the container in which the string will be written
+     * @param g
+     *            the graphics context
+     */
     public void drawCenteredString(String text, int y, GUIContext container,
             Graphics g) {
         Font font = g.getFont();

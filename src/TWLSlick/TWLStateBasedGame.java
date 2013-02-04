@@ -47,10 +47,10 @@ import org.newdawn.slick.state.transition.Transition;
 
 /**
  * A StateBaseGame subclass with support for a TWL Ui per state.
- * 
+ *
  * @since 2013-01-25 Use TWLGameState instead of BasicTWLGameState /Samuel
  *        Andersson
- * 
+ *
  * @author Matthias Mann
  * @author Samuel Andersson
  */
@@ -70,7 +70,7 @@ public abstract class TWLStateBasedGame extends StateBasedGame {
 
     /**
      * Adds a new game state
-     * 
+     *
      * @param state
      *            the game state
      * @see StateBasedGame#addState(org.newdawn.slick.state.GameState)
@@ -81,10 +81,10 @@ public abstract class TWLStateBasedGame extends StateBasedGame {
 
     /**
      * Adds a new game state.
-     * 
+     *
      * This method is overriden to ensure that only instances of TWLGameState
      * are added.
-     * 
+     *
      * @param state
      *            the game state. Must be an instance of TWLGameState
      * @see StateBasedGame#addState(org.newdawn.slick.state.GameState)
@@ -99,7 +99,7 @@ public abstract class TWLStateBasedGame extends StateBasedGame {
 
     /**
      * Implement this method and return the URL for the TWL theme.
-     * 
+     *
      * @return the URL for the TWL theme. Must not be null.
      */
     protected abstract URL getThemeURL();
@@ -107,7 +107,7 @@ public abstract class TWLStateBasedGame extends StateBasedGame {
     /**
      * Transits to a the specified game state. This method hides the UI of the
      * current state before starting the transition.
-     * 
+     *
      * @param id
      *            The ID of the state to enter
      * @param leave

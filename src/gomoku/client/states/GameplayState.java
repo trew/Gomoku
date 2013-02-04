@@ -33,8 +33,6 @@ public class GameplayState extends GomokuNetworkGameState {
     /** Contains the game logic */
     public GomokuGame gomokuGame;
 
-    public GomokuClient client;
-
     /** The player */
     public Player me;
 
@@ -84,12 +82,12 @@ public class GameplayState extends GomokuNetworkGameState {
 
         if (playerColor == Board.BLACKPLAYER) {
             me = gomokuGame.getBlack();
-            playerList[0] = client.getPlayerName();
+            playerList[0] = getGame().getProperties().getProperty("playername", "(none)");
             gomokuGame.getWhite().setName(playerList[1]);
 
         } else if (playerColor == Board.WHITEPLAYER) {
             me = gomokuGame.getWhite();
-            playerList[1] = client.getPlayerName();
+            playerList[1] = getGame().getProperties().getProperty("playername", "(none)");
             gomokuGame.getBlack().setName(playerList[0]);
 
         } else {
@@ -98,7 +96,7 @@ public class GameplayState extends GomokuNetworkGameState {
             gomokuGame.getWhite().setName(playerList[1]);
         }
 
-        me.setName(client.getPlayerName());
+        me.setName(getGame().getProperties().getProperty("playername", "(none)"));
         info("Color set to " + me.getColorName());
     }
 
@@ -127,14 +125,10 @@ public class GameplayState extends GomokuNetworkGameState {
                         // server
         gameOver = false;
 
-        client = gomokuClient;
-        client.setPlayerName("(none)");
-
         errorMsg = "";
 
         // add the board
-        boardComponent = new BoardComponent(container, null, 80, 70, 28, 15,
-                15) {
+        boardComponent = new BoardComponent(container, null, 80, 70, 28, 15, 15) {
             @Override
             public void squareClicked(int x, int y) {
                 if (me == null || !myTurn())
@@ -143,7 +137,6 @@ public class GameplayState extends GomokuNetworkGameState {
             }
         };
         boardComponent.setCenterLocation(320, 300);
-
 
         versus = new Image("res/versus.png");
         nametag = new Image("res/nametag.png");
@@ -176,6 +169,11 @@ public class GameplayState extends GomokuNetworkGameState {
         }
     }
 
+    /**
+     * Sets the error message to be displayed with a timer of 5 seconds.
+     *
+     * @param msg
+     */
     protected void setErrorMsg(String msg) {
         errorMsg = msg;
         errorTimer = 5000;
@@ -201,7 +199,6 @@ public class GameplayState extends GomokuNetworkGameState {
         errorTimer -= delta;
         if (errorTimer < 0)
             errorTimer = 0;
-
 
         Input input = container.getInput();
 
@@ -250,7 +247,7 @@ public class GameplayState extends GomokuNetworkGameState {
             g.drawImage(versus, 400 - 117 / 2, 0);
             g.drawImage(nametag, 20, 10);
             g.drawImage(nametag, 490, 10);
-            g.drawImage(infobar, 800 - 225 , (600 - 454) / 2 + 8);
+            g.drawImage(infobar, 800 - 225, (600 - 454) / 2 + 8);
             g.drawImage(messagebox, 0, 600 - 63);
 
             boardComponent.render(container, g);

@@ -20,6 +20,8 @@ import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
 import de.matthiasmann.twl.EditField;
+import de.matthiasmann.twl.Event;
+import de.matthiasmann.twl.EditField.Callback;
 import de.matthiasmann.twl.ProgressBar;
 
 import static org.trew.log.Log.*;
@@ -62,11 +64,12 @@ public class ConnectState extends GomokuGameState {
         nameField = new EditField();
         nameField.setSize(300, 20);
         nameField.setPosition(250, 130);
+        nameField.setText(getGame().getProperties().getProperty("playername", "Player"));
 
         addressField = new EditField();
         addressField.setSize(300, 20);
         addressField.setPosition(250, 200);
-        addressField.setText("127.0.0.1");
+        addressField.setText(getGame().getProperties().getProperty("server", "127.0.0.1"));
 
         connectionBar = new ProgressBar();
         connectionBar.setSize(300, 10);
@@ -108,6 +111,17 @@ public class ConnectState extends GomokuGameState {
 
         addListener(connectButton);
         addListener(backButton);
+
+        Callback cb = new Callback() {
+            @Override
+            public void callback(int key) {
+                if (key == Event.KEY_RETURN) {
+                    connect(game);
+                }
+            }
+        };
+        nameField.addCallback(cb);
+        addressField.addCallback(cb);
 
         game.client = new Client();
         game.client.start();
@@ -151,10 +165,12 @@ public class ConnectState extends GomokuGameState {
         }
         connectMessage = "Connecting...";
 
-        // lock all settings
+        // lock all settings, and save them
         connectButton.disable();
         nameField.setEnabled(false);
-        game.setPlayerName(nameField.getText());
+
+        game.getProperties().setProperty("playername", nameField.getText().trim());
+        game.getProperties().setProperty("server", addressField.getText().trim());
 
         connectingState = CONNECTSTATE.CONNECTING;
         Listener listener = new Listener() {
@@ -175,7 +191,7 @@ public class ConnectState extends GomokuGameState {
                 try {
                     game.client.connect(5000, address, port);
                     game.client.sendTCP(new InitialClientDataPacket(game
-                            .getPlayerName()));
+                            .getProperties().getProperty("playername")));
                 } catch (UnknownHostException e) {
                     connectingState = CONNECTSTATE.CONNECTIONFAILED;
                     if (TRACE)

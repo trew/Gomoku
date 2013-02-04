@@ -1,6 +1,13 @@
 package gomoku.client;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
+import java.util.Properties;
 
 import gomoku.client.gui.Fonts;
 import gomoku.client.states.ChooseGameState;
@@ -45,14 +52,64 @@ public class GomokuClient extends TWLStateBasedGame {
     /** The network client */
     public Client client;
 
-    private String playerName;
+    protected Properties properties;
+    private String propertiesFilename = "settings.properties";
 
-    public void setPlayerName(String name) {
-        playerName = name;
+    public Properties getProperties() {
+        return properties;
     }
 
-    public String getPlayerName() {
-        return playerName;
+    /** Used if a properties-file is missing, and we're attempting to create one */
+    private boolean isCreatingPropertiesFile = false;
+
+    protected void loadProperties() {
+        info("Reading configuration file");
+        InputStream is;
+        try {
+            properties = new Properties();
+            is = new FileInputStream(propertiesFilename);
+            try {
+                properties.load(is);
+            } catch (IOException e) {
+                error(e);
+            }
+        } catch (FileNotFoundException e1) {
+            if (!isCreatingPropertiesFile) {
+                warn("Couldn't find settings file, attempting to create one.");
+                isCreatingPropertiesFile = true;
+                storeProperties();
+                loadProperties();
+            } else {
+                error(e1);
+            }
+        }
+
+    }
+
+    public void storeProperties() {
+
+        FileOutputStream fileos = null;
+        try {
+            fileos = new FileOutputStream(propertiesFilename);
+        } catch (FileNotFoundException e) {
+            // create new file
+            File file = new File(propertiesFilename);
+            try {
+                fileos = new FileOutputStream(file);
+            } catch (FileNotFoundException e1) {
+                error(e1);
+            }
+        }
+
+        if (fileos != null) {
+            try {
+                properties.store(fileos, "Gomoku Settings");
+            } catch (IOException e) {
+                error(e);
+            }
+        } else {
+            error("Could not save configuration file: " + propertiesFilename);
+        }
     }
 
     /**
@@ -68,9 +125,12 @@ public class GomokuClient extends TWLStateBasedGame {
      */
     @Override
     public void initStatesList(GameContainer container) throws SlickException {
+        loadProperties();
+
         Fonts.loadAngelCodeFonts("res/fonts/messagebox", "res/fonts/nametag");
         Fonts.loadFonts(14, 16, 18, 24, 32);
         container.setDefaultFont(Fonts.getDefaultFont());
+
         this.addState(new MainMenuState());
         this.addState(new ConnectState());
         this.addState(new ChooseGameState());
