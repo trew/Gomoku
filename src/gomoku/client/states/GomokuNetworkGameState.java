@@ -109,8 +109,8 @@ public abstract class GomokuNetworkGameState extends GomokuGameState {
                     (InitialServerDataPacket) object);
         else if (object instanceof NotifyTurnPacket)
             handleNotifyTurn(connection, (NotifyTurnPacket) object);
-        else if (object instanceof PlacePiecePacket)
-            handlePlacePiece(connection, (PlacePiecePacket) object);
+        else if (object instanceof BoardActionPacket)
+            handleBoardAction(connection, (BoardActionPacket) object);
         else if (object instanceof PlayerListPacket)
             handlePlayerList(connection, (PlayerListPacket) object);
         else if (object instanceof VictoryPacket)
@@ -182,7 +182,7 @@ public abstract class GomokuNetworkGameState extends GomokuGameState {
      * @param ppp
      *            the PlacePiecePacket
      */
-    protected void handlePlacePiece(Connection connection, PlacePiecePacket ppp) {
+    protected void handleBoardAction(Connection connection, BoardActionPacket ppp) {
     }
 
     /**

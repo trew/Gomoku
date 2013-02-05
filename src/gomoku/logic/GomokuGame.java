@@ -2,6 +2,8 @@ package gomoku.logic;
 
 import static org.trew.log.Log.*;
 
+import gomoku.logic.Board.PlacePiece;
+
 import java.util.ArrayList;
 
 /**
@@ -288,16 +290,16 @@ public class GomokuGame {
      *            the player placing the piece
      * @return true if piece was placed
      */
-    public void placePiece(int x, int y, int player) throws IllegalActionException {
+    public PlacePiece placePiece(int x, int y, int player) throws IllegalActionException {
         if (gameOver)
             throw new IllegalActionException("Game over. Cannot place piece.");
         // not possible to compare "turn == player" because it is a reference
         // comparison. We must rely on comparison by value, which is
         // possible using the colors.
         if (turn.getColor() == player) {
-            board.placePiece(player, x, y);
+            PlacePiece pp = board.placePiece(player, x, y);
             checkBoard(x, y);
-            switchTurn();
+            return pp;
         } else {
             throw new IllegalActionException("Not " + getPlayer(player).getColorName() + "'s turn!");
         }

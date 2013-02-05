@@ -29,7 +29,8 @@ public class Board {
     protected ActionRecorder recorder;
 
     /**
-     * Basic interface for an action on the board
+     * Basic interface for an action on the board.
+     * DO NOT FORGET TO ADD AN EMPTY CONSTRUCTOR!
      *
      * @author Samuel Andersson
      */
@@ -72,6 +73,13 @@ public class Board {
         protected int x;
         protected int y;
         protected boolean done;
+
+        /**
+         * For kryonet
+         */
+        @SuppressWarnings("unused")
+        private PlacePiece() {
+        }
 
         public PlacePiece(int player, int x, int y) {
             this.player = player;
@@ -196,9 +204,9 @@ public class Board {
      *
      * @see #placePiece(int, int, int)
      */
-    public void placePiece(Player player, int x, int y)
+    public PlacePiece placePiece(Player player, int x, int y)
             throws IllegalActionException {
-        placePiece(player.getColor(), x, y);
+        return placePiece(player.getColor(), x, y);
     }
 
     /**
@@ -425,25 +433,11 @@ public class Board {
      *            The y location of the new piece
      * @return True if piece was placed
      */
-    public void placePiece(int player, int x, int y)
+    public PlacePiece placePiece(int player, int x, int y)
             throws IllegalActionException {
-        if (getPiece(x, y) != Board.NOPLAYER)
-            throw new IllegalActionException(
-                    "That position is already occupied!");
-        if (config.useThreeAndThree()) {
-            if (!tryXAndX(3, player, x, y, true)) {
-                throw new IllegalActionException(
-                        "Unable to place because of Three And Three-rule.");
-            }
-        }
-        if (config.useFourAndFour()) {
-            if (!tryXAndX(4, player, x, y, false)) {
-                throw new IllegalActionException(
-                        "Unable to place because of Four And Four-rule.");
-            }
-        }
-
-        setPiece(x, y, player);
+        PlacePiece pp = new PlacePiece(player, x, y);
+        pp.doAction(this);
+        return pp;
     }
 
     /**
@@ -480,7 +474,7 @@ public class Board {
             throw new IllegalArgumentException("Position out of bounds. X: "
                     + x + ", Y: " + y);
         }
-        if (player != Board.BLACKPLAYER && player != Board.WHITEPLAYER) {
+        if (player != Board.BLACKPLAYER && player != Board.WHITEPLAYER && player != Board.NOPLAYER) {
             throw new IllegalArgumentException("Unknown value of player: \""
                     + player + "\".");
         }

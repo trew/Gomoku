@@ -159,12 +159,14 @@ public class GomokuClient extends TWLStateBasedGame {
             container.setDisplayMode(WIDTH, HEIGHT, false);
             container.setTargetFrameRate(TARGET_FPS);
             container.setShowFPS(false);
+            container.setForceExit(false); // we want to call functions after the game is cleaned up
 
             // start the game
             container.start();
 
             // stop the client before exiting
             game.client.stop();
+            game.storeProperties();
 
         } catch (SlickException e) {
             if (TRACE)

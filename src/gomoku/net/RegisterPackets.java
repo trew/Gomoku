@@ -1,6 +1,7 @@
 package gomoku.net;
 
 import gomoku.logic.Board;
+import gomoku.logic.Board.PlacePiece;
 import gomoku.logic.GomokuConfig;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -24,7 +25,7 @@ public abstract class RegisterPackets {
      *            The kryo object where we register the classes
      */
     public static void register(Kryo kryo) {
-        kryo.register(PlacePiecePacket.class);
+        kryo.register(BoardActionPacket.class);
         kryo.register(Board.class);
         kryo.register(int[].class);
         kryo.register(BoardPacket.class);
@@ -39,5 +40,6 @@ public abstract class RegisterPackets {
         kryo.register(GameListPacket.class);
         kryo.register(VictoryPacket.class);
         kryo.register(GomokuConfig.class);
+        kryo.register(PlacePiece.class);
     }
 }

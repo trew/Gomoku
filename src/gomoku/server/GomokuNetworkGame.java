@@ -16,7 +16,7 @@ import gomoku.logic.IllegalActionException;
 import gomoku.net.BoardPacket;
 import gomoku.net.GenericRequestPacket;
 import gomoku.net.NotifyTurnPacket;
-import gomoku.net.PlacePiecePacket;
+import gomoku.net.BoardActionPacket;
 import gomoku.net.PlayerListPacket;
 import gomoku.net.VictoryPacket;
 
@@ -255,27 +255,27 @@ public class GomokuNetworkGame implements GomokuGameListener {
      *            The connection that sent us the packet
      * @param obj
      *            The packet to process
-     * @see #handlePlacePiece(Connection, PlacePiecePacket)
+     * @see #handleBoardAction(Connection, BoardActionPacket)
      * @see #handleGenericRequest(Connection, GenericRequestPacket)
      */
     public void received(Connection conn, Object obj) {
 
-        if (obj instanceof PlacePiecePacket) {
-            handlePlacePiece(conn, (PlacePiecePacket) obj);
+        if (obj instanceof BoardActionPacket) {
+            handleBoardAction(conn, (BoardActionPacket) obj);
         } else if (obj instanceof GenericRequestPacket) {
             handleGenericRequest(conn, (GenericRequestPacket) obj);
         }
     }
 
     /**
-     * Place a piece on the board and notify other connections
+     * Handles a board action and notifies other connections upon success
      *
      * @param conn
      *            The connection that sent us the packet
      * @param ppp
      *            The packet to process
      */
-    private void handlePlacePiece(Connection conn, PlacePiecePacket ppp) {
+    private void handleBoardAction(Connection conn, BoardActionPacket ppp) {
 
         int playerColor = Board.NOPLAYER;
         if (blackID == conn.getID()) {
@@ -293,9 +293,8 @@ public class GomokuNetworkGame implements GomokuGameListener {
         }
 
         try {
-            game.placePiece(ppp.x, ppp.y, playerColor);
-            debug(playerList.get(conn.getID()) + " placed a piece on " + ppp.x
-                    + ", " + ppp.y);
+            ppp.action.doAction(game.getBoard());
+            game.switchTurn();
             broadcast(conn, ppp);
         } catch (IllegalActionException e) {
             // placement was not possible, update the board at client
