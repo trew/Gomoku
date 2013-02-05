@@ -1,18 +1,19 @@
 package gomoku.net;
 
-import gomoku.logic.Board.BoardAction;
+import gomoku.logic.GomokuGame.GameAction;
 
 /**
  * A packet requesting to place a piece on a certain location on the board
  *
  * @author Samuel Andersson
  */
-public class BoardActionPacket {
+public class GameActionPacket {
 
-    public BoardAction action;
+    public GameAction action;
 
     /** Empty constructor for Kryonet */
-    public BoardActionPacket() {
+    @SuppressWarnings("unused")
+    private GameActionPacket() {
     }
 
     /**
@@ -25,7 +26,7 @@ public class BoardActionPacket {
      * @param playerColor
      *            The player color of the player placing the piece
      */
-    public BoardActionPacket(BoardAction action) {
+    public GameActionPacket(GameAction action) {
         this.action = action;
     }
 }

@@ -7,8 +7,8 @@ import gomoku.client.gui.BoardComponent;
 import gomoku.client.gui.Button;
 import gomoku.client.gui.Fonts;
 import gomoku.logic.Board;
-import gomoku.logic.Board.BoardAction;
 import gomoku.logic.GomokuConfig;
+import gomoku.logic.GomokuGame.GameAction;
 import gomoku.logic.IllegalActionException;
 import gomoku.logic.Player;
 import gomoku.logic.GomokuGame;
@@ -58,7 +58,7 @@ public class GameplayState extends GomokuNetworkGameState {
     private long errorTimer;
 
     private boolean pendingMove;
-    private BoardAction pendingAction;
+    private GameAction pendingAction;
 
     public boolean initialLoading() {
         return loading;
@@ -156,7 +156,7 @@ public class GameplayState extends GomokuNetworkGameState {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0 && pendingMove && pendingAction != null) {
-                    sendBoardAction(gomokuClient, pendingAction);
+                    sendGameAction(gomokuClient, pendingAction);
                     pendingMove = false;
                 }
             }
@@ -165,7 +165,7 @@ public class GameplayState extends GomokuNetworkGameState {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0 && pendingMove && pendingAction != null) {
-                    pendingAction.undoAction(gomokuGame.getBoard());
+                    pendingAction.undoAction(gomokuGame);
                     pendingMove = false;
                 }
 
@@ -196,12 +196,13 @@ public class GameplayState extends GomokuNetworkGameState {
     public void placePiece(GomokuClient gomokuClient, int x, int y) {
         if (pendingMove) return;
         try {
-            pendingAction = gomokuGame.placePiece(x, y, me.getColor());
-            if (gomokuClient.getProperties().getProperty("autoconfirm")
-                    .equalsIgnoreCase("true"))
-                sendBoardAction(gomokuClient, pendingAction);
-            else
+            boolean waitForConfirm = !gomokuClient.getProperties().getProperty("autoconfirm")
+                    .equalsIgnoreCase("true");
+            pendingAction = gomokuGame.placePiece(x, y, me.getColor(), waitForConfirm);
+            if (waitForConfirm)
                 pendingMove = true;
+            else
+                sendGameAction(gomokuClient, pendingAction);
 
         } catch (IllegalActionException e) {
             info(e.getMessage());
@@ -209,9 +210,9 @@ public class GameplayState extends GomokuNetworkGameState {
         }
     }
 
-    protected void sendBoardAction(GomokuClient client, BoardAction action) {
-        client.client.sendTCP(new BoardActionPacket(action));
-        gomokuGame.switchTurn();
+    protected void sendGameAction(GomokuClient client, GameAction action) {
+        client.client.sendTCP(new GameActionPacket(action));
+        action.confirmAction(gomokuGame);
     }
 
     /**
@@ -374,12 +375,12 @@ public class GameplayState extends GomokuNetworkGameState {
     }
 
     @Override
-    protected void handleBoardAction(Connection conn, BoardActionPacket ppp) {
+    protected void handleGameAction(Connection conn, GameActionPacket ppp) {
         try {
-            ppp.action.doAction(gomokuGame.getBoard());
-            gomokuGame.switchTurn();
+            ppp.action.doAction(gomokuGame);
+            ppp.action.confirmAction(gomokuGame);
         } catch (IllegalActionException e) {
-            warn("Piece couldn't be placed: " + e.getMessage());
+            warn("Piece couldn't be placed: " + e.getMessage()); //TODO fix
             info("Requesting boardupdate...");
             conn.sendTCP(new GenericRequestPacket(BoardUpdate));
         }

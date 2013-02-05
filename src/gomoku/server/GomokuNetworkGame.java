@@ -16,7 +16,7 @@ import gomoku.logic.IllegalActionException;
 import gomoku.net.BoardPacket;
 import gomoku.net.GenericRequestPacket;
 import gomoku.net.NotifyTurnPacket;
-import gomoku.net.BoardActionPacket;
+import gomoku.net.GameActionPacket;
 import gomoku.net.PlayerListPacket;
 import gomoku.net.VictoryPacket;
 
@@ -255,13 +255,13 @@ public class GomokuNetworkGame implements GomokuGameListener {
      *            The connection that sent us the packet
      * @param obj
      *            The packet to process
-     * @see #handleBoardAction(Connection, BoardActionPacket)
+     * @see #handleBoardAction(Connection, GameActionPacket)
      * @see #handleGenericRequest(Connection, GenericRequestPacket)
      */
     public void received(Connection conn, Object obj) {
 
-        if (obj instanceof BoardActionPacket) {
-            handleBoardAction(conn, (BoardActionPacket) obj);
+        if (obj instanceof GameActionPacket) {
+            handleBoardAction(conn, (GameActionPacket) obj);
         } else if (obj instanceof GenericRequestPacket) {
             handleGenericRequest(conn, (GenericRequestPacket) obj);
         }
@@ -275,7 +275,7 @@ public class GomokuNetworkGame implements GomokuGameListener {
      * @param ppp
      *            The packet to process
      */
-    private void handleBoardAction(Connection conn, BoardActionPacket ppp) {
+    private void handleBoardAction(Connection conn, GameActionPacket ppp) {
 
         int playerColor = Board.NOPLAYER;
         if (blackID == conn.getID()) {
@@ -293,9 +293,9 @@ public class GomokuNetworkGame implements GomokuGameListener {
         }
 
         try {
-            ppp.action.doAction(game.getBoard());
-            game.switchTurn();
+            ppp.action.doAction(game);
             broadcast(conn, ppp);
+            ppp.action.confirmAction(game);
         } catch (IllegalActionException e) {
             // placement was not possible, update the board at client
             conn.sendTCP(new BoardPacket(game.getBoard()));

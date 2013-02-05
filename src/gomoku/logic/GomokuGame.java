@@ -2,7 +2,7 @@ package gomoku.logic;
 
 import static org.trew.log.Log.*;
 
-import gomoku.logic.Board.PlacePiece;
+import gomoku.logic.Board.PlacePieceBoardAction;
 
 import java.util.ArrayList;
 
@@ -35,6 +35,86 @@ public class GomokuGame {
     protected ActionRecorder actionRecorder;
 
     private ArrayList<GomokuGameListener> listeners;
+
+    static public interface GameAction {
+        public int getPlayer();
+
+        public void doAction(GomokuGame game) throws IllegalActionException;
+
+        public void confirmAction(GomokuGame game);
+
+        public void undoAction(GomokuGame game);
+    }
+
+    static public class PlacePieceGameAction implements GameAction {
+
+        private int player;
+        private PlacePieceBoardAction boardAction;
+        private boolean done;
+        private boolean confirmed;
+        private boolean waitForConfirm;
+
+        /**
+         * For kryonet
+         */
+        @SuppressWarnings("unused")
+        private PlacePieceGameAction() {
+        }
+
+        public PlacePieceGameAction(int player, int x, int y, boolean waitForConfirm) {
+            this.player = player;
+            this.waitForConfirm = waitForConfirm;
+            boardAction = new PlacePieceBoardAction(player, x, y);
+            done = false;
+            confirmed = false;
+        }
+
+        @Override
+        public int getPlayer() {
+            return player;
+        }
+
+        @Override
+        public void doAction(GomokuGame game) throws IllegalActionException {
+            if (game.gameOver)
+                throw new IllegalActionException("Game over. Cannot place piece.");
+            // not possible to compare "turn == player" because it is a reference
+            // comparison. We must rely on comparison by value, which is
+            // possible using the colors.
+            if (game.turn.getColor() == player) {
+                try {
+                    boardAction.doAction(game.getBoard());
+                    done = true;
+                    if (!waitForConfirm)
+                        confirmAction(game);
+                } catch (IllegalActionException e) {
+                    error(e);
+                }
+                game.checkBoard(boardAction.getX(), boardAction.getY());
+            } else {
+                throw new IllegalActionException("Not "
+                        + game.getPlayer(player).getColorName() + "'s turn!");
+            }
+
+        }
+
+        @Override
+        public void confirmAction(GomokuGame game) {
+            if (confirmed) return;
+            game.switchTurn();
+            confirmed = true;
+        }
+
+        @Override
+        public void undoAction(GomokuGame game) {
+            if (done) {
+                boardAction.undoAction(game.getBoard());
+                if (confirmed)
+                    game.switchTurn();
+            }
+        }
+
+    }
 
     /**
      * Create a new game with set width and height
@@ -290,19 +370,11 @@ public class GomokuGame {
      *            the player placing the piece
      * @return true if piece was placed
      */
-    public PlacePiece placePiece(int x, int y, int player) throws IllegalActionException {
-        if (gameOver)
-            throw new IllegalActionException("Game over. Cannot place piece.");
-        // not possible to compare "turn == player" because it is a reference
-        // comparison. We must rely on comparison by value, which is
-        // possible using the colors.
-        if (turn.getColor() == player) {
-            PlacePiece pp = board.placePiece(player, x, y);
-            checkBoard(x, y);
-            return pp;
-        } else {
-            throw new IllegalActionException("Not " + getPlayer(player).getColorName() + "'s turn!");
-        }
+    public PlacePieceGameAction placePiece(int x, int y, int player, boolean waitForConfirm)
+            throws IllegalActionException {
+        PlacePieceGameAction action = new PlacePieceGameAction(player, x, y, waitForConfirm);
+        action.doAction(this);
+        return action;
     }
 
     /**

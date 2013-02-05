@@ -67,7 +67,7 @@ public class Board {
      *
      * @author Samuel Andersson
      */
-    static public class PlacePiece implements BoardAction {
+    static public class PlacePieceBoardAction implements BoardAction {
 
         protected int player;
         protected int x;
@@ -78,10 +78,10 @@ public class Board {
          * For kryonet
          */
         @SuppressWarnings("unused")
-        private PlacePiece() {
+        private PlacePieceBoardAction() {
         }
 
-        public PlacePiece(int player, int x, int y) {
+        public PlacePieceBoardAction(int player, int x, int y) {
             this.player = player;
             this.x = x;
             this.y = y;
@@ -183,7 +183,7 @@ public class Board {
 
     /**
      * Does an action on the board. This is most likely an instance of
-     * {@link PlacePiece}
+     * {@link PlacePieceBoardAction}
      *
      * @param action
      *            the action to be made
@@ -204,7 +204,7 @@ public class Board {
      *
      * @see #placePiece(int, int, int)
      */
-    public PlacePiece placePiece(Player player, int x, int y)
+    public PlacePieceBoardAction placePiece(Player player, int x, int y)
             throws IllegalActionException {
         return placePiece(player.getColor(), x, y);
     }
@@ -433,9 +433,9 @@ public class Board {
      *            The y location of the new piece
      * @return True if piece was placed
      */
-    public PlacePiece placePiece(int player, int x, int y)
+    public PlacePieceBoardAction placePiece(int player, int x, int y)
             throws IllegalActionException {
-        PlacePiece pp = new PlacePiece(player, x, y);
+        PlacePieceBoardAction pp = new PlacePieceBoardAction(player, x, y);
         pp.doAction(this);
         return pp;
     }
