@@ -4,10 +4,12 @@ import gomoku.logic.Board;
 import gomoku.logic.GomokuConfig;
 import gomoku.net.CreateGamePacket;
 import gomoku.net.GameListPacket;
+import gomoku.net.GenericRequestPacket;
 import gomoku.net.InitialClientDataPacket;
 import gomoku.net.InitialServerDataPacket;
 import gomoku.net.JoinGamePacket;
 import gomoku.net.RegisterPackets;
+import gomoku.net.Request;
 
 import java.awt.AWTException;
 import java.awt.BorderLayout;
@@ -51,7 +53,7 @@ import static org.trew.log.Log.*;
  * <b>--port</b> <i>PORT</i> - The port number which we'll run the server on<br />
  * <b>--swing</b> - Whether we should run with swing or use standard console.
  * (Swing is always used on windows)<br />
- *
+ * 
  * @author Samuel Andersson
  */
 public class GomokuServer extends Listener {
@@ -59,14 +61,14 @@ public class GomokuServer extends Listener {
     /**
      * The port which this server is listening on. Can be set by providing
      * --port to the application command line
-     *
+     * 
      * @see #parseArgs(String[])
      */
     private static int PORT;
 
     /**
      * Whether we are going to use Swing as our console
-     *
+     * 
      * @see #parseArgs(String[])
      */
     private static boolean SWING;
@@ -107,7 +109,7 @@ public class GomokuServer extends Listener {
 
     /**
      * Initialize the server, add the ServerListener and register kryo classes.
-     *
+     * 
      * @see ServerListener
      */
     public void init() {
@@ -118,7 +120,7 @@ public class GomokuServer extends Listener {
 
     /**
      * Start the server and begin listening on provided port
-     *
+     * 
      * @see #PORT
      */
     public void start() {
@@ -152,7 +154,7 @@ public class GomokuServer extends Listener {
      * Broadcast a packet to all connections except provided source. We won't
      * send to the source connection because that client has already made
      * necessary changes.
-     *
+     * 
      * @param sourceConnection
      *            The connection that triggered this broadcast
      * @param object
@@ -203,7 +205,17 @@ public class GomokuServer extends Listener {
                 handleCreateGamePacket(conn, (CreateGamePacket) obj);
             } else if (obj instanceof JoinGamePacket) {
                 handleJoinGamePacket(conn, (JoinGamePacket) obj);
+            } else if (obj instanceof GenericRequestPacket) {
+                handleGenericRequest(conn, (GenericRequestPacket) obj);
             }
+        }
+    }
+
+    protected void handleGenericRequest(Connection conn,
+            GenericRequestPacket grp) {
+        if (grp.getRequest() == Request.GameList) {
+            // send a list of open games
+            conn.sendTCP(new GameListPacket(games));
         }
     }
 
@@ -211,7 +223,7 @@ public class GomokuServer extends Listener {
      * This packet is treated as the confirmation that the client has connected
      * and wants to play. This function will send a GameList back to the client
      * with games he can choose to play in or spectate.
-     *
+     * 
      * @param conn
      *            The connection that sent us the packet
      * @param icdp
@@ -223,14 +235,11 @@ public class GomokuServer extends Listener {
         String ip = conn.getRemoteAddressTCP().getAddress().getHostAddress();
         info(playerName + "(" + ip + ", " + conn.getID() + ") has connected.");
         playerList.put(conn.getID(), playerName);
-
-        // send a list of open games
-        conn.sendTCP(new GameListPacket(games));
     }
 
     /**
      * Handles how a received CreateGamePacket should be treated.
-     *
+     * 
      * @param conn
      *            the connection that sent the CreateGamePacket
      * @param cgp
@@ -263,7 +272,7 @@ public class GomokuServer extends Listener {
 
     /**
      * Handles how a received JoinGamePacket should be treated.
-     *
+     * 
      * @param conn
      *            the connection that sent the JoinGamePacket
      * @param jgp
@@ -295,7 +304,7 @@ public class GomokuServer extends Listener {
     /**
      * Parse command line arguments that was passed to the application upon
      * startup.
-     *
+     * 
      * @param args
      *            The arguments passed to the application
      */
@@ -340,7 +349,7 @@ public class GomokuServer extends Listener {
 
     /**
      * The main entry point of the server
-     *
+     * 
      * @param args
      *            Any arguments passed to the server
      */

@@ -8,7 +8,9 @@ import gomoku.client.gui.Button;
 import gomoku.client.gui.Fonts;
 import gomoku.logic.Board;
 import gomoku.logic.GomokuConfig;
+import gomoku.logic.Board.BoardAction;
 import gomoku.logic.GomokuGame.GameAction;
+import gomoku.logic.GomokuGame.PlacePieceGameAction;
 import gomoku.logic.IllegalActionException;
 import gomoku.logic.Player;
 import gomoku.logic.GomokuGame;
@@ -27,7 +29,7 @@ import static org.trew.log.Log.*;
 
 /**
  * The playing state of the Gomoku game.
- *
+ * 
  * @author Samuel Andersson
  */
 public class GameplayState extends GomokuNetworkGameState {
@@ -41,7 +43,6 @@ public class GameplayState extends GomokuNetworkGameState {
     /** The board displayed */
     private BoardComponent boardComponent;
     private Button confirmMoveButton;
-    private Button cancelMoveButton;
 
     private Image versus;
     private Image nametag;
@@ -81,7 +82,7 @@ public class GameplayState extends GomokuNetworkGameState {
     /**
      * Setup names and values for players. If this client receives black, makes
      * sure the white player receives the correct name.
-     *
+     * 
      * @param playerColor
      *            The player color being given to this client
      */
@@ -151,24 +152,13 @@ public class GameplayState extends GomokuNetworkGameState {
         boardComponent.setCenterLocation(320, 300);
 
         Image ok = new Image("res/buttons/ok.png");
-        Image cancel = new Image("res/buttons/cancel.png");
-        confirmMoveButton = new Button(ok, 590, 482, 3) {
+        confirmMoveButton = new Button(ok, 640, 482, 3) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0 && pendingMove && pendingAction != null) {
                     sendGameAction(gomokuClient, pendingAction);
                     pendingMove = false;
                 }
-            }
-        };
-        cancelMoveButton = new Button(cancel, 690, 482, 3) {
-            @Override
-            public void buttonClicked(int button, int x, int y) {
-                if (button == 0 && pendingMove && pendingAction != null) {
-                    pendingAction.undoAction(gomokuGame);
-                    pendingMove = false;
-                }
-
             }
         };
 
@@ -179,13 +169,12 @@ public class GameplayState extends GomokuNetworkGameState {
 
         addListener(boardComponent);
         addListener(confirmMoveButton);
-        addListener(cancelMoveButton);
     }
 
     /**
      * Try to place a new piece on provided position. If successful client-side,
      * send a packet to server trying to do the same thing.
-     *
+     * 
      * @param gomokuClient
      *            The game which we place the piece in
      * @param x
@@ -194,16 +183,29 @@ public class GameplayState extends GomokuNetworkGameState {
      *            The y location for the new piece
      */
     public void placePiece(GomokuClient gomokuClient, int x, int y) {
-        if (pendingMove) return;
         try {
-            boolean waitForConfirm = !gomokuClient.getProperties().getProperty("autoconfirm")
+            boolean waitForConfirm = !gomokuClient.getProperties()
+                    .getProperty("autoconfirm", "true")
                     .equalsIgnoreCase("true");
-            pendingAction = gomokuGame.placePiece(x, y, me.getColor(), waitForConfirm);
+            PlacePieceGameAction action = null;
+            if (pendingMove) {
+                action = (PlacePieceGameAction) pendingAction;
+                pendingAction.undoAction(gomokuGame);
+
+                // are we removing the current piece?
+                BoardAction bAction = action.getBoardAction();
+                if (bAction != null
+                        && (bAction.getX() == x && bAction.getY() == y)) {
+                    pendingMove = false;
+                    return; // don't place a new piece if we are
+                }
+            }
+            pendingAction = gomokuGame.placePiece(x, y, me.getColor(),
+                    waitForConfirm);
             if (waitForConfirm)
                 pendingMove = true;
             else
                 sendGameAction(gomokuClient, pendingAction);
-
         } catch (IllegalActionException e) {
             info(e.getMessage());
             setErrorMsg(e.getMessage());
@@ -217,7 +219,7 @@ public class GameplayState extends GomokuNetworkGameState {
 
     /**
      * Sets the error message to be displayed with a timer of 5 seconds.
-     *
+     * 
      * @param msg
      */
     protected void setErrorMsg(String msg) {
@@ -227,7 +229,7 @@ public class GameplayState extends GomokuNetworkGameState {
 
     /**
      * Whether it's our turn or not
-     *
+     * 
      * @return True if it's our turn
      */
     public boolean myTurn() {
@@ -249,7 +251,12 @@ public class GameplayState extends GomokuNetworkGameState {
         Input input = container.getInput();
 
         if (input.isKeyPressed(Input.KEY_ESCAPE)) {
-            enterState(MAINMENUSTATE);
+            if (pendingMove) {
+                pendingAction.undoAction(gomokuGame);
+                pendingMove = false;
+            } else {
+                enterState(MAINMENUSTATE);
+            }
         }
 
         /* *** NETWORK RELATED INPUT *** */
@@ -324,8 +331,6 @@ public class GameplayState extends GomokuNetworkGameState {
                 g.setFont(Fonts.getAngelCodeFont("res/fonts/messagebox"));
                 g.drawString("Confirm move?", 600, 440);
                 confirmMoveButton.render(container, g);
-                cancelMoveButton.setLocation(698, 482);
-                cancelMoveButton.render(container, g);
             }
 
             // top
@@ -380,7 +385,7 @@ public class GameplayState extends GomokuNetworkGameState {
             ppp.action.doAction(gomokuGame);
             ppp.action.confirmAction(gomokuGame);
         } catch (IllegalActionException e) {
-            warn("Piece couldn't be placed: " + e.getMessage()); //TODO fix
+            warn("Piece couldn't be placed: " + e.getMessage()); // TODO fix
             info("Requesting boardupdate...");
             conn.sendTCP(new GenericRequestPacket(BoardUpdate));
         }

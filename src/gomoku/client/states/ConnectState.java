@@ -29,7 +29,7 @@ import static org.trew.log.Log.*;
 /**
  * The connecting state of the game. This state's responsibility is to fetch
  * which server the player wants to connect to and connect to that server.
- *
+ * 
  * @author Samuel Andersson
  */
 public class ConnectState extends GomokuGameState {
@@ -64,12 +64,14 @@ public class ConnectState extends GomokuGameState {
         nameField = new EditField();
         nameField.setSize(300, 20);
         nameField.setPosition(250, 130);
-        nameField.setText(getGame().getProperties().getProperty("playername", "Player"));
+        nameField.setText(getGame().getProperties().getProperty("playername",
+                "Player"));
 
         addressField = new EditField();
         addressField.setSize(300, 20);
         addressField.setPosition(250, 200);
-        addressField.setText(getGame().getProperties().getProperty("server", "127.0.0.1"));
+        addressField.setText(getGame().getProperties().getProperty("server",
+                "127.0.0.1"));
 
         connectionBar = new ProgressBar();
         connectionBar.setSize(300, 10);
@@ -152,7 +154,7 @@ public class ConnectState extends GomokuGameState {
     /**
      * Create a new thread to connect to the server. Calling this function will
      * lock all selected settings, such as player name.
-     *
+     * 
      * @param game
      *            The client that till connect to the server
      */
@@ -169,8 +171,10 @@ public class ConnectState extends GomokuGameState {
         connectButton.disable();
         nameField.setEnabled(false);
 
-        game.getProperties().setProperty("playername", nameField.getText().trim());
-        game.getProperties().setProperty("server", addressField.getText().trim());
+        game.getProperties().setProperty("playername",
+                nameField.getText().trim());
+        game.getProperties().setProperty("server",
+                addressField.getText().trim());
 
         connectingState = CONNECTSTATE.CONNECTING;
         Listener listener = new Listener() {
@@ -191,7 +195,8 @@ public class ConnectState extends GomokuGameState {
                 try {
                     game.client.connect(5000, address, port);
                     game.client.sendTCP(new InitialClientDataPacket(game
-                            .getProperties().getProperty("playername")));
+                            .getProperties()
+                            .getProperty("playername", "Player")));
                 } catch (UnknownHostException e) {
                     connectingState = CONNECTSTATE.CONNECTIONFAILED;
                     if (TRACE)

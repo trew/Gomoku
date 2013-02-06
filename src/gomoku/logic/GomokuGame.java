@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * Contains game logic for Gomoku game. The game keeps track of the board, the
  * players and whose turn it is. It will also have methods indicating victory or
  * defeat.
- *
+ * 
  * @author Samuel Andersson
  */
 public class GomokuGame {
@@ -61,7 +61,8 @@ public class GomokuGame {
         private PlacePieceGameAction() {
         }
 
-        public PlacePieceGameAction(int player, int x, int y, boolean waitForConfirm) {
+        public PlacePieceGameAction(int player, int x, int y,
+                boolean waitForConfirm) {
             this.player = player;
             this.waitForConfirm = waitForConfirm;
             boardAction = new PlacePieceBoardAction(player, x, y);
@@ -74,11 +75,17 @@ public class GomokuGame {
             return player;
         }
 
+        public PlacePieceBoardAction getBoardAction() {
+            return boardAction;
+        }
+
         @Override
         public void doAction(GomokuGame game) throws IllegalActionException {
             if (game.gameOver)
-                throw new IllegalActionException("Game over. Cannot place piece.");
-            // not possible to compare "turn == player" because it is a reference
+                throw new IllegalActionException(
+                        "Game over. Cannot place piece.");
+            // not possible to compare "turn == player" because it is a
+            // reference
             // comparison. We must rely on comparison by value, which is
             // possible using the colors.
             if (game.turn.getColor() == player) {
@@ -100,7 +107,8 @@ public class GomokuGame {
 
         @Override
         public void confirmAction(GomokuGame game) {
-            if (confirmed) return;
+            if (confirmed)
+                return;
             game.switchTurn();
             confirmed = true;
         }
@@ -118,7 +126,7 @@ public class GomokuGame {
 
     /**
      * Create a new game with set width and height
-     *
+     * 
      * @param width
      *            the width of the board
      * @param height
@@ -130,7 +138,7 @@ public class GomokuGame {
 
     /**
      * Create a new game from a board
-     *
+     * 
      * @param board
      *            The board
      */
@@ -168,7 +176,7 @@ public class GomokuGame {
 
     /**
      * Checks for victory and calls listeners if someone won
-     *
+     * 
      * @param x
      *            the x position modified that forced victory check
      * @param y
@@ -361,7 +369,7 @@ public class GomokuGame {
 
     /**
      * Place a piece and switch player turn
-     *
+     * 
      * @param x
      *            the x location of the piece
      * @param y
@@ -370,16 +378,17 @@ public class GomokuGame {
      *            the player placing the piece
      * @return true if piece was placed
      */
-    public PlacePieceGameAction placePiece(int x, int y, int player, boolean waitForConfirm)
-            throws IllegalActionException {
-        PlacePieceGameAction action = new PlacePieceGameAction(player, x, y, waitForConfirm);
+    public PlacePieceGameAction placePiece(int x, int y, int player,
+            boolean waitForConfirm) throws IllegalActionException {
+        PlacePieceGameAction action = new PlacePieceGameAction(player, x, y,
+                waitForConfirm);
         action.doAction(this);
         return action;
     }
 
     /**
      * Get the owner of the piece placed on provided position
-     *
+     * 
      * @param x
      *            The x location of the piece
      * @param y
@@ -410,7 +419,7 @@ public class GomokuGame {
 
     /**
      * Set turn to provided player
-     *
+     * 
      * @param player
      *            The player who is going to get the turn
      */
@@ -425,7 +434,7 @@ public class GomokuGame {
 
     /**
      * Set turn to player with provided color
-     *
+     * 
      * @param playerColor
      *            the provided player color
      */
@@ -443,7 +452,7 @@ public class GomokuGame {
 
     /**
      * Get the player who has the turn
-     *
+     * 
      * @return The player who has the turn
      */
     public Player getTurn() {
@@ -452,7 +461,7 @@ public class GomokuGame {
 
     /**
      * Returns the black player
-     *
+     * 
      * @return the black player
      */
     public Player getBlack() {
@@ -461,7 +470,7 @@ public class GomokuGame {
 
     /**
      * Returns the white player
-     *
+     * 
      * @return the white player
      */
     public Player getWhite() {
@@ -470,7 +479,7 @@ public class GomokuGame {
 
     /**
      * Get a player depending on provided color
-     *
+     * 
      * @param color
      *            The player color
      * @return Black if provided color is {@link Board#BLACKPLAYER}, white if
@@ -490,7 +499,7 @@ public class GomokuGame {
 
     /**
      * Replace the current board with the new board
-     *
+     * 
      * @param board
      *            The board to replace the current one
      */
@@ -501,7 +510,7 @@ public class GomokuGame {
 
     /**
      * Get the current board
-     *
+     * 
      * @return The current board
      */
     public Board getBoard() {

@@ -2,7 +2,7 @@ package gomoku.net;
 
 /**
  * Contains possible requests mapped to integers
- *
+ * 
  * @see GenericRequestPacket
  * @author Samuel Andersson
  */
@@ -20,20 +20,23 @@ public final class Request {
     /** Request the list of connected players */
     public static int PlayerList = 4;
 
+    /** Request a list of open games */
+    public static int GameList = 5;
+
     /** Request to start a new game */
-    public static int CreateGame = 5;
+    public static int CreateGame = 6;
 
     /** Request to leave the game */
-    public static int LeaveGame = 6;
+    public static int LeaveGame = 7;
 
     /**
      * Check a value if it's a valid request
-     *
+     * 
      * @param request
      *            The request to be checked
      * @return True if it is a valid request
      */
     public static boolean validRequest(int request) {
-        return request > 0 && request < 7;
+        return request > 0 && request < 8;
     }
 }

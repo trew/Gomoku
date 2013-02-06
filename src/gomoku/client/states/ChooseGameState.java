@@ -4,8 +4,10 @@ import gomoku.client.GomokuClient;
 
 import gomoku.client.gui.Button;
 import gomoku.net.GameListPacket;
+import gomoku.net.GenericRequestPacket;
 import gomoku.net.InitialServerDataPacket;
 import gomoku.net.JoinGamePacket;
+import gomoku.net.Request;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
@@ -51,6 +53,10 @@ public class ChooseGameState extends GomokuNetworkGameState {
     private ListBox<SimpleChangableListModel<GameListObject>> gameList;
     private SimpleChangableListModel<GameListObject> gameListModel;
 
+    private static final long UPDATETIME = 10000; // update list every 10
+                                                  // seconds
+    private long updateTimer;
+
     public ChooseGameState() {
     }
 
@@ -72,7 +78,6 @@ public class ChooseGameState extends GomokuNetworkGameState {
     @Override
     public void init(GameContainer container, final GomokuClient game)
             throws SlickException {
-        listener = new BounceListener(this);
         gomokuClient = game;
 
         Image cgBtn = new Image("res/buttons/creategamebutton.png");
@@ -131,6 +136,14 @@ public class ChooseGameState extends GomokuNetworkGameState {
     }
 
     @Override
+    public void enter(GameContainer container, GomokuClient game)
+            throws SlickException {
+        game.client.sendTCP(new GenericRequestPacket(Request.GameList));
+        updateTimer = UPDATETIME;
+
+    }
+
+    @Override
     public void render(GameContainer container, GomokuClient game, Graphics g)
             throws SlickException {
         createNewGameButton.render(container, g);
@@ -145,6 +158,11 @@ public class ChooseGameState extends GomokuNetworkGameState {
     @Override
     public void update(GameContainer container, GomokuClient game, int delta)
             throws SlickException {
+        updateTimer -= delta;
+        if (updateTimer < 0) {
+            game.client.sendTCP(new GenericRequestPacket(Request.GameList));
+            updateTimer = UPDATETIME;
+        }
     }
 
     /**
