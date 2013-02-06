@@ -253,8 +253,8 @@ public class CreateGameState extends GomokuNetworkGameState {
     protected void handleInitialServerData(Connection connection,
             InitialServerDataPacket isdp) {
         ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE)).setInitialData(
-                isdp.getBoard(), isdp.getConfig(), isdp.getColor(),
-                isdp.getTurn(), isdp.getPlayerList());
+                isdp.getBoard(), isdp.getConfig(), isdp.getSwap2State(),
+                isdp.getID(), isdp.getTurn(), isdp.getPlayerList());
         enterState(GAMEPLAYSTATE);
     }
 

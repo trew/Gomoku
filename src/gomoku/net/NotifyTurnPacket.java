@@ -1,16 +1,16 @@
 package gomoku.net;
 
-import gomoku.logic.Board;
+import gomoku.logic.Player;
 
 /**
  * Contains information about the current turn
- * 
+ *
  * @author Samuel Andersson
  */
 public class NotifyTurnPacket {
 
-    /** The player color of the current turnholder */
-    private int color;
+    /** The player ID of the current turnholder */
+    private int id;
 
     /** Empty constructor for Kryonet */
     public NotifyTurnPacket() {
@@ -18,39 +18,39 @@ public class NotifyTurnPacket {
 
     /**
      * Create a new packet containing turn information
-     * 
-     * @param color
-     *            The color of the player holding the turn
+     *
+     * @param id
+     *            The ID of the player holding the turn
      * @throws IllegalArgumentException
-     *             Indicates an invalid turncolor
+     *             Indicates an invalid turn ID
      */
-    public NotifyTurnPacket(int color) throws IllegalArgumentException {
-        setColor(color);
+    public NotifyTurnPacket(int id) throws IllegalArgumentException {
+        setID(id);
     }
 
     /**
-     * Get the turnholder color
-     * 
-     * @return The turnholder color
+     * Get the turnholder ID
+     *
+     * @return The turnholder ID
      */
-    public int getColor() {
-        return color;
+    public int getID() {
+        return id;
     }
 
     /**
      * Set the turnholder color
-     * 
-     * @param color
-     *            The color of the turnholder
+     *
+     * @param id
+     *            The ID of the turnholder
      * @throws IllegalArgumentException
-     *             Indicates an invalid turncolor
+     *             Indicates an invalid turn id
      */
-    public void setColor(int color) throws IllegalArgumentException {
-        if (color == Board.BLACKPLAYER || color == Board.WHITEPLAYER) {
-            this.color = color;
+    public void setID(int id) throws IllegalArgumentException {
+        if (id == Player.PLAYERONE || id == Player.PLAYERTWO) {
+            this.id = id;
         } else {
-            throw new IllegalArgumentException("Turn color cannot be: \""
-                    + color + "\"");
+            throw new IllegalArgumentException("Turn ID cannot be: \""
+                    + id + "\"");
         }
     }
 }

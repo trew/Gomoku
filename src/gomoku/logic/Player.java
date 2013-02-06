@@ -2,14 +2,23 @@ package gomoku.logic;
 
 /**
  * Represents a player in a Gomoku game
- * 
+ *
  * @author Samuel Andersson
  */
 public class Player {
 
+    public static final int NOPLAYER = 0;
+    public static final int PLAYERONE = 1;
+    public static final int PLAYERTWO = 2;
+
+    /**
+     * 0 = Spectator, or no player 1 = Player one 2 = Player two
+     */
+    private int playerID;
+
     /**
      * The player color
-     * 
+     *
      * @see {@link Board#BLACKPLAYER}, {@link Board#WHITEPLAYER}
      */
     private int color;
@@ -23,26 +32,35 @@ public class Player {
 
     /**
      * Create a new player
-     * 
+     *
      * @param name
      *            The player name
-     * @param color
-     *            The player color. {@link Board#BLACKPLAYER},
-     *            {@link Board#WHITEPLAYER} or {@link Board#NOPLAYER}
+     * @param id
+     *            The player ID. {@link Player#NOPLAYER},
+     *            {@link Player#PLAYERONE} or {@link Player#PLAYERTWO}
      */
-    public Player(String name, int color) {
+    public Player(String name, int id) {
         this.name = name;
-        if (color == Board.BLACKPLAYER || color == Board.WHITEPLAYER
-                || color == Board.NOPLAYER)
-            this.color = color;
-        else
-            throw new IllegalArgumentException("Color cannot be this color: \""
-                    + color + "\".");
+        setID(id);
+        setColor(Board.NOPLAYER);
+    }
+
+    public int getID() {
+        return playerID;
+    }
+
+    public void setID(int id) {
+        if (id == 0 || id == 1 || id == 2) {
+            playerID = id;
+        } else {
+            throw new IllegalArgumentException("PlayerID set to unknown value "
+                    + id);
+        }
     }
 
     /**
      * Returns the player color
-     * 
+     *
      * @return the player color
      */
     public int getColor() {
@@ -51,7 +69,7 @@ public class Player {
 
     /**
      * Sets the player color
-     * 
+     *
      * @param color
      *            the player color
      * @throws IllegalArgumentException
@@ -68,16 +86,21 @@ public class Player {
 
     /**
      * Returns a string representing the color of the player
-     * 
+     *
      * @return a string representing the color of the player
      */
     public String getColorName() {
-        return color == Board.BLACKPLAYER ? "Black" : "White";
+        if (color == Board.BLACKPLAYER)
+            return "Black";
+        else if (color == Board.WHITEPLAYER) {
+            return "White";
+        }
+        return "None";
     }
 
     /**
      * Get the player name
-     * 
+     *
      * @return The player name
      */
     public String getName() {
@@ -86,7 +109,7 @@ public class Player {
 
     /**
      * Set the player name
-     * 
+     *
      * @param name
      *            The new player name
      * @return The old name

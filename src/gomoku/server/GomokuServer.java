@@ -2,6 +2,8 @@ package gomoku.server;
 
 import gomoku.logic.Board;
 import gomoku.logic.GomokuConfig;
+import gomoku.logic.Player;
+import gomoku.logic.Swap2;
 import gomoku.net.CreateGamePacket;
 import gomoku.net.GameListPacket;
 import gomoku.net.GenericRequestPacket;
@@ -53,7 +55,7 @@ import static org.trew.log.Log.*;
  * <b>--port</b> <i>PORT</i> - The port number which we'll run the server on<br />
  * <b>--swing</b> - Whether we should run with swing or use standard console.
  * (Swing is always used on windows)<br />
- * 
+ *
  * @author Samuel Andersson
  */
 public class GomokuServer extends Listener {
@@ -61,14 +63,14 @@ public class GomokuServer extends Listener {
     /**
      * The port which this server is listening on. Can be set by providing
      * --port to the application command line
-     * 
+     *
      * @see #parseArgs(String[])
      */
     private static int PORT;
 
     /**
      * Whether we are going to use Swing as our console
-     * 
+     *
      * @see #parseArgs(String[])
      */
     private static boolean SWING;
@@ -109,7 +111,7 @@ public class GomokuServer extends Listener {
 
     /**
      * Initialize the server, add the ServerListener and register kryo classes.
-     * 
+     *
      * @see ServerListener
      */
     public void init() {
@@ -120,7 +122,7 @@ public class GomokuServer extends Listener {
 
     /**
      * Start the server and begin listening on provided port
-     * 
+     *
      * @see #PORT
      */
     public void start() {
@@ -154,7 +156,7 @@ public class GomokuServer extends Listener {
      * Broadcast a packet to all connections except provided source. We won't
      * send to the source connection because that client has already made
      * necessary changes.
-     * 
+     *
      * @param sourceConnection
      *            The connection that triggered this broadcast
      * @param object
@@ -223,7 +225,7 @@ public class GomokuServer extends Listener {
      * This packet is treated as the confirmation that the client has connected
      * and wants to play. This function will send a GameList back to the client
      * with games he can choose to play in or spectate.
-     * 
+     *
      * @param conn
      *            The connection that sent us the packet
      * @param icdp
@@ -239,7 +241,7 @@ public class GomokuServer extends Listener {
 
     /**
      * Handles how a received CreateGamePacket should be treated.
-     * 
+     *
      * @param conn
      *            the connection that sent the CreateGamePacket
      * @param cgp
@@ -247,9 +249,9 @@ public class GomokuServer extends Listener {
      */
     private void handleCreateGamePacket(Connection conn, CreateGamePacket cgp) {
         // TODO: Fix option to choose between white, black and spectator
-        int playerColor = 0;
+        int playerID = 0;
         String playerName = playerList.get(conn.getID());
-        playerColor = Board.BLACKPLAYER;
+        playerID = Player.PLAYERONE;
 
         GomokuNetworkGame newGame = new GomokuNetworkGame(this, server,
                 cgp.config);
@@ -257,12 +259,12 @@ public class GomokuServer extends Listener {
 
         games.put(newGame.getID(), newGame);
         playerInGame.put(conn.getID(), newGame);
-        playerColor = newGame.join(conn, playerName);
+        playerID = newGame.join(conn, playerName);
         Board board = newGame.getGame().getBoard();
         GomokuConfig config = newGame.getGame().getConfig();
 
         InitialServerDataPacket isdp = new InitialServerDataPacket(board,
-                config, playerColor, newGame.getGame().getTurn().getColor(),
+                config, 0, playerID, newGame.getGame().getTurn().getID(),
                 newGame.getPlayerList());
         conn.sendTCP(isdp);
 
@@ -272,7 +274,7 @@ public class GomokuServer extends Listener {
 
     /**
      * Handles how a received JoinGamePacket should be treated.
-     * 
+     *
      * @param conn
      *            the connection that sent the JoinGamePacket
      * @param jgp
@@ -284,19 +286,23 @@ public class GomokuServer extends Listener {
         if (game == null)
             return;
         playerInGame.put(conn.getID(), game);
-        int playerColor = game.join(conn, playerList.get(conn.getID()));
+        int playerID = game.join(conn, playerList.get(conn.getID()));
 
         Board board = game.getGame().getBoard();
         String[] playerList = game.getPlayerList();
 
-        int turn = game.getGame().getTurn().getColor();
+        int turnID = game.getGame().getTurn().getID();
         GomokuConfig config = game.getGame().getConfig();
+        Swap2 swap2 = game.getGame().getSwap2();
+        int swap2state = 0;
+        if (swap2 != null)
+            swap2state = swap2.getState();
         InitialServerDataPacket isdp = new InitialServerDataPacket(board,
-                config, playerColor, turn, playerList);
+                config, swap2state, playerID, turnID, playerList);
         conn.sendTCP(isdp);
 
         String playerName = this.playerList.get(conn.getID());
-        if (playerColor == Board.NOPLAYER) {
+        if (playerID == Player.NOPLAYER) {
             spectators.put(conn.getID(), playerName);
         }
     }
@@ -304,7 +310,7 @@ public class GomokuServer extends Listener {
     /**
      * Parse command line arguments that was passed to the application upon
      * startup.
-     * 
+     *
      * @param args
      *            The arguments passed to the application
      */
@@ -349,7 +355,7 @@ public class GomokuServer extends Listener {
 
     /**
      * The main entry point of the server
-     * 
+     *
      * @param args
      *            Any arguments passed to the server
      */

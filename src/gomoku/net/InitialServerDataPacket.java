@@ -18,11 +18,13 @@ public class InitialServerDataPacket {
 
     private GomokuConfig config;
 
-    /** The color the player will receive */
-    private int playerColor;
+    private int swap2state;
 
-    /** The current turn */
-    private int turn;
+    /** The color the player will receive */
+    private int playerID;
+
+    /** The current turn ID*/
+    private int turnID;
 
     /** The currently connected players */
     private String[] playerList;
@@ -36,19 +38,20 @@ public class InitialServerDataPacket {
      *
      * @param board
      *            The board
-     * @param playerColor
-     *            The color the player will receive
-     * @param turn
-     *            The current turn
+     * @param playerID
+     *            The ID the player will receive
+     * @param turnID
+     *            The ID of the player with current turn
      * @param opponentName
      *            The name of the opponent
      */
-    public InitialServerDataPacket(Board board, GomokuConfig config, int playerColor, int turn,
+    public InitialServerDataPacket(Board board, GomokuConfig config, int swap2state, int playerID, int turnID,
             String[] playerList) {
         this.board = board;
         this.config = config;
-        this.playerColor = playerColor;
-        this.turn = turn;
+        this.swap2state = swap2state;
+        this.playerID = playerID;
+        this.turnID = turnID;
         this.playerList = playerList;
     }
 
@@ -61,16 +64,20 @@ public class InitialServerDataPacket {
         return board;
     }
 
+    public int getSwap2State() {
+        return swap2state;
+    }
+
     public GomokuConfig getConfig() {
         return config;
     }
     /**
-     * Returns the player color
+     * Returns the player id
      *
-     * @return the player color
+     * @return the player id
      */
-    public int getColor() {
-        return playerColor;
+    public int getID() {
+        return playerID;
     }
 
     /**
@@ -79,7 +86,7 @@ public class InitialServerDataPacket {
      * @return the color of the player in turn
      */
     public int getTurn() {
-        return turn;
+        return turnID;
     }
 
     /**

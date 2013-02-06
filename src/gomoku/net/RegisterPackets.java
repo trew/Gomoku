@@ -4,6 +4,8 @@ import gomoku.logic.Board;
 import gomoku.logic.Board.PlacePieceBoardAction;
 import gomoku.logic.GomokuConfig;
 import gomoku.logic.GomokuGame.PlacePieceGameAction;
+import gomoku.logic.Swap2.Swap2ChooseColorAction;
+import gomoku.logic.Swap2.Swap2PlacePieceGameAction;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
@@ -43,5 +45,7 @@ public abstract class RegisterPackets {
         kryo.register(GomokuConfig.class);
         kryo.register(PlacePieceBoardAction.class);
         kryo.register(PlacePieceGameAction.class);
+        kryo.register(Swap2PlacePieceGameAction.class);
+        kryo.register(Swap2ChooseColorAction.class);
     }
 }

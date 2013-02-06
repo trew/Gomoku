@@ -10,7 +10,7 @@ import java.util.ArrayList;
  * Contains game logic for Gomoku game. The game keeps track of the board, the
  * players and whose turn it is. It will also have methods indicating victory or
  * defeat.
- * 
+ *
  * @author Samuel Andersson
  */
 public class GomokuGame {
@@ -21,15 +21,17 @@ public class GomokuGame {
     /** Whose turn it is */
     private Player turn;
 
-    /** The black player */
-    private Player black;
+    /** The first player */
+    private Player playerOne;
 
-    /** The white player */
-    private Player white;
+    /** The second player */
+    private Player playerTwo;
 
     private boolean gameOver;
 
     private GomokuConfig config;
+
+    private Swap2 swap2;
 
     /** The recorder of this game */
     protected ActionRecorder actionRecorder;
@@ -37,7 +39,7 @@ public class GomokuGame {
     private ArrayList<GomokuGameListener> listeners;
 
     static public interface GameAction {
-        public int getPlayer();
+        public int getPlayerColor();
 
         public void doAction(GomokuGame game) throws IllegalActionException;
 
@@ -71,7 +73,7 @@ public class GomokuGame {
         }
 
         @Override
-        public int getPlayer() {
+        public int getPlayerColor() {
             return player;
         }
 
@@ -97,10 +99,10 @@ public class GomokuGame {
                 } catch (IllegalActionException e) {
                     error(e);
                 }
-                game.checkBoard(boardAction.getX(), boardAction.getY());
             } else {
                 throw new IllegalActionException("Not "
-                        + game.getPlayer(player).getColorName() + "'s turn!");
+                        + game.getPlayerFromColor(player).getColorName()
+                        + "'s turn!");
             }
 
         }
@@ -109,6 +111,7 @@ public class GomokuGame {
         public void confirmAction(GomokuGame game) {
             if (confirmed)
                 return;
+            game.checkBoard(boardAction.getX(), boardAction.getY());
             game.switchTurn();
             confirmed = true;
         }
@@ -126,7 +129,7 @@ public class GomokuGame {
 
     /**
      * Create a new game with set width and height
-     * 
+     *
      * @param width
      *            the width of the board
      * @param height
@@ -138,20 +141,27 @@ public class GomokuGame {
 
     /**
      * Create a new game from a board
-     * 
+     *
      * @param board
      *            The board
      */
     public GomokuGame(Board board, GomokuConfig config, boolean record) {
         this.board = board;
 
-        black = new Player("Black", Board.BLACKPLAYER);
-        white = new Player("White", Board.WHITEPLAYER);
-        turn = black;
+        playerOne = new Player("", Player.PLAYERONE);
+        playerTwo = new Player("", Player.PLAYERTWO);
+        turn = playerOne;
         gameOver = false;
 
         // game rules
         this.config = config;
+
+        if (config.useSwap2()) {
+            swap2 = new Swap2();
+        } else {
+            playerOne.setColor(Board.BLACKPLAYER);
+            playerTwo.setColor(Board.WHITEPLAYER);
+        }
 
         if (record) {
             actionRecorder = new ActionRecorder();
@@ -166,17 +176,27 @@ public class GomokuGame {
      */
     public void reset() {
         board.reset();
-        turn = black;
+        turn = playerOne;
         gameOver = false;
+        if (config.useSwap2()) {
+            swap2 = new Swap2();
+        } else {
+            playerOne.setColor(Board.BLACKPLAYER);
+            playerTwo.setColor(Board.WHITEPLAYER);
+        }
     }
 
     public GomokuConfig getConfig() {
         return config;
     }
 
+    public Swap2 getSwap2() {
+        return swap2;
+    }
+
     /**
      * Checks for victory and calls listeners if someone won
-     * 
+     *
      * @param x
      *            the x position modified that forced victory check
      * @param y
@@ -369,7 +389,7 @@ public class GomokuGame {
 
     /**
      * Place a piece and switch player turn
-     * 
+     *
      * @param x
      *            the x location of the piece
      * @param y
@@ -378,30 +398,48 @@ public class GomokuGame {
      *            the player placing the piece
      * @return true if piece was placed
      */
-    public PlacePieceGameAction placePiece(int x, int y, int player,
+    public PlacePieceGameAction placePiece(int x, int y, Player player,
             boolean waitForConfirm) throws IllegalActionException {
-        PlacePieceGameAction action = new PlacePieceGameAction(player, x, y,
-                waitForConfirm);
+        if (player == null)
+            throw new IllegalArgumentException("Player cannot be null");
+        PlacePieceGameAction action = new PlacePieceGameAction(
+                player.getColor(), x, y, waitForConfirm);
         action.doAction(this);
         return action;
     }
 
     /**
      * Get the owner of the piece placed on provided position
-     * 
+     *
      * @param x
      *            The x location of the piece
      * @param y
      *            The y location of the piece
-     * @return The player owning the piece on x, y
+     * @return The player owning the piece on x, y. Null if empty.
      */
     public Player getPieceOwner(int x, int y) {
         int piece = board.getPiece(x, y);
-        if (piece == Board.BLACKPLAYER)
-            return black;
-        if (piece == Board.WHITEPLAYER)
-            return white;
+        if (piece == playerOne.getColor())
+            return playerOne;
+        if (piece == playerTwo.getColor())
+            return playerTwo;
         return null;
+    }
+
+    public void setColor(int playerID, int color) {
+        debug("Setting color of " + playerID + " to " + color);
+        int otherColor = Board.BLACKPLAYER;
+        if (color == Board.BLACKPLAYER)
+            otherColor = Board.WHITEPLAYER;
+
+        if (playerID == Player.PLAYERONE) {
+            playerOne.setColor(color);
+            playerTwo.setColor(otherColor);
+        } else if (playerID == Player.PLAYERTWO) {
+            playerOne.setColor(otherColor);
+            playerTwo.setColor(color);
+        }
+
     }
 
     /**
@@ -411,48 +449,45 @@ public class GomokuGame {
         if (gameOver)
             return;
 
-        if (turn == black)
-            setTurn(white);
+        if (turn == playerOne)
+            setTurn(playerTwo);
         else
-            setTurn(black);
+            setTurn(playerOne);
     }
 
     /**
      * Set turn to provided player
-     * 
+     *
      * @param player
      *            The player who is going to get the turn
      */
     public void setTurn(Player player) {
-        if (gameOver)
-            return;
-        if (player != black && player != white)
-            return;
-        debug("Turn set to " + turn.getColorName());
-        turn = player;
+        setTurn(player.getID());
     }
 
     /**
      * Set turn to player with provided color
-     * 
-     * @param playerColor
+     *
+     * @param playerID
      *            the provided player color
      */
-    public void setTurn(int playerColor) {
+    public void setTurn(int playerID) {
         if (gameOver)
             return;
-        if (playerColor == Board.BLACKPLAYER) {
-            turn = black;
-            debug("Turn set to " + turn.getColorName());
-        } else if (playerColor == Board.WHITEPLAYER) {
-            turn = white;
-            debug("Turn set to " + turn.getColorName());
+        if (playerID == playerOne.getID()) {
+            turn = playerOne;
+            trace("Turn set to player " + turn.getID() + "(" + turn.getName()
+                    + ")");
+        } else if (playerID == playerTwo.getID()) {
+            turn = playerTwo;
+            trace("Turn set to player " + turn.getID() + "(" + turn.getName()
+                    + ")");
         }
     }
 
     /**
      * Get the player who has the turn
-     * 
+     *
      * @return The player who has the turn
      */
     public Player getTurn() {
@@ -460,57 +495,65 @@ public class GomokuGame {
     }
 
     /**
-     * Returns the black player
-     * 
-     * @return the black player
+     * Returns the first player
+     *
+     * @return the first player
      */
-    public Player getBlack() {
-        return black;
+    public Player getPlayerOne() {
+        return playerOne;
     }
 
     /**
-     * Returns the white player
-     * 
-     * @return the white player
+     * Returns the second player
+     *
+     * @return the second player
      */
-    public Player getWhite() {
-        return white;
+    public Player getPlayerTwo() {
+        return playerTwo;
     }
 
     /**
-     * Get a player depending on provided color
-     * 
+     * Returns a player depending on provided color
+     *
      * @param color
      *            The player color
-     * @return Black if provided color is {@link Board#BLACKPLAYER}, white if
-     *         provided color is {@link Board#WHITEPLAYER}
+     * @return a player depending on provided color
      * @throws IllegalArgumentException
-     *             Indicates a value other than {@link Board#BLACKPLAYER} or
-     *             {@link Board#WHITEPLAYER}
+     *             Indicates a value other than the color of player one or
+     *             player two.
      */
-    public Player getPlayer(int color) throws IllegalArgumentException {
-        if (color == Board.BLACKPLAYER)
-            return black;
-        if (color == Board.WHITEPLAYER)
-            return white;
+    public Player getPlayerFromColor(int color) {
+        if (color == playerOne.getColor())
+            return playerOne;
+        if (color == playerTwo.getColor())
+            return playerTwo;
         throw new IllegalArgumentException("No player with this color: \""
                 + color + "\".");
     }
 
+    public Player getPlayer(int id) {
+        if (id == playerOne.getID()) {
+            return playerOne;
+        } else if (id == playerTwo.getID()) {
+            return playerTwo;
+        }
+        return null;
+    }
+
     /**
      * Replace the current board with the new board
-     * 
+     *
      * @param board
      *            The board to replace the current one
      */
     public void replaceBoard(Board board) {
-        debug("Replacing board");
+        trace("Replacing board");
         this.board.replaceBoard(board);
     }
 
     /**
      * Get the current board
-     * 
+     *
      * @return The current board
      */
     public Board getBoard() {

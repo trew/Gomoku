@@ -14,6 +14,9 @@ import gomoku.logic.GomokuGame.PlacePieceGameAction;
 import gomoku.logic.IllegalActionException;
 import gomoku.logic.Player;
 import gomoku.logic.GomokuGame;
+import gomoku.logic.Swap2;
+import gomoku.logic.Swap2.Swap2ChooseColorAction;
+import gomoku.logic.Swap2.Swap2PlacePieceGameAction;
 import gomoku.net.*;
 
 import org.newdawn.slick.Color;
@@ -29,7 +32,7 @@ import static org.trew.log.Log.*;
 
 /**
  * The playing state of the Gomoku game.
- * 
+ *
  * @author Samuel Andersson
  */
 public class GameplayState extends GomokuNetworkGameState {
@@ -43,11 +46,15 @@ public class GameplayState extends GomokuNetworkGameState {
     /** The board displayed */
     private BoardComponent boardComponent;
     private Button confirmMoveButton;
+    private Button blackButton;
+    private Button whiteButton;
+    private Button place2Button;
 
     private Image versus;
     private Image nametag;
     private Image infobar;
     private Image messagebox;
+    private Image popupBackground;
 
     private boolean loading;
     private boolean gameOver;
@@ -66,12 +73,18 @@ public class GameplayState extends GomokuNetworkGameState {
     }
 
     public void setInitialData(Board board, GomokuConfig config,
-            int playerColor, int turn, String[] playerList) {
+            int swap2state, int playerID, int turnID, String[] playerList) {
         // create a new game
         this.playerList = playerList;
         gomokuGame = new GomokuGame(board, config, true);
-        gomokuGame.setTurn(gomokuGame.getPlayer(turn));
-        setupPlayers(playerColor);
+        Swap2 swap2 = gomokuGame.getSwap2();
+        if (swap2 != null)
+            swap2.setState(swap2state);
+        if (turnID == Player.PLAYERONE)
+            gomokuGame.setTurn(gomokuGame.getPlayerOne());
+        else if (turnID == Player.PLAYERTWO)
+            gomokuGame.setTurn(gomokuGame.getPlayerTwo());
+        setupPlayers(playerID);
 
         boardComponent.setBoard(board);
 
@@ -82,33 +95,32 @@ public class GameplayState extends GomokuNetworkGameState {
     /**
      * Setup names and values for players. If this client receives black, makes
      * sure the white player receives the correct name.
-     * 
+     *
      * @param playerColor
      *            The player color being given to this client
      */
-    public void setupPlayers(int playerColor) {
-
-        if (playerColor == Board.BLACKPLAYER) {
-            me = gomokuGame.getBlack();
+    public void setupPlayers(int playerID) {
+        if (playerID == Player.PLAYERONE) {
+            me = gomokuGame.getPlayerOne();
             playerList[0] = getGame().getProperties().getProperty("playername",
                     "(none)");
-            gomokuGame.getWhite().setName(playerList[1]);
+            gomokuGame.getPlayerTwo().setName(playerList[1]);
 
-        } else if (playerColor == Board.WHITEPLAYER) {
-            me = gomokuGame.getWhite();
+        } else if (playerID == Player.PLAYERTWO) {
+            me = gomokuGame.getPlayerTwo();
             playerList[1] = getGame().getProperties().getProperty("playername",
                     "(none)");
-            gomokuGame.getBlack().setName(playerList[0]);
+            gomokuGame.getPlayerOne().setName(playerList[0]);
 
         } else {
-            me = new Player("", Board.NOPLAYER);
-            gomokuGame.getBlack().setName(playerList[0]);
-            gomokuGame.getWhite().setName(playerList[1]);
+            me = new Player("", Player.NOPLAYER);
+            gomokuGame.getPlayerOne().setName(playerList[0]);
+            gomokuGame.getPlayerTwo().setName(playerList[1]);
         }
 
         me.setName(getGame().getProperties()
                 .getProperty("playername", "(none)"));
-        info("Color set to " + me.getColorName());
+        info("Player ID set to " + me.getID());
     }
 
     public String[] getPlayerList() {
@@ -118,13 +130,15 @@ public class GameplayState extends GomokuNetworkGameState {
     public void setPlayerList(String[] playerList) {
         this.playerList = playerList;
 
-        if (me.getColor() == Board.BLACKPLAYER) {
-            gomokuGame.getWhite().setName(playerList[1]);
-        } else if (me.getColor() == Board.WHITEPLAYER) {
-            gomokuGame.getBlack().setName(playerList[0]);
+        // if I'm player 1, do not update my name from the server. I *should*
+        // know my name better that the server.
+        if (me.getID() == Player.PLAYERONE) {
+            gomokuGame.getPlayerTwo().setName(playerList[1]);
+        } else if (me.getID() == Player.PLAYERTWO) {
+            gomokuGame.getPlayerOne().setName(playerList[0]);
         } else {
-            gomokuGame.getBlack().setName(playerList[0]);
-            gomokuGame.getWhite().setName(playerList[1]);
+            gomokuGame.getPlayerOne().setName(playerList[0]);
+            gomokuGame.getPlayerTwo().setName(playerList[1]);
         }
     }
 
@@ -139,6 +153,30 @@ public class GameplayState extends GomokuNetworkGameState {
         pendingMove = false;
 
         errorMsg = "";
+
+        popupBackground = new Image("res/popup.png");
+        Image black = new Image("res/buttons/black.png");
+        Image white = new Image("res/buttons/white.png");
+        Image place2 = new Image("res/buttons/place2.png");
+        blackButton = new Button(black, 0, 0, 3) {
+            @Override
+            public void buttonClicked(int button, int x, int y) {
+                chooseColor(gomokuClient, Board.BLACKPLAYER);
+            }
+        };
+        whiteButton = new Button(white, 100, 0, 3) {
+            @Override
+            public void buttonClicked(int button, int x, int y) {
+                chooseColor(gomokuClient, Board.WHITEPLAYER);
+            }
+        };
+        place2Button = new Button(place2, 200, 0, 3) {
+            @Override
+            public void buttonClicked(int button, int x, int y) {
+                gomokuGame.getSwap2().nextState();
+                gomokuClient.client.sendTCP(new GenericRequestPacket(Request.SkipChooseColor));
+            }
+        };
 
         // add the board
         boardComponent = new BoardComponent(container, null, 80, 70, 28, 15, 15) {
@@ -171,10 +209,25 @@ public class GameplayState extends GomokuNetworkGameState {
         addListener(confirmMoveButton);
     }
 
+    public void chooseColor(GomokuClient client, int color) {
+        Swap2 swap2 = gomokuGame.getSwap2();
+        if (swap2 == null)
+            throw new IllegalStateException(
+                    "This function cannot be called unless we're using swap 2 opening.");
+        Swap2ChooseColorAction action = new Swap2ChooseColorAction(gomokuGame,
+                me.getID(), color);
+        try {
+            action.doAction(gomokuGame);
+        } catch (IllegalActionException e) {
+            error(e);
+        }
+        sendGameAction(client, action);
+    }
+
     /**
      * Try to place a new piece on provided position. If successful client-side,
      * send a packet to server trying to do the same thing.
-     * 
+     *
      * @param gomokuClient
      *            The game which we place the piece in
      * @param x
@@ -183,15 +236,13 @@ public class GameplayState extends GomokuNetworkGameState {
      *            The y location for the new piece
      */
     public void placePiece(GomokuClient gomokuClient, int x, int y) {
-        try {
-            boolean waitForConfirm = !gomokuClient.getProperties()
-                    .getProperty("autoconfirm", "true")
-                    .equalsIgnoreCase("true");
-            PlacePieceGameAction action = null;
+        boolean waitForConfirm = !gomokuClient.getProperties()
+                .getProperty("autoconfirm", "true").equalsIgnoreCase("true");
+        Swap2 swap2 = gomokuGame.getSwap2();
+        if (swap2 != null && swap2.isActive()) {
             if (pendingMove) {
-                action = (PlacePieceGameAction) pendingAction;
+                Swap2PlacePieceGameAction action = (Swap2PlacePieceGameAction) pendingAction;
                 pendingAction.undoAction(gomokuGame);
-
                 // are we removing the current piece?
                 BoardAction bAction = action.getBoardAction();
                 if (bAction != null
@@ -200,15 +251,46 @@ public class GameplayState extends GomokuNetworkGameState {
                     return; // don't place a new piece if we are
                 }
             }
-            pendingAction = gomokuGame.placePiece(x, y, me.getColor(),
+            pendingAction = new Swap2PlacePieceGameAction(swap2, x, y,
                     waitForConfirm);
-            if (waitForConfirm)
-                pendingMove = true;
-            else
+            if (waitForConfirm) {
+                try {
+                    pendingAction.doAction(gomokuGame);
+                    pendingMove = true;
+                } catch (IllegalActionException e) {
+                    info(e.getMessage());
+                    setErrorMsg(e.getMessage());
+                }
+            } else {
                 sendGameAction(gomokuClient, pendingAction);
-        } catch (IllegalActionException e) {
-            info(e.getMessage());
-            setErrorMsg(e.getMessage());
+            }
+
+        } else {
+
+            // game is running as normal
+            try {
+                PlacePieceGameAction action = null;
+                if (pendingMove) {
+                    action = (PlacePieceGameAction) pendingAction;
+                    pendingAction.undoAction(gomokuGame);
+
+                    // are we removing the current piece?
+                    BoardAction bAction = action.getBoardAction();
+                    if (bAction != null
+                            && (bAction.getX() == x && bAction.getY() == y)) {
+                        pendingMove = false;
+                        return; // don't place a new piece if we are
+                    }
+                }
+                pendingAction = gomokuGame.placePiece(x, y, me, waitForConfirm);
+                if (waitForConfirm)
+                    pendingMove = true;
+                else
+                    sendGameAction(gomokuClient, pendingAction);
+            } catch (IllegalActionException e) {
+                info(e.getMessage());
+                setErrorMsg(e.getMessage());
+            }
         }
     }
 
@@ -219,7 +301,7 @@ public class GameplayState extends GomokuNetworkGameState {
 
     /**
      * Sets the error message to be displayed with a timer of 5 seconds.
-     * 
+     *
      * @param msg
      */
     protected void setErrorMsg(String msg) {
@@ -229,7 +311,7 @@ public class GameplayState extends GomokuNetworkGameState {
 
     /**
      * Whether it's our turn or not
-     * 
+     *
      * @return True if it's our turn
      */
     public boolean myTurn() {
@@ -240,9 +322,38 @@ public class GameplayState extends GomokuNetworkGameState {
         boardComponent.setDisplaySize(width, height, 25);
     }
 
+    protected void activatePopup(boolean place2) {
+        removeListener(boardComponent);
+        removeListener(confirmMoveButton);
+        addListener(blackButton);
+        addListener(whiteButton);
+        if (place2) {
+            addListener(place2Button);
+        }
+    }
+
+    protected void deactivatePopup() {
+        addListener(boardComponent);
+        addListener(confirmMoveButton);
+        removeListener(blackButton);
+        removeListener(whiteButton);
+        removeListener(place2Button);
+    }
+
     @Override
     public void update(GameContainer container, GomokuClient gomokuClient,
             int delta) throws SlickException {
+
+        Swap2 swap2 = gomokuGame.getSwap2();
+        if (swap2 != null) {
+            if (swap2.isChoosingColorOrPlace(me, gomokuGame))
+                activatePopup(true);
+            else if (swap2.isChoosingColor(me, gomokuGame)) {
+                activatePopup(false);
+            } else {
+                deactivatePopup();
+            }
+        }
 
         errorTimer -= delta;
         if (errorTimer < 0)
@@ -255,6 +366,8 @@ public class GameplayState extends GomokuNetworkGameState {
                 pendingAction.undoAction(gomokuGame);
                 pendingMove = false;
             } else {
+                gomokuClient.client.sendTCP(new GenericRequestPacket(
+                        Request.LeaveGame));
                 enterState(MAINMENUSTATE);
             }
         }
@@ -264,17 +377,6 @@ public class GameplayState extends GomokuNetworkGameState {
             if (input.isKeyPressed(Input.KEY_F5)) {
                 gomokuClient.client.sendTCP(new GenericRequestPacket(
                         BoardUpdate));
-            }
-
-            // ctrl is pressed
-            if (input.isKeyDown(Input.KEY_LCONTROL)
-                    || container.getInput().isKeyDown(Input.KEY_RCONTROL)) {
-
-                // clear board
-                if (input.isKeyPressed(Input.KEY_C) && !gameOver) {
-                    gomokuClient.client.sendTCP(new GenericRequestPacket(
-                            ClearBoard));
-                }
             }
         }
         /* *** END NETWORK RELATED INPUT *** */
@@ -336,11 +438,11 @@ public class GameplayState extends GomokuNetworkGameState {
             // top
             g.setColor(Color.white);
             g.setFont(Fonts.getAngelCodeFont("res/fonts/nametag"));
-            String name = gomokuGame.getBlack().getName();
+            String name = gomokuGame.getPlayerOne().getName();
             int stringWidth = g.getFont().getWidth(name);
             g.drawString(name, center(20, 20 + 290, stringWidth), 13);
 
-            name = gomokuGame.getWhite().getName();
+            name = gomokuGame.getPlayerTwo().getName();
             stringWidth = g.getFont().getWidth(name);
             g.drawString(name, center(490, 490 + 290, stringWidth), 13);
 
@@ -351,7 +453,8 @@ public class GameplayState extends GomokuNetworkGameState {
                 g.setColor(Color.red);
                 stringWidth = g.getFont().getWidth(errorMsg);
                 g.drawString(errorMsg, center(0, 800, stringWidth), 550);
-            } else if (me.getColor() != Board.NOPLAYER) {
+            } else if (me.getID() == gomokuGame.getPlayerOne().getID()
+                    || me.getID() == gomokuGame.getPlayerTwo().getID()) {
                 String status = "";
                 if (gameOver) {
                     g.setColor(Color.white);
@@ -375,6 +478,35 @@ public class GameplayState extends GomokuNetworkGameState {
             }
 
             g.setColor(Color.white);
+            Swap2 swap2 = gomokuGame.getSwap2();
+            if (swap2 != null) {
+                if (swap2.isChoosingColorOrPlace(me, gomokuGame)) {
+                    g.setColor(new Color(0, 0, 0, 0.5f));
+                    g.fillRect(0, 0, 800, 600);
+
+                    g.setColor(Color.white);
+                    g.drawImage(popupBackground, center(0, 800, 377),
+                            center(0, 600, 210));
+                    blackButton.setLocation(240, 300);
+                    whiteButton.setLocation(415, 300);
+                    place2Button.setLocation(290, 350);
+                    blackButton.render(container, g);
+                    whiteButton.render(container, g);
+                    place2Button.render(container, g);
+                } else if (swap2.isChoosingColor(me, gomokuGame)) {
+                    g.setColor(new Color(0, 0, 0, 0.5f));
+                    g.fillRect(0, 0, 800, 600);
+
+                    g.setColor(Color.white);
+                    g.drawImage(popupBackground, center(0, 800, 377),
+                            center(0, 600, 210));
+                    blackButton.setLocation(240, 300);
+                    whiteButton.setLocation(415, 300);
+                    place2Button.setLocation(290, 350);
+                    blackButton.render(container, g);
+                    whiteButton.render(container, g);
+                }
+            }
 
         }
     }
@@ -382,6 +514,8 @@ public class GameplayState extends GomokuNetworkGameState {
     @Override
     protected void handleGameAction(Connection conn, GameActionPacket ppp) {
         try {
+            debug("Received GameAction of type "
+                    + ppp.action.getClass().getName());
             ppp.action.doAction(gomokuGame);
             ppp.action.confirmAction(gomokuGame);
         } catch (IllegalActionException e) {
@@ -399,8 +533,18 @@ public class GameplayState extends GomokuNetworkGameState {
     }
 
     @Override
+    protected void handleGenericRequest(Connection conn, GenericRequestPacket grp) {
+        if (grp.getRequest() == Request.SkipChooseColor) {
+            Swap2 swap2 = gomokuGame.getSwap2();
+            if ( swap2 != null && swap2.getState() == 3) {
+                swap2.nextState();
+            }
+        }
+    }
+
+    @Override
     protected void handleNotifyTurn(Connection conn, NotifyTurnPacket ntp) {
-        gomokuGame.setTurn(gomokuGame.getPlayer(ntp.getColor()));
+        gomokuGame.setTurn(gomokuGame.getPlayer(ntp.getID()));
         info("Notified about turn: " + gomokuGame.getTurn().getName());
     }
 
@@ -412,10 +556,10 @@ public class GameplayState extends GomokuNetworkGameState {
         // the first two spots is reserved for black and white. If we're not the
         // specified color, update it.
         if (me.getColor() != Board.BLACKPLAYER) {
-            gomokuGame.getBlack().setName(plp.players[0]);
+            gomokuGame.getPlayerOne().setName(plp.players[0]);
         }
         if (me.getColor() != Board.WHITEPLAYER) {
-            gomokuGame.getWhite().setName(plp.players[1]);
+            gomokuGame.getPlayerTwo().setName(plp.players[1]);
         }
     }
 
