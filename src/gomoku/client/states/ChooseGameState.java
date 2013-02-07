@@ -1,5 +1,8 @@
 package gomoku.client.states;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import gomoku.client.GomokuClient;
 
 import gomoku.client.gui.Button;
@@ -21,7 +24,7 @@ import com.esotericsoftware.kryonet.Connection;
 import de.matthiasmann.twl.CallbackWithReason;
 import de.matthiasmann.twl.ListBox;
 import de.matthiasmann.twl.ListBox.CallbackReason;
-import de.matthiasmann.twl.model.SimpleChangableListModel;
+import de.matthiasmann.twl.model.SimpleListModel;
 
 import static org.trew.log.Log.*;
 
@@ -37,10 +40,77 @@ public class ChooseGameState extends GomokuNetworkGameState {
         }
 
         @Override
+        public boolean equals(Object arg0) {
+            if (arg0 instanceof GameListObject) {
+                GameListObject o = (GameListObject) arg0;
+                return (this.id == o.id && this.name.equals(o.name));
+            }
+            return false;
+        }
+
+        @Override
         public String toString() {
             if (name != null)
                 return name;
             return "<Empty>";
+        }
+    }
+
+    static public class GameListModel extends SimpleListModel<GameListObject> {
+
+        private ArrayList<GameListObject> content;
+
+        public GameListModel() {
+            this.content = new ArrayList<GameListObject>();
+        }
+
+        @Override
+        public int getNumEntries() {
+            return content.size();
+        }
+
+        @Override
+        public GameListObject getEntry(int index) {
+            return content.get(index);
+        }
+
+        public void updateElements(Collection<GameListObject> elements) {
+            // remove all current elements that is not
+            int entriesRemovedFirst = -1;
+            int entriesRemovedLast = -1;
+            int entriesAddedFirst = -1;
+            int entriesAddedLast = -1;
+            int entryI = -1;
+            ArrayList<GameListObject> elementsToRemove = new ArrayList<GameListObject>();
+            for (GameListObject element : content) {
+                if (!elements.contains(element)) {
+                    elementsToRemove.add(element);
+                    entryI = content.indexOf(element);
+                    if (entryI < entriesRemovedFirst || entriesRemovedFirst < 0) {
+                        entriesRemovedFirst = entryI;
+                    }
+                    if (entryI > entriesRemovedLast || entriesRemovedLast < 0) {
+                        entriesRemovedLast = entryI;
+                    }
+                }
+            }
+            content.removeAll(elementsToRemove);
+            if (entriesRemovedFirst >= 0 && entriesRemovedLast >= 0)
+                fireEntriesDeleted(entriesRemovedFirst, entriesRemovedLast);
+            for (GameListObject element : elements) {
+                if (!content.contains(element)) {
+                    content.add(element);
+                    entryI = content.indexOf(element);
+                    if (entryI < entriesAddedFirst || entriesAddedFirst < 0) {
+                        entriesAddedFirst = entryI;
+                    }
+                    if (entryI > entriesAddedLast || entriesAddedLast < 0) {
+                        entriesAddedLast = entryI;
+                    }
+                }
+            }
+            if (entriesAddedFirst >= 0 && entriesAddedLast >= 0)
+                fireEntriesInserted(entriesAddedFirst, entriesAddedLast);
         }
     }
 
@@ -50,8 +120,8 @@ public class ChooseGameState extends GomokuNetworkGameState {
 
     private GomokuClient gomokuClient;
 
-    private ListBox<SimpleChangableListModel<GameListObject>> gameList;
-    private SimpleChangableListModel<GameListObject> gameListModel;
+    private ListBox<GameListModel> gameList;
+    private GameListModel gameListModel;
 
     private static final long UPDATETIME = 10000; // update list every 10
                                                   // seconds
@@ -65,7 +135,7 @@ public class ChooseGameState extends GomokuNetworkGameState {
     public RootPane createRootPane() {
         RootPane rp = super.createRootPane();
 
-        gameListModel = new SimpleChangableListModel<GameListObject>();
+        gameListModel = new GameListModel();
         gameList = new ListBox(gameListModel);
 
         gameList.setPosition(80, 50);
@@ -136,23 +206,11 @@ public class ChooseGameState extends GomokuNetworkGameState {
     }
 
     @Override
-    public void enter(GameContainer container, GomokuClient game)
-            throws SlickException {
-        game.client.sendTCP(new GenericRequestPacket(Request.GameList));
-        updateTimer = UPDATETIME;
-
-    }
-
-    @Override
     public void render(GameContainer container, GomokuClient game, Graphics g)
             throws SlickException {
         createNewGameButton.render(container, g);
         joinGameButton.render(container, g);
         backButton.render(container, g);
-    }
-
-    public void addGame(String gameName, int gameID) {
-        gameListModel.addElement(new GameListObject(gameID, gameName));
     }
 
     @Override
@@ -175,10 +233,11 @@ public class ChooseGameState extends GomokuNetworkGameState {
             warn("GameListPacket-list not of same size.");
             return;
         }
-        gameListModel.clear();
+        ArrayList<GameListObject> elements = new ArrayList<GameListObject>();
         for (int x = 0; x < glp.gameID.length; x++) {
-            addGame(glp.gameName[x], glp.gameID[x]);
+            elements.add(new GameListObject(glp.gameID[x], glp.gameName[x]));
         }
+        gameListModel.updateElements(elements);
     }
 
     /**

@@ -120,7 +120,7 @@ public class GameplayState extends GomokuNetworkGameState {
 
         me.setName(getGame().getProperties()
                 .getProperty("playername", "(none)"));
-        info("Player ID set to " + me.getID());
+        debug("Player ID set to " + me.getID());
     }
 
     public String[] getPlayerList() {
@@ -258,7 +258,6 @@ public class GameplayState extends GomokuNetworkGameState {
                     pendingAction.doAction(gomokuGame);
                     pendingMove = true;
                 } catch (IllegalActionException e) {
-                    info(e.getMessage());
                     setErrorMsg(e.getMessage());
                 }
             } else {
@@ -288,7 +287,6 @@ public class GameplayState extends GomokuNetworkGameState {
                 else
                     sendGameAction(gomokuClient, pendingAction);
             } catch (IllegalActionException e) {
-                info(e.getMessage());
                 setErrorMsg(e.getMessage());
             }
         }
@@ -305,6 +303,7 @@ public class GameplayState extends GomokuNetworkGameState {
      * @param msg
      */
     protected void setErrorMsg(String msg) {
+        debug(msg);
         errorMsg = msg;
         errorTimer = 5000;
     }
