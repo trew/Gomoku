@@ -38,6 +38,7 @@ public class Button extends InputAdapter {
     private int textWidthPadding;
 
     private boolean enabled;
+    private boolean visible;
 
     /**
      * Create a button with automatic width/height depending on the size of the
@@ -102,6 +103,7 @@ public class Button extends InputAdapter {
         this.text = text;
 
         enabled = true;
+        visible = true;
 
         normalImage = button;
         mouseOverImage = hover;
@@ -119,6 +121,8 @@ public class Button extends InputAdapter {
     }
 
     public void render(GUIContext container, Graphics g) throws SlickException {
+        if (!isVisible()) return;
+
         Color old = g.getColor();
         if (currentImage != null) {
             g.texture(area, currentImage, true);
@@ -167,16 +171,28 @@ public class Button extends InputAdapter {
         }
     }
 
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
+
+    public boolean isEnabled() {
+        return enabled && visible;
+    }
+
     @Override
     public void mousePressed(int button, int x, int y) {
-        if (enabled && area.contains(x, y)) {
+        if (isEnabled() && area.contains(x, y)) {
             mouseDown = true;
         }
     }
 
     @Override
     public void mouseReleased(int button, int x, int y) {
-        if (enabled && mouseDown && area.contains(x, y)) {
+        if (isEnabled() && mouseDown && area.contains(x, y)) {
             buttonClicked(button, x, y);
         }
         mouseDown = false;

@@ -26,6 +26,9 @@ public class InitialServerDataPacket {
     /** The current turn ID*/
     private int turnID;
 
+    private int playerOneColor;
+    private int playerTwoColor;
+
     /** The currently connected players */
     private String[] playerList;
 
@@ -46,13 +49,15 @@ public class InitialServerDataPacket {
      *            The name of the opponent
      */
     public InitialServerDataPacket(Board board, GomokuConfig config, int swap2state, int playerID, int turnID,
-            String[] playerList) {
+            String[] playerList, int playerOneColor, int playerTwoColor) {
         this.board = board;
         this.config = config;
         this.swap2state = swap2state;
         this.playerID = playerID;
         this.turnID = turnID;
         this.playerList = playerList;
+        this.playerOneColor = playerOneColor;
+        this.playerTwoColor = playerTwoColor;
     }
 
     /**
@@ -96,5 +101,13 @@ public class InitialServerDataPacket {
      */
     public String[] getPlayerList() {
         return playerList;
+    }
+
+    public int getPlayerOneColor() {
+        return playerOneColor;
+    }
+
+    public int getPlayerTwoColor() {
+        return playerTwoColor;
     }
 }

@@ -15,6 +15,7 @@ import gomoku.net.Request;
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
+import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
 import TWLSlick.RootPane;
@@ -217,7 +218,10 @@ public class ChooseGameState extends GomokuNetworkGameState {
     public void update(GameContainer container, GomokuClient game, int delta)
             throws SlickException {
         updateTimer -= delta;
-        if (updateTimer < 0) {
+
+        Input input = container.getInput();
+
+        if (updateTimer < 0 || input.isKeyPressed(Input.KEY_F5)) {
             game.client.sendTCP(new GenericRequestPacket(Request.GameList));
             updateTimer = UPDATETIME;
         }
@@ -247,8 +251,9 @@ public class ChooseGameState extends GomokuNetworkGameState {
     protected void handleInitialServerData(Connection connection,
             InitialServerDataPacket isdp) {
         ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE)).setInitialData(
-                isdp.getBoard(), isdp.getConfig(), isdp.getSwap2State(), isdp.getID(),
-                isdp.getTurn(), isdp.getPlayerList());
+                isdp.getBoard(), isdp.getConfig(), isdp.getSwap2State(),
+                isdp.getID(), isdp.getTurn(), isdp.getPlayerList(),
+                isdp.getPlayerOneColor(), isdp.getPlayerTwoColor());
         enterState(GAMEPLAYSTATE);
     }
 

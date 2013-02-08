@@ -90,7 +90,7 @@ public class GomokuGame {
             // reference
             // comparison. We must rely on comparison by value, which is
             // possible using the colors.
-            if (game.turn.getColor() == player) {
+            if (game.turn.getColor() == player && (player != Board.NOPLAYER)) {
                 try {
                     boardAction.doAction(game.getBoard());
                     done = true;

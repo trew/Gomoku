@@ -2,6 +2,7 @@ package gomoku.server;
 
 import gomoku.logic.Board;
 import gomoku.logic.GomokuConfig;
+import gomoku.logic.GomokuGame;
 import gomoku.logic.Player;
 import gomoku.logic.Swap2;
 import gomoku.net.CreateGamePacket;
@@ -263,9 +264,11 @@ public class GomokuServer extends Listener {
         Board board = newGame.getGame().getBoard();
         GomokuConfig config = newGame.getGame().getConfig();
 
+        GomokuGame game = newGame.getGame();
         InitialServerDataPacket isdp = new InitialServerDataPacket(board,
-                config, 0, playerID, newGame.getGame().getTurn().getID(),
-                newGame.getPlayerList());
+                config, 0, playerID, game.getTurn().getID(),
+                newGame.getPlayerList(), game.getPlayerOne().getColor(), game
+                        .getPlayerTwo().getColor());
         conn.sendTCP(isdp);
 
         // broadcast all games
@@ -297,8 +300,12 @@ public class GomokuServer extends Listener {
         int swap2state = 0;
         if (swap2 != null)
             swap2state = swap2.getState();
+
+        GomokuGame gomGame = game.getGame();
         InitialServerDataPacket isdp = new InitialServerDataPacket(board,
-                config, swap2state, playerID, turnID, playerList);
+                config, swap2state, playerID, turnID, playerList, gomGame
+                        .getPlayerOne().getColor(), gomGame.getPlayerTwo()
+                        .getColor());
         conn.sendTCP(isdp);
 
         String playerName = this.playerList.get(conn.getID());
