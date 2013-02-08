@@ -157,6 +157,8 @@ public class GomokuNetworkGame implements GomokuGameListener {
      *            whether the player disconnected
      */
     private void leave(Connection conn, boolean disconnect) {
+        gomokuServer.leaveGame(conn.getID());
+
         if (conn.getID() == playerOneConnID)
             playerOneConnID = 0;
         else if (conn.getID() == playerTwoConnID)

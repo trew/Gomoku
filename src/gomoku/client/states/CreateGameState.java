@@ -252,6 +252,7 @@ public class CreateGameState extends GomokuNetworkGameState {
     @Override
     protected void handleInitialServerData(Connection connection,
             InitialServerDataPacket isdp) {
+        confirmButton.enable();
         ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE)).setInitialData(
                 isdp.getBoard(), isdp.getConfig(), isdp.getSwap2State(),
                 isdp.getID(), isdp.getTurn(), isdp.getPlayerList(),

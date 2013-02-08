@@ -49,7 +49,6 @@ public abstract class GomokuNetworkGameState extends GomokuGameState {
         GomokuClient gomokuClient = (GomokuClient) game;
         if (gomokuClient.client != null)
             gomokuClient.client.addListener(listener);
-        enter(container, gomokuClient);
     }
 
     /**

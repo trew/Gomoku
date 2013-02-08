@@ -99,7 +99,8 @@ public class GameplayState extends GomokuNetworkGameState {
      * @param playerColor
      *            The player color being given to this client
      */
-    public void setupPlayers(int playerID, int playerOneColor, int playerTwoColor) {
+    public void setupPlayers(int playerID, int playerOneColor,
+            int playerTwoColor) {
         if (playerID == Player.PLAYERONE) {
             me = gomokuGame.getPlayerOne();
             playerList[0] = getGame().getProperties().getProperty("playername",
@@ -335,6 +336,12 @@ public class GameplayState extends GomokuNetworkGameState {
     }
 
     @Override
+    public void enter(GameContainer container, GomokuClient gomokuClient)
+            throws SlickException {
+        container.getInput().isKeyPressed(Input.KEY_ESCAPE);
+    }
+
+    @Override
     public void update(GameContainer container, GomokuClient gomokuClient,
             int delta) throws SlickException {
 
@@ -369,10 +376,7 @@ public class GameplayState extends GomokuNetworkGameState {
                 pendingAction.undoAction(gomokuGame);
                 pendingMove = false;
             } else {
-                // TODO: Make pause menu
-                gomokuClient.client.sendTCP(new GenericRequestPacket(
-                        Request.LeaveGame));
-                enterState(MAINMENUSTATE);
+                enterState(PAUSEMENUSTATE, this);
             }
         }
 
@@ -496,7 +500,6 @@ public class GameplayState extends GomokuNetworkGameState {
             blackButton.render(container, g);
             whiteButton.render(container, g);
             place2Button.render(container, g);
-
         }
     }
 

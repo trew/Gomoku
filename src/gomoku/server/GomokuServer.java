@@ -149,6 +149,10 @@ public class GomokuServer extends Listener {
         System.exit(0);
     }
 
+    public void leaveGame(int connID) {
+        playerInGame.remove(connID);
+    }
+
     public void endGame(GomokuNetworkGame game) {
         games.remove(game.getID());
     }

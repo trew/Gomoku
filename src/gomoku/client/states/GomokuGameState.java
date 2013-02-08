@@ -23,6 +23,7 @@ public abstract class GomokuGameState extends TWLGameState {
     public static final int CREATEGAMESTATE = 3;
     public static final int GAMEPLAYSTATE = 4;
     public static final int MAINMENUSTATE = 5;
+    public static final int PAUSEMENUSTATE = 6;
 
     private HashSet<InputListener> listeners;
 
@@ -30,6 +31,7 @@ public abstract class GomokuGameState extends TWLGameState {
     private boolean pauseRender = false;
 
     private int nextState;
+    private GomokuGameState parent;
 
     private GomokuClient game;
 
@@ -120,11 +122,12 @@ public abstract class GomokuGameState extends TWLGameState {
     @Override
     public void update(GameContainer container, StateBasedGame game, int delta)
             throws SlickException {
+        GomokuClient gomokuClient = (GomokuClient) game;
         if (nextState >= 0) {
-            game.enterState(nextState);
+            gomokuClient.enterState(nextState, parent);
             nextState = -1;
         } else {
-            update(container, (GomokuClient) game, delta);
+            update(container, gomokuClient, delta);
         }
 
     }
@@ -218,6 +221,12 @@ public abstract class GomokuGameState extends TWLGameState {
      */
     public void enterState(int stateID) {
         nextState = stateID;
+        parent = null;
+    }
+
+    public void enterState(int id, GomokuGameState parent) {
+        nextState = id;
+        this.parent = parent;
     }
 
     /**
