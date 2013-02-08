@@ -21,6 +21,9 @@ public abstract class GomokuNetworkGameState extends GomokuGameState {
 
     BounceListener listener;
 
+    private boolean forwarding;
+    private GomokuNetworkGameState stateForForwarding;
+
     /**
      * Initialize the Network state by adding creating a {@link BounceListener}
      */
@@ -69,12 +72,34 @@ public abstract class GomokuNetworkGameState extends GomokuGameState {
         leave(container, gomokuClient);
     }
 
+    public boolean isForwarding() {
+        return forwarding;
+    }
+
+    public void setForwarding(boolean forward) {
+        this.forwarding = forward;
+    }
+
+    public void setStateToForwardTo(GomokuNetworkGameState state) {
+
+    }
+
+    private GomokuNetworkGameState getStateToForwardTo() {
+        if (stateForForwarding == null)
+            throw new NullPointerException("state to forward to");
+        return stateForForwarding;
+    }
     /**
      * Called when the client is connected to the remote end.
      *
      * @param connection
      */
     public void connected(Connection connection) {
+        if (forwarding) {
+            GomokuNetworkGameState state = getStateToForwardTo();
+            if (state != null)
+                state.connected(connection);
+        }
     }
 
     /**
@@ -83,6 +108,11 @@ public abstract class GomokuNetworkGameState extends GomokuGameState {
      * @param connection
      */
     public void disconnected(Connection connection) {
+        if (forwarding) {
+            GomokuNetworkGameState state = getStateToForwardTo();
+            if (state != null)
+                state.disconnected(connection);
+        }
     }
 
     /**
@@ -97,6 +127,14 @@ public abstract class GomokuNetworkGameState extends GomokuGameState {
      *            the object
      */
     public void received(Connection connection, Object object) {
+        if (forwarding) {
+            GomokuNetworkGameState state = getStateToForwardTo();
+            if (state != null) {
+                state.received(connection, object);
+            }
+            return;
+        }
+
         if (object instanceof BoardPacket)
             handleBoard(connection, (BoardPacket) object);
         else if (object instanceof GameListPacket)

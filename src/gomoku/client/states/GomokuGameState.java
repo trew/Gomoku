@@ -11,6 +11,7 @@ import org.newdawn.slick.Input;
 import org.newdawn.slick.InputListener;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.gui.GUIContext;
+import org.newdawn.slick.state.GameState;
 import org.newdawn.slick.state.StateBasedGame;
 
 import TWLSlick.RootPane;
@@ -24,6 +25,7 @@ public abstract class GomokuGameState extends TWLGameState {
     public static final int GAMEPLAYSTATE = 4;
     public static final int MAINMENUSTATE = 5;
     public static final int PAUSEMENUSTATE = 6;
+    public static final int OPTIONSMENUSTATE = 7;
 
     private HashSet<InputListener> listeners;
 
@@ -31,7 +33,9 @@ public abstract class GomokuGameState extends TWLGameState {
     private boolean pauseRender = false;
 
     private int nextState;
-    private GomokuGameState parent;
+    private boolean exitToParent;
+    private GameState parent;
+    private boolean renderParent;
 
     private GomokuClient game;
 
@@ -95,6 +99,9 @@ public abstract class GomokuGameState extends TWLGameState {
     @Override
     public void render(GameContainer container, StateBasedGame game, Graphics g)
             throws SlickException {
+        if (isRenderingParent()) {
+            parent.render(container, game, g);
+        }
         render(container, (GomokuClient) game, g);
     }
 
@@ -124,8 +131,14 @@ public abstract class GomokuGameState extends TWLGameState {
             throws SlickException {
         GomokuClient gomokuClient = (GomokuClient) game;
         if (nextState >= 0) {
-            gomokuClient.enterState(nextState, parent);
+            gomokuClient.enterState(nextState);
             nextState = -1;
+        } else if (exitToParent) {
+            if (parent == null)
+                throw new RuntimeException("parent cannot be null");
+            parent = null;
+            exitToParent = false;
+            gomokuClient.enterState(parent.getID());
         } else {
             update(container, gomokuClient, delta);
         }
@@ -154,6 +167,7 @@ public abstract class GomokuGameState extends TWLGameState {
     public void enter(GameContainer container, StateBasedGame game)
             throws SlickException {
         super.enter(container, game);
+        container.getInput().clearKeyPressedRecord();
         enter(container, (GomokuClient) game);
     }
 
@@ -221,12 +235,31 @@ public abstract class GomokuGameState extends TWLGameState {
      */
     public void enterState(int stateID) {
         nextState = stateID;
-        parent = null;
     }
 
     public void enterState(int id, GomokuGameState parent) {
         nextState = id;
+        GomokuGameState thenextState = (GomokuGameState)getGame().getState(nextState);
+        thenextState.setParent(getGame().getCurrentState());
+    }
+
+    public void exitState() {
+        if (parent == null) {
+            throw new RuntimeException("parent");
+        }
+        enterState(parent.getID());
+    }
+
+    public void setParent(GameState parent) {
         this.parent = parent;
+    }
+
+    public boolean isRenderingParent() {
+        return parent != null && renderParent;
+    }
+
+    public void setRenderingParent(boolean renderParent) {
+        this.renderParent = renderParent;
     }
 
     /**

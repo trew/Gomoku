@@ -336,12 +336,6 @@ public class GameplayState extends GomokuNetworkGameState {
     }
 
     @Override
-    public void enter(GameContainer container, GomokuClient gomokuClient)
-            throws SlickException {
-        container.getInput().isKeyPressed(Input.KEY_ESCAPE);
-    }
-
-    @Override
     public void update(GameContainer container, GomokuClient gomokuClient,
             int delta) throws SlickException {
 

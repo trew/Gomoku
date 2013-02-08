@@ -29,7 +29,7 @@ import static org.trew.log.Log.*;
 /**
  * The connecting state of the game. This state's responsibility is to fetch
  * which server the player wants to connect to and connect to that server.
- * 
+ *
  * @author Samuel Andersson
  */
 public class ConnectState extends GomokuGameState {
@@ -154,7 +154,7 @@ public class ConnectState extends GomokuGameState {
     /**
      * Create a new thread to connect to the server. Calling this function will
      * lock all selected settings, such as player name.
-     * 
+     *
      * @param game
      *            The client that till connect to the server
      */
@@ -218,10 +218,6 @@ public class ConnectState extends GomokuGameState {
     @Override
     public void update(GameContainer container, GomokuClient game, int delta)
             throws SlickException {
-
-        if (container.getInput().isKeyPressed(Input.KEY_ESCAPE)) {
-            container.exit();
-        }
 
         if (connectingState == CONNECTSTATE.CONNECTING) {
             connectionBar.setVisible(true);

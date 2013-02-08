@@ -39,8 +39,7 @@ public class MainMenuState extends GomokuGameState {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0) {
-                    //TODO
-//                    enterState(OPTIONSSTATE);
+                    enterState(OPTIONSMENUSTATE, (GomokuGameState)game.getCurrentState());
                 }
             }
         };

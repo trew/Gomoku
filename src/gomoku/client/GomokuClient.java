@@ -14,17 +14,15 @@ import gomoku.client.states.ChooseGameState;
 import gomoku.client.states.ConnectState;
 import gomoku.client.states.CreateGameState;
 import gomoku.client.states.GameplayState;
-import gomoku.client.states.GomokuGameState;
 import gomoku.client.states.MainMenuState;
+import gomoku.client.states.OptionsMenuState;
 import gomoku.client.states.PauseMenu;
 
 import org.newdawn.slick.AppGameContainer;
 import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.state.transition.Transition;
 import org.newdawn.slick.util.ResourceLoader;
 
 import TWLSlick.TWLStateBasedGame;
@@ -56,8 +54,6 @@ public class GomokuClient extends TWLStateBasedGame {
 
     /** The network client */
     public Client client;
-
-    private GomokuGameState parent;
 
     protected Properties properties;
     private String propertiesFilename = "settings.properties";
@@ -144,31 +140,9 @@ public class GomokuClient extends TWLStateBasedGame {
         this.addState(new CreateGameState());
         this.addState(new GameplayState());
         this.addState(new PauseMenu());
+        this.addState(new OptionsMenuState());
     }
 
-    public void enterState(int id, GomokuGameState parent) {
-        this.parent = parent;
-        super.enterState(id, null, null);
-    }
-
-    @Override
-    public void enterState(int id, Transition leave, Transition enter) {
-        parent = null;
-        super.enterState(id, leave, enter);
-    }
-
-    public void exitState() {
-        if (parent == null)
-            throw new IllegalStateException("You cannot exit a state without having a parent state to enter.");
-        enterState(parent.getID(), null, null);
-    }
-
-    @Override
-    protected void preRenderState(GameContainer container, Graphics g) throws SlickException {
-        super.preRenderState(container, g);
-        if (parent != null)
-            parent.render(container, parent.getGame(), g);
-    }
     /**
      * The main entry point of the game client
      *

@@ -1,6 +1,5 @@
 package gomoku.client.states;
 
-
 import gomoku.client.GomokuClient;
 import gomoku.client.gui.Button;
 import gomoku.net.GenericRequestPacket;
@@ -24,21 +23,22 @@ public class PauseMenu extends GomokuGameState {
     private Button exitToMenuButton;
     private Button exitToOSButton;
 
-    private boolean exitMenuKeyMemory;
-
     public PauseMenu() {
+        setRenderingParent(true);
     }
 
     @Override
     public void init(final GameContainer container, final GomokuClient game)
             throws SlickException {
         dimmedBackground = new Color(0, 0, 0, 0.5f);
-//        try {
-//            menuBackground = new Image("res/popup.png");
-//        } catch (SlickException e) {
-//            e.printStackTrace();
-//        }
-        Image continueImage = new Image("res/buttons/optionsbutton.png");//TODO: fix images
+        // try {
+        // menuBackground = new Image("res/popup.png");
+        // } catch (SlickException e) {
+        // e.printStackTrace();
+        // }
+        Image continueImage = new Image("res/buttons/optionsbutton.png");// TODO:
+                                                                         // fix
+                                                                         // images
         Image optionsImage = new Image("res/buttons/optionsbutton.png");
         Image exitToMenuImage = new Image("res/buttons/optionsbutton.png");
         Image exitToOSImage = new Image("res/buttons/optionsbutton.png");
@@ -46,16 +46,31 @@ public class PauseMenu extends GomokuGameState {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0) {
-                    getGame().exitState();
+                    exitState();
                 }
             }
         };
-        optionsButton = new Button(optionsImage, 250, 220);
+        optionsButton = new Button(optionsImage, 250, 220) {
+            @Override
+            public void buttonClicked(int button, int x, int y) {
+                if (button == 0) {
+                    GomokuNetworkGameState optionsState = ((GomokuNetworkGameState) game
+                            .getState(OPTIONSMENUSTATE));
+                    optionsState.setForwarding(true);
+                    optionsState
+                            .setStateToForwardTo((GomokuNetworkGameState) game
+                                    .getState(GAMEPLAYSTATE));
+                    enterState(OPTIONSMENUSTATE,
+                            (GomokuGameState) game.getCurrentState());
+                }
+            }
+        };
         exitToMenuButton = new Button(exitToMenuImage, 250, 290) {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 if (button == 0) {
-                    getGame().client.sendTCP(new GenericRequestPacket(Request.LeaveGame));
+                    getGame().client.sendTCP(new GenericRequestPacket(
+                            Request.LeaveGame));
                     enterState(MAINMENUSTATE);
                 }
             }
@@ -76,10 +91,11 @@ public class PauseMenu extends GomokuGameState {
     }
 
     @Override
-    public void enter(GameContainer container, GomokuClient game) throws SlickException {
-        Input input = container.getInput();
-        exitMenuKeyMemory = input.isKeyDown(Input.KEY_ESCAPE);
-        input.isKeyPressed(Input.KEY_ESCAPE);
+    public void leave(GameContainer container, GomokuClient game) throws SlickException {
+        GomokuNetworkGameState optionsState = ((GomokuNetworkGameState) game
+                .getState(OPTIONSMENUSTATE));
+        optionsState.setForwarding(false);
+        optionsState.setStateToForwardTo(null);
     }
 
     @Override
@@ -91,11 +107,7 @@ public class PauseMenu extends GomokuGameState {
         exitToOSButton.setLocation(250, 360);
         Input input = container.getInput();
         if (input.isKeyPressed(Input.KEY_ESCAPE)) {
-//        if (input.isKeyDown(Input.KEY_ESCAPE) && !exitMenuKeyMemory) {
-            exitMenuKeyMemory = true;
-            getGame().exitState();
-        } else if (!input.isKeyDown(Input.KEY_ESCAPE)) {
-            exitMenuKeyMemory = false;
+            exitState();
         }
     }
 
@@ -109,7 +121,7 @@ public class PauseMenu extends GomokuGameState {
 
         if (menuBackground != null)
             g.drawImage(menuBackground, 400 - menuBackground.getWidth() / 2,
-                300 - menuBackground.getHeight() / 2);
+                    300 - menuBackground.getHeight() / 2);
 
         g.setColor(Color.white);
         continueButton.render(container, g);
