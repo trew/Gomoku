@@ -183,6 +183,6 @@ public class GomokuClient extends TWLStateBasedGame {
 
     @Override
     protected URL getThemeURL() {
-        return ResourceLoader.getResource("res/gomoku.xml");
+        return ResourceLoader.getResource("res/theme/theme.xml");
     }
 }

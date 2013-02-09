@@ -1,34 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE themes PUBLIC "-//www.matthiasmann.de//TWL-Theme//EN" "http://hg.l33tlabs.org/twl/raw-file/tip/src/de/matthiasmann/twl/theme/theme.dtd">
 <!-- 
-	Copyright (c) 2012, Matt DesLauriers All rights reserved.
+    Copyright (c) 2012, Matt DesLauriers All rights reserved.
 
-	Redistribution and use in source and binary forms, with or without
-	modification, are permitted provided that the following conditions are met:
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
 
-	* Redistributions of source code must retain the above copyright notice, this
-	  list of conditions and the following disclaimer. 
+    * Redistributions of source code must retain the above copyright notice, this
+      list of conditions and the following disclaimer. 
 
-	* Redistributions in binary
-	  form must reproduce the above copyright notice, this list of conditions and
-	  the following disclaimer in the documentation and/or other materials provided
-	  with the distribution. 
+    * Redistributions in binary
+      form must reproduce the above copyright notice, this list of conditions and
+      the following disclaimer in the documentation and/or other materials provided
+      with the distribution. 
 
-	* Neither the name of the Matt DesLauriers nor the names
-	  of his contributors may be used to endorse or promote products derived from
-	  this software without specific prior written permission.
+    * Neither the name of the Matt DesLauriers nor the names
+      of his contributors may be used to endorse or promote products derived from
+      this software without specific prior written permission.
 
-	THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-	AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-	IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-	ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
-	LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-	CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-	SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
-	CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
-	ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-	POSSIBILITY OF SUCH DAMAGE.
+    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+    AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+    IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+    ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+    LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+    CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+    SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+    INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+    CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+    ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+    POSSIBILITY OF SUCH DAMAGE.
     -->
 <!-- 
     Theme by davedes, based on the free "Chutzpah" theme by Morgan Knutson. More details here:
@@ -37,16 +37,24 @@
     version 4
 -->    
 <themes>
-    <images file="gui.png">
+    <images file="theme.png">
         <cursor name="cursor_text" hotSpotX="3" hotSpotY="2" xywh="56,0,7,18"/>
         <cursor name="cursor_pointer" hotSpotX="1" hotSpotY="1" xywh="98,0,11,18"/>
         <area name="white_pixel" xywh="8,10,1,1"/>
         <area name="button_active" xywh="0,0,15,29" splitx="L5,R5" splity="T5,B6"/>
         <area name="button_hover" xywh="19,0,15,29" splitx="L5,R5" splity="T5,B6"/>
         <area name="button_pressed" xywh="38,0,15,29" splitx="L5,R5" splity="T5,B6"/>
+
+        <area name="button2_active" xywh="2,152,22,34" splitx="L10,R11" splity="T10,B10"/>
+        <area name="button2_hover" xywh="25,152,22,34" splitx="L10,R11" splity="T10,B10"/>
+        <area name="button2_pressed" xywh="48,152,23,35" splitx="L10,R11" splity="T10,B11"/>
+
+        <area name="progressbar" xywh="67,21,16,10" splitx="L7,R7" splity="T4,B4"/>
+        <area name="progressbarImage" xywh="87,36,17,10" splitx="L5,R5" splity="T4,B4"/>
+
         <area name="combobox_popup" xywh="19,5,15,24" splitx="L5,R5" splity="T1,B7"/>
         <area name="editfield_active" xywh="0,88,17,30" splitx="L4,R4" splity="T7,B5"/>
-        <alias name="editfield_selection" ref="white_pixel" tint="#58ACACAC" inset="1,0,0,0"/>
+        <alias name="editfield_selection" ref="white_pixel" tint="#587C7C7C" inset="1,0,0,0"/>
         <alias name="editfield_cursor" ref="white_pixel" tint="#B9B9B9" inset="1,0,0,2"/>
         <area name="scrollpane_border" xywh="57,42,3,3" splitx="L1,R1" splity="T1,B1"/>
         <area name="vscrollbar_thumb" xywh="67,0,10,17" splity="T5,B7"/>
@@ -84,10 +92,20 @@
             <alias ref="button_hover" if="hover"/>
             <alias ref="button_active"/>
         </select>
+        <select name="button2_background">
+            <alias ref="button2_pressed" if="pressed"/>
+            <alias ref="button2_hover" if="hover"/>
+            <alias ref="button2_active"/>
+        </select>
         <select name="togglebutton_background">
             <alias ref="button_pressed" if="pressed|selected"/>
             <alias ref="button_hover" if="hover"/>
             <alias ref="button_active"/>
+        </select>
+        <select name="togglebutton2_background">
+            <alias ref="button2_pressed" if="pressed|selected"/>
+            <alias ref="button2_hover" if="hover"/>
+            <alias ref="button2_active"/>
         </select>
         <grid name="checkbox_background" weightsX="0,1" weightsY="0,1" inset="2,0,0,0">
             <select>
@@ -129,17 +147,17 @@
             <alias ref="button_active"/>
         </select>
         <select name="listbox_display">
-            <alias ref="white_pixel" if="selected" tint="#2AC16420"/>
+            <alias ref="white_pixel" if="selected" tint="#45707070"/>
             <alias ref="white_pixel" if="hover" tint="#12707070"/>
             <alias ref="none" tint="#FFFFFF"/>
         </select>
     </images>
-    <fontDef name="normal" filename="ptsans.fnt" default="true" color="#C32B2B2B">
+    <fontDef name="normal" filename="ptsans.fnt" default="true" color="#C31B1B1B">
         <fontParam if="error" color="red"/>
         <fontParam if="warning" color="orange"/>
         <fontParam if="disabled" color="#B0B0B0"/>
         <fontParam if="readonly" color="#9A9A9A"/>
-        <fontParam if="textSelection|selected" color="#C26824"/>
+        <fontParam if="textSelection|selected" color="#C31B1B1B"/>
     </fontDef>
     <fontDef name="link" filename="ptsans.fnt" color="#4C93D6">
         <fontParam if="error" color="red"/>
@@ -152,41 +170,19 @@
         <fontParam if="warning" color="orange"/>
         <fontParam if="disabled" color="#E1FFFFFF"/>
     </fontDef>
-    <fontDef name="italic" filename="ptsans_italic.fnt" color="#C32B2B2B">
-        <fontParam if="error" color="red"/>
-        <fontParam if="warning" color="orange"/>
-        <fontParam if="disabled" color="#B0B0B0"/>
-        <fontParam if="readonly" color="#9A9A9A"/>
-        <fontParam if="textSelection|selected" color="#C26824"/>
-    </fontDef>
-    <fontDef name="button_font" filename="ptsans.fnt" color="#C32B2B2B">
+    <fontDef name="button_font" filename="ptsans.fnt" color="#C31B1B1B">
         <fontParam if="error" color="red"/>
         <fontParam if="warning" color="orange"/>
         <fontParam if="disabled" color="gray"/>
-        <fontParam if="textSelection" color="#C16723"/>
+        <fontParam if="textSelection" color="#C31B1B1B"/>
         <fontParam if="pressed" color="#C3313131" offsetX="1" offsetY="1"/>
         <fontParam if="hover" color="#C3313131"/>
     </fontDef>
-    <fontDef name="italic_button_font" filename="ptsans_italic.fnt" color="#C32B2B2B">
+    <fontDef name="togglebutton_font" filename="ptsans.fnt" color="#C31B1B1B">
         <fontParam if="error" color="red"/>
         <fontParam if="warning" color="orange"/>
         <fontParam if="disabled" color="gray"/>
-        <fontParam if="textSelection" color="#C26824"/>
-        <fontParam if="pressed" color="#C3313131" offsetX="1" offsetY="1"/>
-        <fontParam if="hover" color="#C3313131"/>
-    </fontDef>
-    <fontDef name="togglebutton_font" filename="ptsans.fnt" color="#C32B2B2B">
-        <fontParam if="error" color="red"/>
-        <fontParam if="warning" color="orange"/>
-        <fontParam if="disabled" color="gray"/>
-        <fontParam if="pressed|selected" color="#C26824" offsetX="1" offsetY="1"/>
-        <fontParam if="hover" color="#C3313131"/>
-    </fontDef>
-    <fontDef name="italic_togglebutton_font" filename="ptsans_italic.fnt" color="#C32B2B2B">
-        <fontParam if="error" color="red"/>
-        <fontParam if="warning" color="orange"/>
-        <fontParam if="disabled" color="gray"/>
-        <fontParam if="pressed|selected" color="#C26824" offsetX="1" offsetY="1"/>
+        <fontParam if="pressed|selected" color="#C31B1B1B" offsetX="1" offsetY="1"/>
         <fontParam if="hover" color="#C3313131"/>
     </fontDef>
 
@@ -224,6 +220,10 @@
         <param name="minHeight"><int>30</int></param>
         <param name="minWidth"><int>30</int></param>
         <param name="font"><font>button_font</font></param>
+        <param name="textAlignment"><enum type="alignment">center</enum></param>
+    </theme>
+    <theme name="button2" ref="button">
+        <param name="background"><image>button2_background</image></param>
     </theme>
     <theme name="radiobutton" ref="button">
         <param name="background"><image>radiobutton_background</image></param>
@@ -234,6 +234,9 @@
     <theme name="togglebutton" ref="button">
         <param name="font"><font>togglebutton_font</font></param>
         <param name="background"><image>togglebutton_background</image></param>
+    </theme>
+    <theme name="togglebutton2" ref="togglebutton">
+        <param name="background"><image>togglebutton2_background</image></param>
     </theme>
     <theme name="checkbox" ref="button">
         <param name="background"><image>checkbox_background</image></param>
@@ -341,7 +344,6 @@
         <param name="fonts">
             <map>
                 <param name="default"><font>normal</font></param>
-                <param name="italic"><font>italic</font></param>
                 <param name="link"><font>link</font></param>
             </map>
         </param>
@@ -408,24 +410,13 @@
         <param name="background"><image>panel_background</image></param>
         <param name="border"><border>10</border></param>
     </theme>
-    <theme name="previewwidgets" ref="dialoglayout">
-        <theme name="label" ref="label">
-        </theme>
-        <theme name="button" ref="button"/>
-        <theme name="togglebutton" ref="togglebutton">
-            <param name="tooltip"><string>press me</string></param>
-            <param name="font"><font>italic_togglebutton_font</font></param>
-        </theme>
-        <theme name="checkbox" ref="checkbox"/>
-        <theme name="combobox" ref="combobox"/>
-        <theme name="editfield" ref="editfield">
-            <theme name="renderer" ref="-defaults">
-            </theme>
-        </theme>
-        <theme name="radiobutton" ref="radiobutton"/>
-        <theme name="vscrollbar" ref="vscrollbar">
-        </theme>
-        <theme name="hscrollbar" ref="hscrollbar">
-        </theme>
+
+    <theme name="progressbar" ref="-defaults" allowWildcard="true">
+        <param name="background"><image>progressbar</image></param>
+        <param name="progressImage"><image>progressbarImage</image></param>
+        <param name="border"><border>3,2</border></param>
+        <param name="minWidth"><int>100</int></param>
     </theme>
+
+    
 </themes>
