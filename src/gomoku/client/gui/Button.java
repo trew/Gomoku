@@ -132,7 +132,7 @@ public class Button extends InputAdapter {
         }
         if (text != null) {
             font.drawString(area.getX() + textWidthPadding, area.getY()
-                    + textHeightPadding + textYModifier, text, Color.black);
+                    + textHeightPadding + textYModifier, text);
         }
         updateImage();
         g.setColor(old);

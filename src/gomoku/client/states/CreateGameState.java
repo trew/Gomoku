@@ -42,11 +42,14 @@ public class CreateGameState extends GomokuNetworkGameState {
     private Button backButton;
 
     // presets
-    private Button preset1Button;
+    private de.matthiasmann.twl.Button preset1Button;
+    private de.matthiasmann.twl.Button preset1Save;
     private GomokuConfig preset1;
-    private Button preset2Button;
+    private de.matthiasmann.twl.Button preset2Button;
+    private de.matthiasmann.twl.Button preset2Save;
     private GomokuConfig preset2;
-    private Button preset3Button;
+    private de.matthiasmann.twl.Button preset3Button;
+    private de.matthiasmann.twl.Button preset3Save;
     private GomokuConfig preset3;
 
     private GomokuClient gomokuClient;
@@ -62,7 +65,7 @@ public class CreateGameState extends GomokuNetworkGameState {
 
         gameNameField = new EditField();
         gameNameField.setPosition(250, 50);
-        gameNameField.setSize(300, 20);
+        gameNameField.setSize(300, 30);
         rp.add(gameNameField);
 
         widthBoxModel = new SimpleChangableListModel<Integer>();
@@ -74,12 +77,12 @@ public class CreateGameState extends GomokuNetworkGameState {
 
         widthBox = new ComboBox<Integer>(widthBoxModel);
         widthBox.setPosition(330, 110);
-        widthBox.setSize(60, 20);
+        widthBox.setSize(60, 30);
         widthBox.setSelected(widthBoxModel.findElement(Integer.valueOf(15)));
 
         heightBox = new ComboBox<Integer>(heightBoxModel);
-        heightBox.setPosition(400, 110);
-        heightBox.setSize(60, 20);
+        heightBox.setPosition(410, 110);
+        heightBox.setSize(60, 30);
         heightBox.setSelected(widthBoxModel.findElement(Integer.valueOf(15)));
 
         rp.add(widthBox);
@@ -87,25 +90,64 @@ public class CreateGameState extends GomokuNetworkGameState {
 
         allowOverlinesCB = new ToggleButton("Allow Overlines");
         allowOverlinesCB.setPosition(250, 200);
-        allowOverlinesCB.setSize(130, 20);
+        allowOverlinesCB.setSize(130, 30);
+        allowOverlinesCB.setTooltipContent("Allowing overlines means you\n"
+                + "can win by having 6 or more\n" + "stones in a row.");
 
         threeAndThreeCB = new ToggleButton("Three And Three");
-        threeAndThreeCB.setPosition(250, 230);
-        threeAndThreeCB.setSize(130, 20);
+        threeAndThreeCB.setPosition(250, 235);
+        threeAndThreeCB.setSize(130, 30);
+        threeAndThreeCB.setTooltipContent("Three and three means you are not\n"
+                + "allowed to place a stone with which\n"
+                + "you create two open rows of 3.");
 
         fourAndFourCB = new ToggleButton("Four And Four");
-        fourAndFourCB.setPosition(250, 260);
-        fourAndFourCB.setSize(130, 20);
+        fourAndFourCB.setPosition(250, 270);
+        fourAndFourCB.setSize(130, 30);
+        fourAndFourCB.setTooltipContent("Four and four means you are not\n"
+                + "allowed to place a stone with which\n"
+                + "you create two rows of 4.");
 
         swap2CB = new ToggleButton("Swap 2 Rule");
-        swap2CB.setPosition(250, 290);
-        swap2CB.setSize(130, 20);
+        swap2CB.setPosition(250, 305);
+        swap2CB.setSize(130, 30);
+        swap2CB.setTooltipContent("In a swap 2 opening, the first player places\n"
+                + "3 stones. The second player can now choose to\n"
+                + "pick color, or place 2 more stones. If he places\n"
+                + "two more stones, the first player will choose color.");
 
         rp.add(allowOverlinesCB);
         rp.add(threeAndThreeCB);
         rp.add(fourAndFourCB);
         rp.add(swap2CB);
 
+        preset1Button = new de.matthiasmann.twl.Button("Preset 1");
+        preset1Button.setPosition(420, 220);
+        preset1Button.setSize(55, 30);
+        preset2Button = new de.matthiasmann.twl.Button("Preset 2");
+        preset2Button.setPosition(420, 260);
+        preset2Button.setSize(55, 30);
+        preset3Button = new de.matthiasmann.twl.Button("Preset 3");
+        preset3Button.setPosition(420, 300);
+        preset3Button.setSize(55, 30);
+        preset1Save = new de.matthiasmann.twl.Button("Save");
+        preset1Save.setPosition(500, 220);
+        preset1Save.setSize(32, 30);
+        preset1Save.setTooltipContent("Saves the current configuration");
+        preset2Save = new de.matthiasmann.twl.Button("Save");
+        preset2Save.setPosition(500, 260);
+        preset2Save.setSize(32, 30);
+        preset2Save.setTooltipContent("Saves the current configuration");
+        preset3Save = new de.matthiasmann.twl.Button("Save");
+        preset3Save.setPosition(500, 300);
+        preset3Save.setSize(32, 30);
+        preset3Save.setTooltipContent("Saves the current configuration");
+        rp.add(preset1Button);
+        rp.add(preset2Button);
+        rp.add(preset3Button);
+        rp.add(preset1Save);
+        rp.add(preset2Save);
+        rp.add(preset3Save);
         return rp;
     }
 
@@ -142,9 +184,6 @@ public class CreateGameState extends GomokuNetworkGameState {
 
         addListener(confirmButton);
         addListener(backButton);
-        addListener(preset1Button);
-        addListener(preset2Button);
-        addListener(preset3Button);
     }
 
     private void initPresets(GUIContext container) {
@@ -167,54 +206,60 @@ public class CreateGameState extends GomokuNetworkGameState {
         } catch (FileNotFoundException e) {
         }
 
-        preset1Button = new Button("Preset 1", container.getDefaultFont(), 500,
-                220) {
+        preset1Button.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
-                if (preset1 != null && button == 0)
+            public void run() {
+                if (preset1 != null)
                     applyPreset(preset1);
-                else if (button == 1) {
-                    try {
-                        preset1 = getCurrentConfig();
-                        preset1.store("preset1.txt");
-                    } catch (IllegalArgumentException e) {
-                        info(e.getMessage());
-                    }
-                }
             }
-        };
-        preset2Button = new Button("Preset 2", container.getDefaultFont(), 500,
-                250) {
+        });
+        preset2Button.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
-                if (preset2 != null && button == 0)
+            public void run() {
+                if (preset2 != null)
                     applyPreset(preset2);
-                else if (button == 1) {
-                    try {
-                        preset2 = getCurrentConfig();
-                        preset2.store("preset2.txt");
-                    } catch (IllegalArgumentException e) {
-                        info(e.getMessage());
-                    }
-                }
             }
-        };
-        preset3Button = new Button("Preset 3", container.getDefaultFont(), 500,
-                280) {
+        });
+        preset3Button.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
-                if (preset3 != null && button == 0)
+            public void run() {
+                if (preset3 != null)
                     applyPreset(preset3);
-                else if (button == 1) {
-                    try {
-                        preset3 = getCurrentConfig();
-                        preset3.store("preset3.txt");
-                    } catch (IllegalArgumentException e) {
-                        info(e.getMessage());
-                    }
+            }
+        });
+        preset1Save.addCallback(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    preset1 = getCurrentConfig();
+                    preset1.store("preset1.txt");
+                } catch (IllegalArgumentException e) {
+                    info(e.getMessage());
                 }
             }
-        };
+        });
+        preset2Save.addCallback(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    preset2 = getCurrentConfig();
+                    preset2.store("preset2.txt");
+                } catch (IllegalArgumentException e) {
+                    info(e.getMessage());
+                }
+            }
+        });
+        preset3Save.addCallback(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    preset3 = getCurrentConfig();
+                    preset3.store("preset3.txt");
+                } catch (IllegalArgumentException e) {
+                    info(e.getMessage());
+                }
+            }
+        });
     }
 
     private void applyPreset(GomokuConfig config) {
@@ -270,12 +315,6 @@ public class CreateGameState extends GomokuNetworkGameState {
             throws SlickException {
         drawCenteredString("Game Name", 20, container, g);
         drawCenteredString("Width / Height", 90, container, g);
-
-        // presets to the right
-        g.drawString("PRESETS", 500, 220);
-        preset1Button.render(container, g);
-        preset2Button.render(container, g);
-        preset3Button.render(container, g);
 
         if (errorMsg != null && errorMsg != "") {
             drawCenteredString(errorMsg, 450, container, g);

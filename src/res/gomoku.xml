@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE themes PUBLIC "-//www.matthiasmann.de//TWL-Theme//EN" "http://hg.l33tlabs.org/twl/raw-file/tip/src/de/matthiasmann/twl/theme/theme.dtd">
+<themes>
+    
+    <include filename="chutzpah/chutzpah.xml"/>
+
+    <images file="background.png" format="RGBA">
+        <area name="background" xywh="0,0,800,600" />
+    </images>
+    
+    <images file="gomoku.png" format="RGBA">
+        <area name="gomokutitle" xywh="0,0,767,134" />
+    </images>
+    
+    <images file="chutzpah/gui.png" format="RGBA">
+        <area name="pbarImage" xywh="93,23,2,7"/>
+    </images>
+    
+    <theme name="gomokuclient" ref="-defaults">
+        <param name="background"><image>background</image></param>
+    </theme>
+
+    <theme name="progressbar" ref="-defaults" allowWildcard="true">
+        <param name="background"><image>hscrollbar_thumb</image></param>
+        <param name="progressImage"><image>hscrollbar_dark</image></param>
+        <param name="border"><border>0</border></param>
+        <param name="minWidth"><int>100</int></param>
+    </theme>
+
+</themes>

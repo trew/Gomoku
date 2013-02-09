@@ -410,7 +410,7 @@ public class GameplayState extends GomokuNetworkGameState {
             boardComponent.render(container, g);
 
             // draw game info
-            g.setFont(Fonts.getDefaultFont(14));
+            g.setFont(Fonts.getDefaultFont());
             int xPos = 590;
             rowYPos = 85;
             drawRow("Your name: " + me.getName(), xPos, g);

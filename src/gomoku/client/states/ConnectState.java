@@ -62,19 +62,19 @@ public class ConnectState extends GomokuGameState {
         RootPane rp = super.createRootPane();
 
         nameField = new EditField();
-        nameField.setSize(300, 20);
+        nameField.setSize(300, 30);
         nameField.setPosition(250, 130);
         nameField.setText(getGame().getProperties().getProperty("playername",
                 "Player"));
 
         addressField = new EditField();
-        addressField.setSize(300, 20);
+        addressField.setSize(300, 30);
         addressField.setPosition(250, 200);
         addressField.setText(getGame().getProperties().getProperty("server",
                 "127.0.0.1"));
 
         connectionBar = new ProgressBar();
-        connectionBar.setSize(300, 10);
+        connectionBar.setSize(300, 15);
         connectionBar.setPosition(250, 395);
         connectionBar.setVisible(false);
 
@@ -233,6 +233,7 @@ public class ConnectState extends GomokuGameState {
             }
         } else if (connectingState == CONNECTSTATE.CONNECTIONFAILED) {
             connectionBar.setVisible(false);
+            nameField.setEnabled(true);
             if (container.getInput().isKeyPressed(Input.KEY_SPACE)) {
                 container.exit();
             }
