@@ -1,12 +1,15 @@
 package gomoku.client.states;
 
 import gomoku.client.GomokuClient;
-import gomoku.client.gui.Button;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
 import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
+
+import de.matthiasmann.twl.Button;
+
+import TWLSlick.RootPane;
 
 public class MainMenuState extends GomokuGameState {
 
@@ -20,52 +23,56 @@ public class MainMenuState extends GomokuGameState {
     }
 
     @Override
+    public RootPane createRootPane() {
+        RootPane rp = super.createRootPane();
+
+        multiPlayerButton = new Button("Play Multiplayer");
+        multiPlayerButton.setSize(300, 50);
+        multiPlayerButton.setPosition(250, 200);
+        rp.add(multiPlayerButton);
+
+        optionsButton = new Button("Options");
+        optionsButton.setSize(300, 50);
+        optionsButton.setPosition(250, 280);
+        rp.add(optionsButton);
+
+        exitButton = new Button("Exit Game");
+        exitButton.setSize(300, 50);
+        exitButton.setPosition(250, 360);
+        rp.add(exitButton);
+        return rp;
+    }
+
+    @Override
     public void init(final GameContainer container, final GomokuClient game)
             throws SlickException {
         final GameContainer gamecontainer = container;
 
         gomokuTitle = new Image("res/gomoku.png");
-        Image mp = new Image("res/buttons/playmultiplayerbutton.png");
-        multiPlayerButton = new Button(mp, 250, 200) {
+        multiPlayerButton.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
-                if (button == 0) {
-                    enterState(CONNECTGAMESTATE);
-                }
+            public void run() {
+                enterState(CONNECTGAMESTATE);
             }
-        };
-        Image op = new Image("res/buttons/optionsbutton.png");
-        optionsButton = new Button(op, 250, 280) {
+        });
+        optionsButton.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
-                if (button == 0) {
-                    enterState(OPTIONSMENUSTATE, (GomokuGameState)game.getCurrentState());
-                }
+            public void run() {
+                enterState(OPTIONSMENUSTATE, (GomokuGameState)game.getCurrentState());
             }
-        };
-        Image ex = new Image("res/buttons/exitgamebutton.png");
-        exitButton = new Button(ex, 250, 360) {
+        });
+        exitButton.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
-                if (button == 0) {
-                    gamecontainer.exit();
-                }
+            public void run() {
+                gamecontainer.exit();
             }
-        };
-
-        addListener(multiPlayerButton);
-        addListener(optionsButton);
-        addListener(exitButton);
+        });
     }
 
     @Override
     public void render(GameContainer container, GomokuClient game, Graphics g)
             throws SlickException {
         g.drawImage(gomokuTitle, 16, 30);
-
-        multiPlayerButton.render(container, g);
-        optionsButton.render(container, g);
-        exitButton.render(container, g);
     }
 
     @Override

@@ -113,6 +113,7 @@ public abstract class GomokuNetworkGameState extends GomokuGameState {
             if (state != null)
                 state.disconnected(connection);
         }
+        ((ConnectState)getGame().getState(CONNECTGAMESTATE)).disconnected();
     }
 
     /**

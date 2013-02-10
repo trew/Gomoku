@@ -48,6 +48,7 @@
         <area name="button2_active" xywh="2,152,22,34" splitx="L10,R11" splity="T10,B10"/>
         <area name="button2_hover" xywh="25,152,22,34" splitx="L10,R11" splity="T10,B10"/>
         <area name="button2_pressed" xywh="48,152,23,35" splitx="L10,R11" splity="T10,B11"/>
+        <area name="button2_disabled" xywh="0,0,15,29" splitx="L10,R11" splity="T10,B10" tint="#cccccc"/>
 
         <area name="progressbar" xywh="67,21,16,10" splitx="L7,R7" splity="T4,B4"/>
         <area name="progressbarImage" xywh="87,36,17,10" splitx="L5,R5" splity="T4,B4"/>
@@ -93,6 +94,7 @@
             <alias ref="button_active"/>
         </select>
         <select name="button2_background">
+            <alias ref="button2_disabled" if="disabled"/>
             <alias ref="button2_pressed" if="pressed"/>
             <alias ref="button2_hover" if="hover"/>
             <alias ref="button2_active"/>
@@ -214,7 +216,7 @@
 
     <theme name="label" ref="-defaults" allowWildcard="true">
     </theme>
-    <theme name="button" ref="label">
+    <theme name="button2" ref="label">
         <param name="border"><border>6,0</border></param>
         <param name="background"><image>button_background</image></param>
         <param name="minHeight"><int>30</int></param>
@@ -222,7 +224,7 @@
         <param name="font"><font>button_font</font></param>
         <param name="textAlignment"><enum type="alignment">center</enum></param>
     </theme>
-    <theme name="button2" ref="button">
+    <theme name="button" ref="button2">
         <param name="background"><image>button2_background</image></param>
     </theme>
     <theme name="radiobutton" ref="button">
@@ -282,7 +284,7 @@
         <theme name="leftbutton" ref="-defaults"/>
         <theme name="rightbutton" ref="-defaults"/>
     </theme>
-    <theme name="listbox" ref="button">
+    <theme name="listbox" ref="button2">
         <theme name="display" ref="label">
             <param name="border"><border>1,3,0,3</border></param>
             <param name="background"><image>listbox_display</image></param>

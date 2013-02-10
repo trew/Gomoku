@@ -4,14 +4,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
 import gomoku.client.GomokuClient;
-import gomoku.client.gui.Button;
 import gomoku.logic.GomokuConfig;
 import gomoku.net.CreateGamePacket;
 import gomoku.net.InitialServerDataPacket;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
 import org.newdawn.slick.SlickException;
 import org.newdawn.slick.gui.GUIContext;
 
@@ -19,6 +17,7 @@ import TWLSlick.RootPane;
 
 import com.esotericsoftware.kryonet.Connection;
 
+import de.matthiasmann.twl.Button;
 import de.matthiasmann.twl.ComboBox;
 import de.matthiasmann.twl.EditField;
 import de.matthiasmann.twl.ToggleButton;
@@ -42,14 +41,14 @@ public class CreateGameState extends GomokuNetworkGameState {
     private Button backButton;
 
     // presets
-    private de.matthiasmann.twl.Button preset1Button;
-    private de.matthiasmann.twl.Button preset1Save;
+    private Button preset1Button;
+    private Button preset1Save;
     private GomokuConfig preset1;
-    private de.matthiasmann.twl.Button preset2Button;
-    private de.matthiasmann.twl.Button preset2Save;
+    private Button preset2Button;
+    private Button preset2Save;
     private GomokuConfig preset2;
-    private de.matthiasmann.twl.Button preset3Button;
-    private de.matthiasmann.twl.Button preset3Save;
+    private Button preset3Button;
+    private Button preset3Save;
     private GomokuConfig preset3;
 
     private GomokuClient gomokuClient;
@@ -121,24 +120,24 @@ public class CreateGameState extends GomokuNetworkGameState {
         rp.add(fourAndFourCB);
         rp.add(swap2CB);
 
-        preset1Button = new de.matthiasmann.twl.Button("Preset 1");
+        preset1Button = new Button("Preset 1");
         preset1Button.setPosition(420, 220);
         preset1Button.setSize(55, 30);
-        preset2Button = new de.matthiasmann.twl.Button("Preset 2");
+        preset2Button = new Button("Preset 2");
         preset2Button.setPosition(420, 260);
         preset2Button.setSize(55, 30);
-        preset3Button = new de.matthiasmann.twl.Button("Preset 3");
+        preset3Button = new Button("Preset 3");
         preset3Button.setPosition(420, 300);
         preset3Button.setSize(55, 30);
-        preset1Save = new de.matthiasmann.twl.Button("Save");
+        preset1Save = new Button("Save");
         preset1Save.setPosition(500, 220);
         preset1Save.setSize(32, 30);
         preset1Save.setTooltipContent("Saves the current configuration");
-        preset2Save = new de.matthiasmann.twl.Button("Save");
+        preset2Save = new Button("Save");
         preset2Save.setPosition(500, 260);
         preset2Save.setSize(32, 30);
         preset2Save.setTooltipContent("Saves the current configuration");
-        preset3Save = new de.matthiasmann.twl.Button("Save");
+        preset3Save = new Button("Save");
         preset3Save.setPosition(500, 300);
         preset3Save.setSize(32, 30);
         preset3Save.setTooltipContent("Saves the current configuration");
@@ -148,6 +147,18 @@ public class CreateGameState extends GomokuNetworkGameState {
         rp.add(preset1Save);
         rp.add(preset2Save);
         rp.add(preset3Save);
+
+        confirmButton = new Button("Create Game!");
+        confirmButton.setPosition(250,  380);
+        confirmButton.setSize(300, 60);
+        rp.add(confirmButton);
+
+        backButton = new Button("Back");
+        backButton.setPosition(250, 500);
+        backButton.setSize(300, 60);
+
+        rp.add(backButton);
+
         return rp;
     }
 
@@ -158,32 +169,23 @@ public class CreateGameState extends GomokuNetworkGameState {
 
         initPresets(container);
 
-        Image cgBtn = new Image("res/buttons/creategamebutton.png");
-        confirmButton = new Button(cgBtn, 20, 380) {
+        confirmButton.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
+            public void run() {
                 try {
                     createNewGame();
                 } catch (IllegalArgumentException e) {
                     errorMsg = e.getMessage();
                 }
             }
-        };
-        confirmButton.setCenterX(container.getWidth() / 2);
+        });
 
-        Image bBtn = new Image("res/buttons/backbutton.png");
-        backButton = new Button(bBtn, 250, 500) {
+        backButton.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
-                if (button == 0) {
-                    enterState(CHOOSEGAMESTATE);
-                }
+            public void run() {
+                enterState(CHOOSEGAMESTATE);
             }
-        };
-        backButton.setCenterX(container.getWidth() / 2);
-
-        addListener(confirmButton);
-        addListener(backButton);
+        });
     }
 
     private void initPresets(GUIContext container) {
@@ -290,14 +292,14 @@ public class CreateGameState extends GomokuNetworkGameState {
             throw new IllegalArgumentException("You must provide a game name");
         }
 
-        confirmButton.disable();
+        confirmButton.setEnabled(false);
         gomokuClient.client.sendTCP(new CreateGamePacket(config));
     }
 
     @Override
     protected void handleInitialServerData(Connection connection,
             InitialServerDataPacket isdp) {
-        confirmButton.enable();
+        confirmButton.setEnabled(true);
         ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE)).setInitialData(
                 isdp.getBoard(), isdp.getConfig(), isdp.getSwap2State(),
                 isdp.getID(), isdp.getTurn(), isdp.getPlayerList(),
@@ -319,8 +321,6 @@ public class CreateGameState extends GomokuNetworkGameState {
         if (errorMsg != null && errorMsg != "") {
             drawCenteredString(errorMsg, 450, container, g);
         }
-        confirmButton.render(container, g);
-        backButton.render(container, g);
     }
 
     @Override

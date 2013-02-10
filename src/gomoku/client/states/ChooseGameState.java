@@ -5,7 +5,6 @@ import java.util.Collection;
 
 import gomoku.client.GomokuClient;
 
-import gomoku.client.gui.Button;
 import gomoku.net.GameListPacket;
 import gomoku.net.GenericRequestPacket;
 import gomoku.net.InitialServerDataPacket;
@@ -14,7 +13,6 @@ import gomoku.net.Request;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
@@ -22,6 +20,7 @@ import TWLSlick.RootPane;
 
 import com.esotericsoftware.kryonet.Connection;
 
+import de.matthiasmann.twl.Button;
 import de.matthiasmann.twl.CallbackWithReason;
 import de.matthiasmann.twl.ListBox;
 import de.matthiasmann.twl.ListBox.CallbackReason;
@@ -142,6 +141,23 @@ public class ChooseGameState extends GomokuNetworkGameState {
         gameList.setPosition(80, 50);
         gameList.setSize(620, 300);
 
+        createNewGameButton = new Button("Create Game");
+        createNewGameButton.setPosition(80, 360);
+        createNewGameButton.setSize(290, 60);
+        rp.add(createNewGameButton);
+
+
+        joinGameButton = new Button("Join Game");
+        joinGameButton.setPosition(405, 360);
+        joinGameButton.setSize(290, 60);
+        joinGameButton.setEnabled(false);
+        rp.add(joinGameButton);
+
+        backButton = new Button("Back");
+        backButton.setPosition(250, 500);
+        backButton.setSize(300, 60);
+        rp.add(backButton);
+
         rp.add(gameList);
         return rp;
     }
@@ -151,22 +167,18 @@ public class ChooseGameState extends GomokuNetworkGameState {
             throws SlickException {
         gomokuClient = game;
 
-        Image cgBtn = new Image("res/buttons/creategamebutton.png");
-        createNewGameButton = new Button(cgBtn, 80, 360) {
+        createNewGameButton.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
+            public void run() {
                 enterState(CREATEGAMESTATE);
             }
-        };
-        Image jgBtn = new Image("res/buttons/joingamebutton.png");
-        joinGameButton = new Button(jgBtn, 360, 360) {
+        });
+        joinGameButton.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
+            public void run() {
                 joinGame();
             }
-        };
-        joinGameButton.setRightX(gameList.getX() + gameList.getWidth());
-        joinGameButton.disable();
+        });
 
         gameList.addCallback(new CallbackWithReason<ListBox.CallbackReason>() {
             @Override
@@ -174,27 +186,19 @@ public class ChooseGameState extends GomokuNetworkGameState {
                 if (reason.actionRequested())
                     joinGame();
                 else if (gameList.getSelected() >= 0) {
-                    joinGameButton.enable();
+                    joinGameButton.setEnabled(true);
                 } else {
-                    joinGameButton.disable();
+                    joinGameButton.setEnabled(false);
                 }
             }
         });
 
-        Image bBtn = new Image("res/buttons/backbutton.png");
-        backButton = new Button(bBtn, 250, 500) {
+        backButton.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
-                if (button == 0) {
-                    enterState(MAINMENUSTATE);
-                }
+            public void run() {
+                enterState(MAINMENUSTATE);
             }
-        };
-        backButton.setCenterX(container.getWidth() / 2);
-
-        addListener(createNewGameButton);
-        addListener(joinGameButton);
-        addListener(backButton);
+        });
     }
 
     public void joinGame() {
@@ -209,9 +213,6 @@ public class ChooseGameState extends GomokuNetworkGameState {
     @Override
     public void render(GameContainer container, GomokuClient game, Graphics g)
             throws SlickException {
-        createNewGameButton.render(container, g);
-        joinGameButton.render(container, g);
-        backButton.render(container, g);
     }
 
     @Override

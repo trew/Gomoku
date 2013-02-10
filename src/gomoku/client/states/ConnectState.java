@@ -1,7 +1,6 @@
 package gomoku.client.states;
 
 import gomoku.client.GomokuClient;
-import gomoku.client.gui.Button;
 import gomoku.net.*;
 
 import java.io.IOException;
@@ -9,7 +8,6 @@ import java.net.UnknownHostException;
 
 import org.newdawn.slick.GameContainer;
 import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
@@ -19,6 +17,7 @@ import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 
+import de.matthiasmann.twl.Button;
 import de.matthiasmann.twl.EditField;
 import de.matthiasmann.twl.Event;
 import de.matthiasmann.twl.EditField.Callback;
@@ -78,6 +77,16 @@ public class ConnectState extends GomokuGameState {
         connectionBar.setPosition(250, 395);
         connectionBar.setVisible(false);
 
+        connectButton = new Button("Connect!");
+        connectButton.setSize(300, 60);
+        connectButton.setPosition(250, 330);
+
+        backButton = new Button("Back");
+        backButton.setSize(300, 60);
+        backButton.setPosition(250, 450);
+
+        rp.add(connectButton);
+        rp.add(backButton);
         rp.add(connectionBar);
         rp.add(nameField);
         rp.add(addressField);
@@ -90,29 +99,18 @@ public class ConnectState extends GomokuGameState {
 
         port = 9123;
 
-        Image cBtn = new Image("res/buttons/connectbutton.png");
-        connectButton = new Button(cBtn, 250, 330) {
+        connectButton.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
-                if (button == 0) {
-                    connect(game);
-                }
+            public void run() {
+                connect(game);
             }
-        };
-        connectButton.setCenterX(container.getWidth() / 2);
-        Image bBtn = new Image("res/buttons/backbutton.png");
-        backButton = new Button(bBtn, 250, 500) {
+        });
+        backButton.addCallback(new Runnable() {
             @Override
-            public void buttonClicked(int button, int x, int y) {
-                if (button == 0) {
-                    enterState(MAINMENUSTATE);
-                }
+            public void run() {
+                enterState(MAINMENUSTATE);
             }
-        };
-        backButton.setCenterX(container.getWidth() / 2);
-
-        addListener(connectButton);
-        addListener(backButton);
+        });
 
         Callback cb = new Callback() {
             @Override
@@ -168,7 +166,7 @@ public class ConnectState extends GomokuGameState {
         connectMessage = "Connecting...";
 
         // lock all settings, and save them
-        connectButton.disable();
+        connectButton.setEnabled(false);
         nameField.setEnabled(false);
 
         game.getProperties().setProperty("playername",
@@ -202,13 +200,13 @@ public class ConnectState extends GomokuGameState {
                     if (TRACE)
                         trace(e);
                     connectMessage = "Unkown host";
-                    connectButton.enable();
+                    connectButton.setEnabled(true);
                 } catch (IOException e) {
                     connectingState = CONNECTSTATE.CONNECTIONFAILED;
                     if (TRACE)
                         trace(e);
                     connectMessage = e.getMessage();
-                    connectButton.enable();
+                    connectButton.setEnabled(true);
                 }
             }
         }).start();
@@ -250,9 +248,6 @@ public class ConnectState extends GomokuGameState {
         drawCenteredString("Enter your name", 95, container, g);
 
         drawCenteredString("Address", 175, container, g);
-
-        connectButton.render(container, g);
-        backButton.render(container, g);
     }
 
     @Override
@@ -271,6 +266,10 @@ public class ConnectState extends GomokuGameState {
     @Override
     public void leave(GameContainer container, GomokuClient game)
             throws SlickException {
+    }
+
+    public void disconnected() {
+        connectingState = CONNECTSTATE.IDLE;
     }
 
 }
