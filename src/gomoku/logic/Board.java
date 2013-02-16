@@ -1,7 +1,5 @@
 package gomoku.logic;
 
-import static org.trew.log.Log.*;
-
 /**
  * A Board represents a Gomoku board. The board size restrictions is 40x40.
  *
@@ -304,7 +302,6 @@ public class Board {
             xpos -= dirX;
             ypos -= dirY;
         }
-        debug("count; dir: " + dirX + ", " + dirY + " - count: " + ct);
         return ct;
     }
 
