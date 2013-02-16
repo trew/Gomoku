@@ -109,13 +109,13 @@ public class Board {
                 throw new IllegalActionException(
                         "That position is already occupied!");
             if (board.config.useThreeAndThree()) {
-                if (!board.tryXAndX(3, player, x, y, true)) {
+                if (!board.try3And3(player, x, y)) {
                     throw new IllegalActionException(
                             "Unable to place because of Three And Three-rule.");
                 }
             }
             if (board.config.useFourAndFour()) {
-                if (!board.tryXAndX(4, player, x, y, false)) {
+                if (!board.try4And4(player, x, y)) {
                     throw new IllegalActionException(
                             "Unable to place because of Four And Four-rule.");
                 }
@@ -210,215 +210,150 @@ public class Board {
     }
 
     /**
-     * Wrapper function for "Three and Three" and "Four and four" rules.
+     * Returns true of all the pieces surrounding the line is empty
      *
-     * @param length
-     *            the length to check for
-     * @param player
-     *            the player placing the piece
-     * @param x
-     *            the x location of the piece
-     * @param y
-     *            the y location of the piece
-     * @param open
-     *            if the lines are allowed to be open or not(free space on both
-     *            ends)
-     * @return true if placement is successful
+     * @return true of all the pieces surrounding the line is empty
      */
-    private boolean tryXAndX(int length, int player, int x, int y, boolean open) {
-        // the algorithm checks four lines with x,y as it's center. The lines
-        // are horizontal, vertical, top-left to bottom-right diagonal and
-        // top-right to bottom-left diagonal.
-        int lines = 0;
+    protected boolean isOpen(int color, int x, int y, int dirX, int dirY) {
+        int xpos, ypos;
+        xpos = x + dirX;
+        ypos = y + dirY;
+        do {
+            // if we reached the edge of the board:
+            // this line is not open if there's something other than NOPLAYER
+            if (xpos == 0 || xpos == getWidth() - 1) {
+                if (getPiece(xpos, ypos) != Board.NOPLAYER)
+                    return false;
+            }
+            if (ypos == 0 || ypos == getHeight() - 1) {
+                if (getPiece(xpos, ypos) != Board.NOPLAYER)
+                    return false;
+            }
 
-        // ******** HORIZONTAL CHECK ********* //
-        int curLength = 1;
-        boolean beginningOfLine = false;
-        int xPos = x;
-        while (!beginningOfLine) {
-            xPos--;
-            int piece = getPiece(xPos, y);
-            if (piece == Board.NOPLAYER) {
-                beginningOfLine = true;
-            } else if (piece != player) { // aka enemy
-                if (open)
-                    break; // no open line here
-                else
-                    beginningOfLine = true;
-            } else {
-                curLength++;
-                if (curLength > length) { // longer than provided length, means
-                                          // we can't count this line
-                    break;
-                }
-            }
-        }
-        xPos = x;
-        while (beginningOfLine) {
-            xPos++;
-            int piece = getPiece(xPos, y);
-            if (piece == Board.NOPLAYER) {
-                if (curLength == length) {
-                    lines++;
-                }
+            if (getPiece(xpos, ypos) == Board.NOPLAYER) {
                 break;
-            } else if (piece != player) {
-                if (!open)
-                    if (curLength == length)
-                        lines++;
-                break;
-            } else {
-                curLength++;
-                if (curLength > length) {
-                    break;
-                }
+            } else if (getPiece(xpos, ypos) != color) { // enemy
+                return false;
             }
-        }
 
-        // ******** VERTICAL CHECK ********* //
-        curLength = 1;
-        beginningOfLine = false;
-        int yPos = y;
-        while (!beginningOfLine) {
-            yPos--;
-            int piece = getPiece(x, yPos);
-            if (piece == Board.NOPLAYER) {
-                beginningOfLine = true;
-            } else if (piece != player) { // aka enemy
-                if (open)
-                    break; // no open line here
-                else
-                    beginningOfLine = true;
-            } else {
-                curLength++;
-                if (curLength > length) { // longer than provided length, means
-                                          // we can't count this line
-                    break;
-                }
+            xpos += dirX;
+            ypos += dirY;
+
+        } while (xpos >= 0 && xpos < getWidth() && ypos >= 0
+                && ypos < getHeight());
+
+        // now check the other side
+        xpos = x - dirX;
+        ypos = y - dirY;
+        do {
+            // if we reached the edge of the board:
+            // this line is not open if there's something other than NOPLAYER
+            if (xpos == 0 || xpos == getWidth() - 1) {
+                if (getPiece(xpos, ypos) != Board.NOPLAYER)
+                    return false;
             }
-        }
-        yPos = y;
-        while (beginningOfLine) {
-            yPos++;
-            int piece = getPiece(x, yPos);
-            if (piece == Board.NOPLAYER) {
-                if (curLength == length) {
-                    lines++;
-                }
-                break;
-            } else if (piece != player) {
-                if (!open)
-                    if (curLength == length)
-                        lines++;
-                break;
-            } else {
-                curLength++;
-                if (curLength > length) {
-                    break;
-                }
+            if (ypos == 0 || ypos == getHeight() - 1) {
+                if (getPiece(xpos, ypos) != Board.NOPLAYER)
+                    return false;
             }
+
+            if (getPiece(xpos, ypos) == Board.NOPLAYER) {
+                break;
+            } else if (getPiece(xpos, ypos) != color) { // enemy
+                return false;
+            }
+            xpos -= dirX;
+            ypos -= dirY;
+
+        } while (xpos >= 0 && xpos < getWidth() && ypos >= 0
+                && ypos < getHeight());
+        return true;
+    }
+
+    /**
+     * Returns the number of pieces of the provided color in a row of provided
+     * direction based of the provided position
+     *
+     * @param color
+     * @param x
+     * @param y
+     * @param dirX
+     *            -1, 0 or 1
+     * @param dirY
+     *            -1, 0 or 1
+     * @return
+     */
+    protected int count(int color, int x, int y, int dirX, int dirY) {
+        int ct = 1;
+        int xpos, ypos; // position to be examined
+        xpos = x + dirX;
+        ypos = y + dirY;
+        while (xpos >= 0 && xpos < getWidth() && ypos >= 0
+                && ypos < getHeight() && getPiece(xpos, ypos) == color) {
+            ct++;
+            xpos += dirX;
+            ypos += dirY;
         }
 
-        // ****** TOP LEFT TO BOTTOM RIGHT ****** //
-        curLength = 1;
-        beginningOfLine = false;
-        xPos = x;
-        yPos = y;
-        while (!beginningOfLine) {
-            xPos--;
-            yPos--;
-            int piece = getPiece(xPos, yPos);
-            if (piece == Board.NOPLAYER) {
-                beginningOfLine = true;
-            } else if (piece != player) { // aka enemy
-                if (open)
-                    break; // no open line here
-                else
-                    beginningOfLine = true;
-            } else {
-                curLength++;
-                if (curLength > length) { // longer than provided length, means
-                                          // we can't count this line
-                    break;
-                }
-            }
+        // check opposite direction too
+        xpos = x - dirX;
+        ypos = y - dirY;
+        while (xpos >= 0 && xpos < getWidth() && ypos >= 0
+                && ypos < getHeight() && getPiece(xpos, ypos) == color) {
+            ct++;
+            xpos -= dirX;
+            ypos -= dirY;
         }
-        xPos = x;
-        yPos = y;
-        while (beginningOfLine) {
-            xPos++;
-            yPos++;
-            int piece = getPiece(xPos, yPos);
-            if (piece == Board.NOPLAYER) {
-                if (curLength == length) {
-                    lines++;
-                }
-                break;
-            } else if (piece != player) {
-                if (!open)
-                    if (curLength == length)
-                        lines++;
-                break;
-            } else {
-                curLength++;
-                if (curLength > length) {
-                    break;
-                }
-            }
-        }
+        debug("count; dir: " + dirX + ", " + dirY + " - count: " + ct);
+        return ct;
+    }
 
-        // ****** TOP RIGHT TO BOTTOM LEFT ****** //
-        curLength = 1;
-        beginningOfLine = false;
-        xPos = x;
-        yPos = y;
-        while (!beginningOfLine) {
-            xPos++;
-            yPos--;
-            int piece = getPiece(xPos, yPos);
-            if (piece == Board.NOPLAYER) {
-                beginningOfLine = true;
-            } else if (piece != player) { // aka enemy
-                if (open)
-                    break; // no open line here
-                else
-                    beginningOfLine = true;
-            } else {
-                curLength++;
-                if (curLength > length) { // longer than provided length, means
-                                          // we can't count this line
-                    break;
-                }
-            }
-        }
-        xPos = x;
-        yPos = y;
-        while (beginningOfLine) {
-            xPos--;
-            yPos++;
-            int piece = getPiece(xPos, yPos);
-            if (piece == Board.NOPLAYER) {
-                if (curLength == length) {
-                    lines++;
-                }
-                break;
-            } else if (piece != player) {
-                if (!open)
-                    if (curLength == length)
-                        lines++;
-                break;
-            } else {
-                curLength++;
-                if (curLength > length) {
-                    break;
-                }
-            }
-        }
-        if (lines > 1) {
-            debug("Lines: " + lines);
-        }
+    protected boolean try3And3(int player, int x, int y) {
+        int ct = 0;
+        // horizontal
+        if (x > 0 && x < getWidth() - 1 && count(player, x, y, -1, 0) == 3
+                && isOpen(player, x, y, 1, 0))
+            ct++;
 
-        return lines < 2;
+        // vertical
+        if (y > 0 && y < getHeight() - 1 && count(player, x, y, 0, -1) == 3
+                && isOpen(player, x, y, 0, 1))
+            ct++;
+
+        // topleft to bottomdown
+        if (x > 0 && x < getWidth() - 1 && y > 0 && y < getHeight() - 1
+                && count(player, x, y, -1, -1) == 3
+                && isOpen(player, x, y, 1, 1))
+            ct++;
+
+        // topright to bottomleft
+        if (x > 0 && x < getWidth() - 1 && y > 0 && y < getHeight() - 1
+                && count(player, x, y, 1, -1) == 3
+                && isOpen(player, x, y, 1, 1))
+            ct++;
+
+        return ct < 2;
+    }
+
+    protected boolean try4And4(int player, int x, int y) {
+        int ct = 0;
+        // horizontal
+        if (count(player, x, y, -1, 0) == 4)
+            ct++;
+
+        // vertical
+        if (count(player, x, y, 0, -1) == 4)
+            ct++;
+
+        // topleft to bottomdown
+        if (count(player, x, y, -1, -1) == 4)
+            ct++;
+
+        // topright to bottomleft
+        if (count(player, x, y, 1, -1) == 4)
+            ct++;
+
+        return ct < 2;
     }
 
     /**
