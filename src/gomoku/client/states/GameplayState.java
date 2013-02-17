@@ -3,9 +3,11 @@ package gomoku.client.states;
 import static gomoku.net.Request.*;
 
 import gomoku.client.GomokuClient;
-import gomoku.client.gui.BoardComponent;
+import gomoku.client.gui.BoardWidget;
+import gomoku.client.gui.BoardWidget.Callback;
 import gomoku.client.gui.Button;
 import gomoku.client.gui.Fonts;
+import gomoku.client.gui.ScrollingPane;
 import gomoku.logic.Board;
 import gomoku.logic.GomokuConfig;
 import gomoku.logic.Board.BoardAction;
@@ -26,6 +28,8 @@ import org.newdawn.slick.Image;
 import org.newdawn.slick.Input;
 import org.newdawn.slick.SlickException;
 
+import TWLSlick.RootPane;
+
 import com.esotericsoftware.kryonet.Connection;
 
 import static org.trew.log.Log.*;
@@ -44,7 +48,8 @@ public class GameplayState extends GomokuNetworkGameState {
     public Player me;
 
     /** The board displayed */
-    private BoardComponent boardComponent;
+    private ScrollingPane scrollpane;
+    private BoardWidget boardWidget;
     private Button confirmMoveButton;
     private Button blackButton;
     private Button whiteButton;
@@ -67,6 +72,17 @@ public class GameplayState extends GomokuNetworkGameState {
     private boolean pendingMove;
     private GameAction pendingAction;
 
+    @Override
+    protected RootPane createRootPane() {
+        RootPane rp = super.createRootPane();
+
+        boardWidget = new BoardWidget();
+        scrollpane = new ScrollingPane(boardWidget, boardWidget);
+        rp.add(scrollpane);
+
+        return rp;
+    }
+
     public boolean initialLoading() {
         return loading;
     }
@@ -86,7 +102,7 @@ public class GameplayState extends GomokuNetworkGameState {
             gomokuGame.setTurn(gomokuGame.getPlayerTwo());
         setupPlayers(playerID, playerOneColor, playerTwoColor);
 
-        boardComponent.setBoard(board);
+        setBoard(board);
 
         loading = false;
         gameOverVictoryState = 0;
@@ -176,6 +192,10 @@ public class GameplayState extends GomokuNetworkGameState {
             @Override
             public void buttonClicked(int button, int x, int y) {
                 gomokuGame.getSwap2().nextState();
+                boardWidget.setEnabled(true);
+                blackButton.setVisible(false);
+                whiteButton.setVisible(false);
+                place2Button.setVisible(false);
                 gomokuClient.client.sendTCP(new GenericRequestPacket(
                         Request.SkipChooseColor));
             }
@@ -185,15 +205,14 @@ public class GameplayState extends GomokuNetworkGameState {
         place2Button.setVisible(false);
 
         // add the board
-        boardComponent = new BoardComponent(container, null, 80, 70, 28, 15, 15) {
+        boardWidget.addCallback(new Callback() {
             @Override
-            public void squareClicked(int x, int y) {
+            public void callback(int x, int y) {
                 if (me == null || !myTurn())
                     return;
                 placePiece(gomokuClient, x, y);
             }
-        };
-        boardComponent.setCenterLocation(320, 300);
+        });
 
         Image ok = new Image("res/buttons/ok.png");
         confirmMoveButton = new Button(ok, 640, 482, 3) {
@@ -211,7 +230,6 @@ public class GameplayState extends GomokuNetworkGameState {
         infobar = new Image("res/infobar.png");
         messagebox = new Image("res/bottommessagebox.png");
 
-        addListener(boardComponent);
         addListener(confirmMoveButton);
         addListener(blackButton);
         addListener(whiteButton);
@@ -232,7 +250,7 @@ public class GameplayState extends GomokuNetworkGameState {
         }
         sendGameAction(client, action);
 
-        boardComponent.setChangeable(true);
+        boardWidget.setEnabled(true);
         blackButton.setVisible(false);
         whiteButton.setVisible(false);
         place2Button.setVisible(false);
@@ -331,8 +349,18 @@ public class GameplayState extends GomokuNetworkGameState {
         return me == gomokuGame.getTurn();
     }
 
-    public void setBoardSize(int width, int height) {
-        boardComponent.setDisplaySize(width, height, 25);
+    protected void setBoard(Board board) {
+        boardWidget.setBoard(board);
+        boardWidget.adjustSize();
+
+        int scrollpaneWidth = Math.min(381, board.getWidth() * 25 + 6);
+        int scrollpaneHeight = Math.min(381, board.getHeight() * 25 + 6);
+        scrollpane.setInnerSize(scrollpaneWidth, scrollpaneHeight);
+        scrollpane.setPosition(300 - scrollpane.getWidth() / 2, 300 - scrollpane.getHeight() / 2);
+        scrollpane.updateScrollbarSizes();
+        scrollpane.setScrollPositionX(scrollpane.getMaxScrollPosX() / 2);
+        scrollpane.setScrollPositionY(scrollpane.getMaxScrollPosY() / 2);
+
     }
 
     @Override
@@ -346,7 +374,7 @@ public class GameplayState extends GomokuNetworkGameState {
                 whiteButton.setLocation(620, 430);
                 place2Button.setLocation(590, 480);
 
-                boardComponent.setChangeable(false);
+                boardWidget.setEnabled(false);
                 blackButton.setVisible(true);
                 whiteButton.setVisible(true);
                 place2Button.setVisible(true);
@@ -354,7 +382,7 @@ public class GameplayState extends GomokuNetworkGameState {
                 blackButton.setLocation(620, 420);
                 whiteButton.setLocation(620, 470);
 
-                boardComponent.setChangeable(false);
+                boardWidget.setEnabled(false);
                 blackButton.setVisible(true);
                 whiteButton.setVisible(true);
             }
@@ -407,8 +435,6 @@ public class GameplayState extends GomokuNetworkGameState {
             g.drawImage(infobar, 800 - 225, (600 - 454) / 2 + 8);
             g.drawImage(messagebox, 0, 600 - 63);
 
-            boardComponent.render(container, g);
-
             // draw game info
             g.setFont(Fonts.getDefaultFont());
             int xPos = 590;
@@ -420,8 +446,6 @@ public class GameplayState extends GomokuNetworkGameState {
             }
             drawRow("Board size: " + gomokuGame.getBoard().getWidth() + "x"
                     + gomokuGame.getBoard().getHeight(), xPos, g);
-            drawRow("Displaysize: " + boardComponent.getDisplayWidth() + "x"
-                    + boardComponent.getDisplayHeight(), xPos, g);
 
             drawRow("Connected players", xPos, g);
             drawRow("-----------------", xPos, g);
@@ -557,7 +581,7 @@ public class GameplayState extends GomokuNetworkGameState {
     @Override
     protected void handleVictory(Connection conn, VictoryPacket vp) {
         debug("Victorystatus received: " + vp.victory);
-        boardComponent.setChangeable(false);
+        boardWidget.setEnabled(false);
         gameOver = true;
 
         gameOverVictoryState = 0;

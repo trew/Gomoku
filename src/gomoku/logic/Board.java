@@ -1,5 +1,7 @@
 package gomoku.logic;
 
+import java.util.ArrayList;
+
 /**
  * A Board represents a Gomoku board. The board size restrictions is 40x40.
  *
@@ -7,6 +9,10 @@ package gomoku.logic;
  *
  */
 public class Board {
+
+    static public abstract class ChangeListener {
+        public abstract void callback(int color, int x, int y);
+    }
 
     /** The value representing no player */
     public static final int NOPLAYER = 0;
@@ -26,9 +32,11 @@ public class Board {
     /** The recorder of this game */
     protected ActionRecorder recorder;
 
+    protected ArrayList<ChangeListener> listeners;
+
     /**
-     * Basic interface for an action on the board.
-     * DO NOT FORGET TO ADD AN EMPTY CONSTRUCTOR!
+     * Basic interface for an action on the board. DO NOT FORGET TO ADD AN EMPTY
+     * CONSTRUCTOR!
      *
      * @author Samuel Andersson
      */
@@ -42,7 +50,8 @@ public class Board {
         /**
          * Performs the action on the board. If unsuccessful,
          * IllegalActionException will be thrown and the action should not be
-         * performed. The action can be undone by calling {@link #undoAction(Board)}.
+         * performed. The action can be undone by calling
+         * {@link #undoAction(Board)}.
          *
          * @param board
          *            the board to modify
@@ -52,7 +61,8 @@ public class Board {
         public void doAction(Board board) throws IllegalActionException;
 
         /**
-         * Undoes the action on the board if it was completed in {@link #doAction(Board)}
+         * Undoes the action on the board if it was completed in
+         * {@link #doAction(Board)}
          *
          * @param board
          *            the board to modify
@@ -120,6 +130,7 @@ public class Board {
             }
 
             board.setPiece(x, y, player);
+            board.fireChangeListeners(player, x, y);
             done = true;
         }
 
@@ -127,6 +138,7 @@ public class Board {
         public void undoAction(Board board) {
             if (done) {
                 board.setPiece(x, y, NOPLAYER);
+                board.fireChangeListeners(NOPLAYER, x, y);
                 done = false;
             }
         }
@@ -157,7 +169,22 @@ public class Board {
      */
     public Board(GomokuConfig config) {
         this.config = config;
+        listeners = new ArrayList<ChangeListener>();
         reset();
+    }
+
+    public void addChangeListener(ChangeListener listener) {
+        listeners.add(listener);
+    }
+
+    public void removeChangeListener(ChangeListener listener) {
+        listeners.remove(listener);
+    }
+
+    protected void fireChangeListeners(int color, int x, int y) {
+        for (ChangeListener listener : listeners) {
+            listener.callback(color, x, y);
+        }
     }
 
     /**
@@ -165,6 +192,7 @@ public class Board {
      * actionRecorder.
      */
     public void reset() {
+        listeners.clear();
         board = new int[config.getWidth() * config.getHeight()];
     }
 
@@ -177,6 +205,18 @@ public class Board {
     public void replaceBoard(Board board) {
         this.board = board.board;
         this.config = board.config;
+    }
+
+    public void setBoardData(int[] data) {
+        board = data;
+    }
+
+    public int[] getBoardData() {
+        return board;
+    }
+
+    public GomokuConfig getConfig() {
+        return config;
     }
 
     /**
@@ -406,7 +446,8 @@ public class Board {
             throw new IllegalArgumentException("Position out of bounds. X: "
                     + x + ", Y: " + y);
         }
-        if (player != Board.BLACKPLAYER && player != Board.WHITEPLAYER && player != Board.NOPLAYER) {
+        if (player != Board.BLACKPLAYER && player != Board.WHITEPLAYER
+                && player != Board.NOPLAYER) {
             throw new IllegalArgumentException("Unknown value of player: \""
                     + player + "\".");
         }

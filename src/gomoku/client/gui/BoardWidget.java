@@ -1,7 +1,7 @@
 package gomoku.client.gui;
 
 import gomoku.logic.Board;
-import gomoku.logic.IllegalActionException;
+import gomoku.logic.Board.ChangeListener;
 
 import java.util.ArrayList;
 
@@ -77,7 +77,12 @@ public class BoardWidget extends Widget {
         callbacks.remove(cb);
     }
 
+    /**
+     * Doesn't fire callbacks unless the widget is enabled
+     */
     protected void fireCallbacks(int x, int y) {
+        if (!isEnabled())
+            return;
         for (Callback cb : callbacks) {
             cb.callback(x, y);
         }
@@ -93,6 +98,12 @@ public class BoardWidget extends Widget {
             throw new NullPointerException("board");
 
         this.board = board;
+        this.board.addChangeListener(new ChangeListener() {
+            @Override
+            public void callback(int color, int x, int y) {
+                setPiece(color, x, y);
+            }
+        });
         this.numSlotsX = board.getWidth();
         this.numSlotsY = board.getHeight();
         this.slotLength = numSlotsX * numSlotsY;
@@ -100,7 +111,9 @@ public class BoardWidget extends Widget {
 
         for (int y = 0, i = 0; y < numSlotsY; y++) {
             for (int x = 0; x < numSlotsX; x++, i++) {
-                slots.add(new BoardSlot(this, x, y));
+                BoardSlot bs = new BoardSlot(this, x, y);
+                bs.setPiece(board.getPiece(x, y));
+                slots.add(bs);
                 add(slots.get(i));
             }
         }
@@ -111,11 +124,7 @@ public class BoardWidget extends Widget {
      *
      * @see {@link Board#placePiece(int, int, int)}
      */
-    public void setPiece(int color, int x, int y) throws IllegalActionException {
-        if (board == null)
-            throw new NullPointerException("board");
-        board.placePiece(color, x, y);
-
+    public void setPiece(int color, int x, int y) {
         slots.get(y * numSlotsX + x).setPiece(color);
     }
 

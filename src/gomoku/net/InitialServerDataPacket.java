@@ -14,7 +14,7 @@ import gomoku.logic.GomokuConfig;
 public class InitialServerDataPacket {
 
     /** The board of the game */
-    private Board board;
+    private int[] board;
 
     private GomokuConfig config;
 
@@ -50,7 +50,7 @@ public class InitialServerDataPacket {
      */
     public InitialServerDataPacket(Board board, GomokuConfig config, int swap2state, int playerID, int turnID,
             String[] playerList, int playerOneColor, int playerTwoColor) {
-        this.board = board;
+        this.board = board.getBoardData();
         this.config = config;
         this.swap2state = swap2state;
         this.playerID = playerID;
@@ -66,6 +66,8 @@ public class InitialServerDataPacket {
      * @return the board
      */
     public Board getBoard() {
+        Board board = new Board(config);
+        board.setBoardData(this.board);
         return board;
     }
 

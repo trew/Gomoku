@@ -59,9 +59,18 @@ public class BoardSlot extends Widget {
         else if (color == Board.WHITEPLAYER)
             this.pieceName = "white";
         else
-            throw new IllegalArgumentException("color must be black or white: "
-                    + color);
+            this.pieceName = null;
         findImage();
+    }
+
+    public int getPiece() {
+        if (this.pieceName == null)
+            return Board.NOPLAYER;
+        if (this.pieceName.equals("black"))
+            return Board.BLACKPLAYER;
+        if (this.pieceName.equals("white"))
+            return Board.WHITEPLAYER;
+        return Board.NOPLAYER;
     }
 
     /**
