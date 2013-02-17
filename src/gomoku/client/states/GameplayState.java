@@ -83,6 +83,14 @@ public class GameplayState extends GomokuNetworkGameState {
         return rp;
     }
 
+    @Override
+    protected void layoutRootPane() {
+        scrollpane.setPosition(300 - scrollpane.getWidth() / 2, 300 - scrollpane.getHeight() / 2);
+        scrollpane.updateScrollbarSizes();
+        scrollpane.setScrollPositionX(scrollpane.getMaxScrollPosX() / 2);
+        scrollpane.setScrollPositionY(scrollpane.getMaxScrollPosY() / 2);
+    }
+
     public boolean initialLoading() {
         return loading;
     }
@@ -353,14 +361,10 @@ public class GameplayState extends GomokuNetworkGameState {
         boardWidget.setBoard(board);
         boardWidget.adjustSize();
 
-        int scrollpaneWidth = Math.min(381, board.getWidth() * 25 + 6);
-        int scrollpaneHeight = Math.min(381, board.getHeight() * 25 + 6);
+        int scrollpaneWidth = Math.min(375, board.getWidth() * 25);
+        int scrollpaneHeight = Math.min(375, board.getHeight() * 25);
         scrollpane.setInnerSize(scrollpaneWidth, scrollpaneHeight);
         scrollpane.setPosition(300 - scrollpane.getWidth() / 2, 300 - scrollpane.getHeight() / 2);
-        scrollpane.updateScrollbarSizes();
-        scrollpane.setScrollPositionX(scrollpane.getMaxScrollPosX() / 2);
-        scrollpane.setScrollPositionY(scrollpane.getMaxScrollPosY() / 2);
-
     }
 
     @Override
