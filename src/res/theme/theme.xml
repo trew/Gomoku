@@ -1,18 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE themes PUBLIC "-//www.matthiasmann.de//TWL-Theme//EN" "http://hg.l33tlabs.org/twl/raw-file/tip/src/de/matthiasmann/twl/theme/theme.dtd">
 <themes>
-    <include filename="base.xml"/>
-    
+    <include filename="base.xml" />
     <images file="background.png">
-        <area name="background" xywh="*"/>
+        <area name="background" xywh="*" />
     </images>
-    
-    
     <theme name="gomokuclient" ref="-defaults">
-        <param name="background"><image>background</image></param>
-        <theme name="togglebutton" ref="togglebutton2"/>
+        <param name="background">
+            <image>background</image>
+        </param>
+        <theme name="togglebutton" ref="togglebutton2" />
     </theme>
-    
-    
-    
+    <theme name="boardwidget" ref="-defaults">
+        <param name="background">
+            <image>board_background</image>
+        </param>
+        <param name="border">
+            <border>background.border</border>
+        </param>
+        <param name="slotSpacing">
+            <int>0</int>
+        </param>
+    </theme>
+    <theme name="boardslot" ref="-defaults" allowWildcard="true">
+        <param name="background">
+            <image>boardslot.background</image>
+        </param>
+        <param name="border">
+            <border>background.border</border>
+        </param>
+        <param name="pieces">
+            <map>
+                <param name="">
+                    <image>piece.*</image>
+                </param>
+            </map>
+        </param>
+    </theme>
+    <theme name="scrollingpane" ref="scrollpane" />
 </themes>

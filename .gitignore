@@ -40,3 +40,5 @@ jar/
 presets/
 settings.properties
 gfx-wip/
+src/gomoku/client/test
+*.classpath
