@@ -1,0 +1,451 @@
+package se.samuelandersson.gomoku.client.states;
+
+import java.util.HashSet;
+
+import org.newdawn.slick.Font;
+import org.newdawn.slick.GameContainer;
+import org.newdawn.slick.Graphics;
+import org.newdawn.slick.Input;
+import org.newdawn.slick.InputListener;
+import org.newdawn.slick.SlickException;
+import org.newdawn.slick.gui.GUIContext;
+import org.newdawn.slick.state.GameState;
+import org.newdawn.slick.state.StateBasedGame;
+
+import de.matthiasmann.twl.slick.RootPane;
+import de.matthiasmann.twl.slick.TWLGameState;
+import se.samuelandersson.gomoku.client.GomokuClient;
+
+public abstract class AbstractGameState extends TWLGameState
+{
+  public static final int CONNECTGAMESTATE = 1;
+  public static final int CHOOSEGAMESTATE = 2;
+  public static final int CREATEGAMESTATE = 3;
+  public static final int GAMEPLAYSTATE = 4;
+  public static final int MAINMENUSTATE = 5;
+  public static final int PAUSEMENUSTATE = 6;
+  public static final int OPTIONSMENUSTATE = 7;
+
+  private HashSet<InputListener> listeners;
+
+  private int nextState;
+  private boolean exitToParent;
+  private GameState parent;
+  private boolean renderParent;
+
+  private GomokuClient game;
+
+  public GomokuClient getGame()
+  {
+    return game;
+  }
+
+  /**
+   * Adds a listener that the state will forward input events to
+   *
+   * @param listener
+   */
+  public void addListener(InputListener listener)
+  {
+    listeners.add(listener);
+  }
+
+  /**
+   * Removes a listener that the state will forward input events to
+   *
+   * @param listener
+   */
+  public void removeListener(InputListener listener)
+  {
+    listeners.remove(listener);
+  }
+
+  @Override
+  protected RootPane createRootPane()
+  {
+    RootPane rp = super.createRootPane();
+    rp.setTheme("gomokuclient");
+    return rp;
+  }
+
+  /**
+   * @see BasicGameState#init(GameContainer, StateBasedGame)
+   */
+  @Override
+  public void init(GameContainer container, StateBasedGame game) throws SlickException
+  {
+    this.game = (GomokuClient) game;
+    listeners = new HashSet<InputListener>();
+    getRootPane();
+    nextState = -1;
+    init(container, this.game);
+  }
+
+  /**
+   * Initialize the state. It should load any resources it needs at this stage
+   *
+   * @param container
+   *          The container holding the game
+   * @param game
+   *          The Gomoku game holding this state
+   * @see BasicGameState#init(GameContainer, StateBasedGame)
+   */
+  public abstract void init(GameContainer container, GomokuClient game) throws SlickException;
+
+  public void preRender(GameContainer container, StateBasedGame game, Graphics g) throws SlickException
+  {
+  }
+
+  public void postPreRender(GameContainer container, StateBasedGame game, Graphics g) throws SlickException
+  {
+  }
+
+  /**
+   * @see BasicGameState#render(GameContainer, StateBasedGame, Graphics)
+   */
+  @Override
+  public void render(GameContainer container, StateBasedGame game, Graphics g) throws SlickException
+  {
+    if (isRenderingParent())
+    {
+      parent.render(container, game, g);
+    }
+
+    render(container, (GomokuClient) game, g);
+  }
+
+  /**
+   * Render this state to the game's graphics context
+   *
+   * @param container
+   *          The container holding the game
+   * @param game
+   *          The Gomoku game holding this state
+   * @param g
+   *          The graphics context to render to
+   * @see BasicGameState#render(GameContainer, StateBasedGame, Graphics)
+   */
+  public abstract void render(GameContainer container, GomokuClient game, Graphics g) throws SlickException;
+
+  /**
+   * Synchronizes state changes because TWL use a new thread for each widget
+   * action, thus freaking OpenGL out because it needs its context to be in
+   * the same thread.
+   *
+   * @see BasicGameState#update(GameContainer, StateBasedGame, int)
+   */
+  @Override
+  public void update(GameContainer container, StateBasedGame game, int delta) throws SlickException
+  {
+    GomokuClient gomokuClient = (GomokuClient) game;
+    if (nextState >= 0)
+    {
+      gomokuClient.enterState(nextState);
+      nextState = -1;
+    }
+    else if (exitToParent)
+    {
+      if (parent == null)
+      {
+        throw new RuntimeException("parent cannot be null");
+      }
+
+      parent = null;
+      exitToParent = false;
+      gomokuClient.enterState(parent.getID());
+    }
+    else
+    {
+      update(container, gomokuClient, delta);
+    }
+
+  }
+
+  /**
+   * Update the state's logic based on the amount of time thats passed
+   *
+   * @param container
+   *          The container holding the game
+   * @param game
+   *          The Gomoku game holding this state
+   * @param delta
+   *          The amount of time thats passed in millisecond since last
+   *          update
+   * @see BasicGameState#update(GameContainer, StateBasedGame, int)
+   */
+  public abstract void update(GameContainer container, GomokuClient game, int delta) throws SlickException;
+
+  /**
+   * @see BasicGameState#enter(GameContainer, StateBasedGame)
+   */
+  @Override
+  public void enter(GameContainer container, StateBasedGame game) throws SlickException
+  {
+    super.enter(container, game);
+
+    container.getInput().clearKeyPressedRecord();
+    enter(container, (GomokuClient) game);
+  }
+
+  /**
+   * Notification that we've entered this game state
+   *
+   * @param container
+   *          The container holding the game
+   * @param game
+   *          The Gomoku game holding this state
+   * @throws SlickException
+   *           Indicates an internal error that will be reported through the
+   *           standard framework mechanism
+   * @see #enter(GameContainer, StateBasedGame)
+   */
+  public void enter(GameContainer container, GomokuClient game) throws SlickException
+  {
+  }
+
+  @Override
+  public void leave(GameContainer container, StateBasedGame game) throws SlickException
+  {
+    leave(container, (GomokuClient) game);
+  }
+
+  /**
+   * Notification that we're leaving this game state
+   *
+   * @param container
+   *          The container holding the game
+   * @param game
+   *          The Gomoku game holding this state
+   * @throws SlickException
+   *           Indicates an internal error that will be reported through the
+   *           standard framework mechanism
+   * @see #leave(GameContainer, StateBasedGame)
+   */
+  public void leave(GameContainer container, GomokuClient game) throws SlickException
+  {
+  }
+
+  /**
+   * Calculate the left X position for centering something within borders
+   *
+   * @param x1
+   *          The left position of the border
+   * @param x2
+   *          The right position of the border
+   * @param width
+   *          The width of the object being centered
+   * @return The left position
+   */
+  public int center(float x1, float x2, float objectWidth)
+  {
+    return (int) (x1 + (x2 - x1) / 2 - objectWidth / 2);
+  }
+
+  /**
+   * Allowing state changes to happen in the main thread only. This method can
+   * be called from any thread, and the state change will be invoked in the
+   * main update function.
+   *
+   * @param stateID
+   *          the state id to change to
+   * @see #update(GameContainer, StateBasedGame, int)
+   */
+  public void enterState(int stateID)
+  {
+    nextState = stateID;
+  }
+
+  public void enterState(int id, AbstractGameState parent)
+  {
+    nextState = id;
+    AbstractGameState thenextState = (AbstractGameState) getGame().getState(nextState);
+    thenextState.setParent(getGame().getCurrentState());
+  }
+
+  public void exitState()
+  {
+    if (parent == null)
+    {
+      throw new RuntimeException("parent");
+    }
+
+    enterState(parent.getID());
+  }
+
+  public void setParent(GameState parent)
+  {
+    this.parent = parent;
+  }
+
+  public boolean isRenderingParent()
+  {
+    return parent != null && renderParent;
+  }
+
+  public void setRenderingParent(boolean renderParent)
+  {
+    this.renderParent = renderParent;
+  }
+
+  /**
+   * Draw a string centered on the container at a given Y-coordinate
+   *
+   * @param text
+   *          the text to be written
+   * @param y
+   *          the y coordinate
+   * @param container
+   *          the container in which the string will be written
+   * @param g
+   *          the graphics context
+   */
+  public void drawCenteredString(String text, int y, GUIContext container, Graphics g)
+  {
+    Font font = g.getFont();
+    int textW = font.getWidth(text);
+    g.drawString(text, center(0, container.getWidth(), textW), y);
+  }
+
+  @Override
+  public void mouseWheelMoved(int change)
+  {
+    for (InputListener listener : listeners)
+    {
+      listener.mouseWheelMoved(change);
+    }
+  }
+
+  @Override
+  public void mouseClicked(int button, int x, int y, int clickCount)
+  {
+    for (InputListener listener : listeners)
+    {
+      listener.mouseClicked(button, x, y, clickCount);
+    }
+  }
+
+  @Override
+  public void mousePressed(int button, int x, int y)
+  {
+    for (InputListener listener : listeners)
+    {
+      listener.mousePressed(button, x, y);
+    }
+  }
+
+  @Override
+  public void mouseReleased(int button, int x, int y)
+  {
+    for (InputListener listener : listeners)
+    {
+      listener.mouseReleased(button, x, y);
+    }
+  }
+
+  @Override
+  public void mouseMoved(int oldx, int oldy, int newx, int newy)
+  {
+    for (InputListener listener : listeners)
+    {
+      listener.mouseMoved(oldx, oldy, newx, newy);
+    }
+  }
+
+  @Override
+  public void mouseDragged(int oldx, int oldy, int newx, int newy)
+  {
+    for (InputListener listener : listeners)
+    {
+      listener.mouseDragged(oldx, oldy, newx, newy);
+    }
+  }
+
+  @Override
+  public void setInput(Input input)
+  {
+  }
+
+  @Override
+  public boolean isAcceptingInput()
+  {
+    return true;
+  }
+
+  @Override
+  public void inputEnded()
+  {
+  }
+
+  @Override
+  public void inputStarted()
+  {
+  }
+
+  @Override
+  public void keyPressed(int key, char c)
+  {
+    for (InputListener listener : listeners)
+    {
+      listener.keyPressed(key, c);
+    }
+  }
+
+  @Override
+  public void keyReleased(int key, char c)
+  {
+    for (InputListener listener : listeners)
+    {
+      listener.keyReleased(key, c);
+    }
+  }
+
+  @Override
+  public void controllerLeftPressed(int controller)
+  {
+  }
+
+  @Override
+  public void controllerLeftReleased(int controller)
+  {
+  }
+
+  @Override
+  public void controllerRightPressed(int controller)
+  {
+  }
+
+  @Override
+  public void controllerRightReleased(int controller)
+  {
+  }
+
+  @Override
+  public void controllerUpPressed(int controller)
+  {
+  }
+
+  @Override
+  public void controllerUpReleased(int controller)
+  {
+  }
+
+  @Override
+  public void controllerDownPressed(int controller)
+  {
+  }
+
+  @Override
+  public void controllerDownReleased(int controller)
+  {
+  }
+
+  @Override
+  public void controllerButtonPressed(int controller, int button)
+  {
+  }
+
+  @Override
+  public void controllerButtonReleased(int controller, int button)
+  {
+  }
+}
