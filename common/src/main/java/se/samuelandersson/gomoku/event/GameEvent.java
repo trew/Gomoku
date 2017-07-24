@@ -8,5 +8,7 @@ public interface GameEvent
 
   void setAborted(final boolean aborted, final String reason);
   
+  String getAbortReason();
+  
   GomokuGame getGame();
 }

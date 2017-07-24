@@ -15,21 +15,35 @@
 			<artifactId>gomoku-common</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.slick2d</groupId>
-			<artifactId>slick2d-core</artifactId>
+			<groupId>${project.groupId}</groupId>
+			<artifactId>gomoku-server</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx-platform</artifactId>
+			<classifier>natives-desktop</classifier>
+		</dependency>
+		<dependency>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx-backend-lwjgl</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.martiansoftware</groupId>
 			<artifactId>jsap</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>de.matthiasmann.twl</groupId>
-			<artifactId>twl</artifactId>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<!-- twl dependency -->
-			<groupId>xpp3</groupId>
-			<artifactId>xpp3</artifactId>
+			<groupId>com.badlogicgames.gdx</groupId>
+			<artifactId>gdx-tools</artifactId>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>

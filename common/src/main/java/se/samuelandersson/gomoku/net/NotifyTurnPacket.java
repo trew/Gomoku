@@ -1,6 +1,6 @@
 package se.samuelandersson.gomoku.net;
 
-import se.samuelandersson.gomoku.Player;
+import se.samuelandersson.gomoku.Color;
 
 /**
  * Contains information about the current turn
@@ -10,7 +10,7 @@ import se.samuelandersson.gomoku.Player;
 public class NotifyTurnPacket
 {
   /** The player ID of the current turnholder */
-  private int id;
+  private Color color;
 
   /** Empty constructor for Kryonet */
   public NotifyTurnPacket()
@@ -25,9 +25,9 @@ public class NotifyTurnPacket
    * @throws IllegalArgumentException
    *           Indicates an invalid turn ID
    */
-  public NotifyTurnPacket(int id) throws IllegalArgumentException
+  public NotifyTurnPacket(Color color) throws IllegalArgumentException
   {
-    setID(id);
+    this.color = color;
   }
 
   /**
@@ -35,34 +35,14 @@ public class NotifyTurnPacket
    *
    * @return The turnholder ID
    */
-  public int getID()
+  public Color getID()
   {
-    return id;
-  }
-
-  /**
-   * Set the turnholder color
-   *
-   * @param id
-   *          The ID of the turnholder
-   * @throws IllegalArgumentException
-   *           Indicates an invalid turn id
-   */
-  public void setID(int id) throws IllegalArgumentException
-  {
-    if (id == Player.PLAYERONE || id == Player.PLAYERTWO)
-    {
-      this.id = id;
-    }
-    else
-    {
-      throw new IllegalArgumentException("Turn ID cannot be: \"" + id + "\"");
-    }
+    return this.color;
   }
 
   @Override
   public String toString()
   {
-    return String.format("NotifyTurn<%s>", this.id);
+    return String.format("NotifyTurn<%s>", this.color);
   }
 }

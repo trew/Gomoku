@@ -14,7 +14,7 @@ public interface GomokuGame
 
   Player getPlayerTwo();
 
-  Player getPlayer(final int playerId);
+  Player getPlayer(final Color color);
 
   Player getCurrentTurnPlayer();
 
@@ -31,4 +31,6 @@ public interface GomokuGame
   void checkBoard(int x, int y);
 
   void switchTurn();
+
+  boolean isGameOver();
 }

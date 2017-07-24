@@ -27,5 +27,8 @@ public enum Request
   CREATE_GAME,
 
   /** Request to leave the game */
-  LEAVE_GAME;
+  LEAVE_GAME,
+  
+  /** Request to join a game in a single-game server */
+  JOIN_SINGLE_GAME_SERVER;
 }

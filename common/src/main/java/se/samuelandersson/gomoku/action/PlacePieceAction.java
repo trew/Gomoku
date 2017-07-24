@@ -55,7 +55,11 @@ public class PlacePieceAction extends AbstractBoardAction
   public void confirmAction(GomokuGame game)
   {
     game.checkBoard(this.x, this.y);
-    game.switchTurn();
+    if (!game.isGameOver())
+    {
+      game.switchTurn();
+    }
+
     confirmed = true;
   }
 

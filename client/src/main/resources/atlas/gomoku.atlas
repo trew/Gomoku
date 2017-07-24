@@ -1,0 +1,76 @@
+
+gomoku.png
+size: 2048,1024
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+background
+  rotate: false
+  xy: 2, 161
+  size: 800, 600
+  orig: 800, 600
+  offset: 0, 0
+  index: -1
+board-slot
+  rotate: false
+  xy: 1529, 731
+  size: 30, 30
+  orig: 30, 30
+  offset: 0, 0
+  index: -1
+boardbg
+  rotate: false
+  xy: 1031, 571
+  size: 100, 100
+  orig: 100, 100
+  offset: 0, 0
+  index: -1
+bottommessagebox
+  rotate: false
+  xy: 2, 96
+  size: 800, 63
+  orig: 800, 63
+  offset: 0, 0
+  index: -1
+gomokuTitle
+  rotate: false
+  xy: 804, 673
+  size: 723, 88
+  orig: 723, 88
+  offset: 0, 0
+  index: -1
+infobar
+  rotate: false
+  xy: 804, 217
+  size: 225, 454
+  orig: 225, 454
+  offset: 0, 0
+  index: -1
+nametag
+  rotate: false
+  xy: 2, 34
+  size: 290, 60
+  orig: 290, 60
+  offset: 0, 0
+  index: -1
+piece-black
+  rotate: false
+  xy: 294, 64
+  size: 30, 30
+  orig: 30, 30
+  offset: 0, 0
+  index: -1
+piece-white
+  rotate: false
+  xy: 2, 2
+  size: 30, 30
+  orig: 30, 30
+  offset: 0, 0
+  index: -1
+versus
+  rotate: false
+  xy: 804, 125
+  size: 117, 90
+  orig: 117, 90
+  offset: 0, 0
+  index: -1

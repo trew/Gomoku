@@ -2,6 +2,8 @@ package se.samuelandersson.gomoku.server;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,115 +11,73 @@ import org.slf4j.LoggerFactory;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Listener;
 import com.esotericsoftware.kryonet.Server;
-import com.martiansoftware.jsap.FlaggedOption;
-import com.martiansoftware.jsap.JSAP;
-import com.martiansoftware.jsap.JSAPException;
-import com.martiansoftware.jsap.JSAPResult;
 
-import ch.qos.logback.core.net.server.ServerListener;
+import se.samuelandersson.gomoku.Color;
 import se.samuelandersson.gomoku.GomokuBoard;
 import se.samuelandersson.gomoku.GomokuConfig;
 import se.samuelandersson.gomoku.GomokuGame;
 import se.samuelandersson.gomoku.Player;
 import se.samuelandersson.gomoku.net.CreateGamePacket;
 import se.samuelandersson.gomoku.net.GameListPacket;
+import se.samuelandersson.gomoku.net.HandshakeClientPacket;
+import se.samuelandersson.gomoku.net.HandshakeServerPacket;
 import se.samuelandersson.gomoku.net.InitialClientDataPacket;
 import se.samuelandersson.gomoku.net.InitialServerDataPacket;
 import se.samuelandersson.gomoku.net.JoinGamePacket;
 import se.samuelandersson.gomoku.net.RegisterPackets;
 import se.samuelandersson.gomoku.net.Request;
 
-/**
- * Server of the Gomoku game<br />
- * <br />
- * Possible arguments<br />
- * <b>--port</b> <i>PORT</i> - The port number which we'll run the server on<br />
- * <b>--swing</b> - Whether we should run with swing or use standard console.
- * (Swing is always used on windows)<br />
- *
- * @author Samuel Andersson
- */
 public class GomokuServer extends Listener
 {
   private static final Logger log = LoggerFactory.getLogger(GomokuServer.class);
 
-  /**
-   * The port which this server is listening on. Can be set by providing
-   * --port to the application command line
-   *
-   * @see #parseArgs(String[])
-   */
-  private static int PORT;
-
   /** The Kryonet server */
-  private Server server;
+  private final Server server = new Server();
 
   /** The games that the server runs */
-  public HashMap<Integer, GomokuNetworkGame> games;
+  public final Map<Integer, GomokuNetworkGame> games = new HashMap<>();
 
   /** The list of connected players */
-  private HashMap<Integer, String> playerList;
+  private final Map<Integer, String> playerList = new HashMap<>();
 
   /** The list of all spectators */
-  private HashMap<Integer, String> spectators;
+  private final Map<Integer, String> spectators = new HashMap<>();
 
   /** List that keeps track of which game contains which player */
-  private HashMap<Integer, GomokuNetworkGame> playerInGame;
+  private final Map<Integer, GomokuNetworkGame> playerInGame = new HashMap<>();
+  private int port;
+  private boolean singleGameServer;
 
   /**
    * Create a new GomokuServer
    */
-  public GomokuServer()
+  public GomokuServer(int port, boolean singleGameServer)
   {
-    server = new Server();
-    games = new HashMap<Integer, GomokuNetworkGame>();
-    playerList = new HashMap<Integer, String>();
-    spectators = new HashMap<Integer, String>();
-    playerInGame = new HashMap<Integer, GomokuNetworkGame>();
-
-  }
-
-  /**
-   * Initialize the server, add the ServerListener and register kryo classes.
-   *
-   * @see ServerListener
-   */
-  public void init()
-  {
-    server.addListener(this);
-
     RegisterPackets.register(server.getKryo());
+
+    this.port = port;
+    this.singleGameServer = singleGameServer;
+    this.server.addListener(this);
   }
 
   /**
    * Start the server and begin listening on provided port
-   *
-   * @see #PORT
    */
-  public void start()
+  public void start() throws IOException
   {
     log.info("Starting server ...");
     server.start(); // new thread started
-    try
-    {
-      server.bind(PORT);
-      log.info("Server running on *:" + PORT);
-    }
-    catch (IOException e)
-    {
-      log.error("Error", e);
-      exit();
-    }
+    server.bind(this.port);
+    log.info("Server running on *:" + this.port);
   }
 
   /**
-   * Stop the server and exit cleanly.
+   * Stop the server thread
    */
-  public void exit()
+  public void stop()
   {
     log.info("Exiting server ...");
     server.stop();
-    System.exit(0);
   }
 
   public void leaveGame(int connID)
@@ -135,10 +95,9 @@ public class GomokuServer extends Listener
    * send to the source connection because that client has already made
    * necessary changes.
    *
-   * @param sourceConnection
-   *          The connection that triggered this broadcast
-   * @param object
-   *          The object that will be broadcasted
+   * @param sourceConnection The connection that triggered this broadcast. May be null, in which case all server
+   *          connections will receive the object.
+   * @param object The object that will be broadcasted
    */
   public void broadcast(Connection sourceConnection, Object object)
   {
@@ -204,10 +163,20 @@ public class GomokuServer extends Listener
         final InitialClientDataPacket initialClientDataPacket = (InitialClientDataPacket) obj;
         if (log.isDebugEnabled())
         {
-          log.debug("Received InitialClientData: " + initialClientDataPacket.getName());
+          log.debug("Received InitialClientData: " + initialClientDataPacket);
         }
 
         handleInitialClientData(conn, initialClientDataPacket);
+      }
+      else if (obj instanceof HandshakeClientPacket)
+      {
+        final HandshakeClientPacket handshakeClientPacket = (HandshakeClientPacket) obj;
+        if (log.isDebugEnabled())
+        {
+          log.debug("Received HandshakeClientPacket: " + handshakeClientPacket);
+        }
+
+        this.handleHandshakeClient(conn, handshakeClientPacket);
       }
       else if (obj instanceof CreateGamePacket)
       {
@@ -246,8 +215,19 @@ public class GomokuServer extends Listener
   {
     if (request == Request.GET_GAME_LIST)
     {
-      // send a list of open games
+        // send a list of open games
       this.sendTCP(connection, this.createGameListPacket());
+    }
+    else if (request == Request.JOIN_SINGLE_GAME_SERVER)
+    {
+      if (this.singleGameServer)
+      {
+        if (!this.games.isEmpty())
+        {
+          this.handleJoinGamePacket(connection,
+                                    new JoinGamePacket(this.games.entrySet().iterator().next().getKey().intValue()));
+        }
+      }
     }
   }
 
@@ -294,6 +274,13 @@ public class GomokuServer extends Listener
     log.info(playerName + "(" + ip + ", " + conn.getID() + ") has connected.");
     playerList.put(conn.getID(), playerName);
   }
+  
+  private void handleHandshakeClient(Connection conn, HandshakeClientPacket handshakeClientPacket)
+  {
+    boolean ready = !this.singleGameServer || !this.games.isEmpty();
+
+    conn.sendTCP(new HandshakeServerPacket(this.singleGameServer, ready));
+  }
 
   /**
    * Handles how a received CreateGamePacket should be treated.
@@ -305,17 +292,14 @@ public class GomokuServer extends Listener
    */
   private void handleCreateGamePacket(Connection conn, CreateGamePacket cgp)
   {
-    // TODO: Fix option to choose between white, black and spectator
-    int playerID = 0;
     String playerName = playerList.get(conn.getID());
-    playerID = Player.PLAYERONE;
 
     GomokuNetworkGame networkGame = new GomokuNetworkGame(this, server, cgp.getConfig());
     log.info(playerName + " created new game \"" + cgp.getConfig().getName() + "\".");
 
     games.put(networkGame.getID(), networkGame);
     playerInGame.put(conn.getID(), networkGame);
-    playerID = networkGame.join(conn, playerName);
+    Player player = networkGame.join(conn, playerName);
 
     GomokuGame game = networkGame.getGame();
     GomokuBoard board = game.getBoard();
@@ -323,11 +307,9 @@ public class GomokuServer extends Listener
 
     InitialServerDataPacket isdp = new InitialServerDataPacket(board,
                                                                config,
-                                                               playerID,
-                                                               game.getCurrentTurnPlayer().getID(),
-                                                               networkGame.getPlayerList(),
-                                                               game.getPlayerOne().getColor(),
-                                                               game.getPlayerTwo().getColor());
+                                                               player.getColor(),
+                                                               game.getCurrentTurnPlayer().getColor(),
+                                                               networkGame.getPlayerList());
     this.sendTCP(conn, isdp);
 
     // broadcast all games
@@ -351,89 +333,22 @@ public class GomokuServer extends Listener
       return;
     }
     playerInGame.put(conn.getID(), game);
-    int playerID = game.join(conn, playerList.get(conn.getID()));
+    Player player = game.join(conn, playerList.get(conn.getID()));
 
     GomokuBoard board = game.getGame().getBoard();
-    String[] playerList = game.getPlayerList();
+    List<Player> playerList = game.getPlayerList();
 
-    int turnID = game.getGame().getCurrentTurnPlayer().getID();
+    Color turnColor = game.getGame().getCurrentTurnPlayer().getColor();
     GomokuConfig config = game.getGame().getConfig();
 
-    GomokuGame gomGame = game.getGame();
-    InitialServerDataPacket isdp = new InitialServerDataPacket(board,
-                                                               config,
-                                                               playerID,
-                                                               turnID,
-                                                               playerList,
-                                                               gomGame.getPlayerOne().getColor(),
-                                                               gomGame.getPlayerTwo().getColor());
+    InitialServerDataPacket isdp = new InitialServerDataPacket(board, config, player.getColor(), turnColor, playerList);
     this.sendTCP(conn, isdp);
 
     String playerName = this.playerList.get(conn.getID());
-    if (playerID == Player.NOPLAYER)
+    if (player.getColor() == Color.NONE)
     {
       spectators.put(conn.getID(), playerName);
     }
-  }
-
-  /**
-   * Parse command line arguments that was passed to the application upon
-   * startup.
-   *
-   * @param args
-   *          The arguments passed to the application
-   */
-  public static void parseArgs(String[] args)
-  {
-    JSAP jsap = new JSAP();
-    FlaggedOption portOpt = new FlaggedOption("port").setStringParser(JSAP.INTEGER_PARSER)
-                                                     .setDefault("9123")
-                                                     .setLongFlag("port");
-
-    try
-    {
-      jsap.registerParameter(portOpt);
-
-      JSAPResult config = jsap.parse(args);
-      PORT = config.getInt("port");
-    }
-    catch (JSAPException e)
-    {
-      if (log.isTraceEnabled())
-      {
-        log.trace("Error", e);
-      }
-      else
-      {
-        log.error("Error parsing arguments: " + e.getMessage());
-      }
-
-      System.exit(-1);
-    }
-  }
-
-  /**
-   * The main entry point of the server
-   *
-   * @param args
-   *          Any arguments passed to the server
-   */
-  public static void main(String[] args)
-  {
-    parseArgs(args);
-
-    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        log.info("Shutting down...");
-      }
-    }));
-
-    final GomokuServer gomokuserver = new GomokuServer();
-    gomokuserver.init();
-    gomokuserver.start();
   }
 
 }

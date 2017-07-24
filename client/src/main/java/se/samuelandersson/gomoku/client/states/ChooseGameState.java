@@ -1,30 +1,31 @@
 package se.samuelandersson.gomoku.client.states;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.List;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.esotericsoftware.kryonet.Connection;
 
-import de.matthiasmann.twl.Button;
-import de.matthiasmann.twl.CallbackWithReason;
-import de.matthiasmann.twl.ListBox;
-import de.matthiasmann.twl.ListBox.CallbackReason;
-import de.matthiasmann.twl.model.SimpleListModel;
-import de.matthiasmann.twl.slick.RootPane;
+import se.samuelandersson.gomoku.client.Assets;
 import se.samuelandersson.gomoku.client.GomokuClient;
+import se.samuelandersson.gomoku.client.net.PacketHandler;
 import se.samuelandersson.gomoku.net.GameListPacket;
 import se.samuelandersson.gomoku.net.InitialServerDataPacket;
 import se.samuelandersson.gomoku.net.JoinGamePacket;
 import se.samuelandersson.gomoku.net.Request;
 
-public class ChooseGameState extends AbstractNetworkGameState
+public class ChooseGameState extends MenuState implements PacketHandler
 {
 
   private static final Logger log = LoggerFactory.getLogger(ChooseGameState.class);
@@ -33,138 +34,132 @@ public class ChooseGameState extends AbstractNetworkGameState
   private Button joinGameButton;
   private Button backButton;
 
-  private GomokuClient gomokuClient;
+  private List<GameListObject> gameList;
 
-  private ListBox<GameListModel> gameList;
-  private GameListModel gameListModel;
-
-  public ChooseGameState()
+  public ChooseGameState(GomokuClient app)
   {
-  }
-
-  @SuppressWarnings({ "unchecked", "rawtypes" })
-  @Override
-  public RootPane createRootPane()
-  {
-    RootPane rp = super.createRootPane();
-
-    gameListModel = new GameListModel();
-    gameList = new ListBox(gameListModel);
-
-    gameList.setPosition(80, 50);
-    gameList.setSize(620, 300);
-
-    createNewGameButton = new Button("Create Game");
-    createNewGameButton.setPosition(80, 360);
-    createNewGameButton.setSize(290, 60);
-    rp.add(createNewGameButton);
-
-    joinGameButton = new Button("Join Game");
-    joinGameButton.setPosition(405, 360);
-    joinGameButton.setSize(290, 60);
-    joinGameButton.setEnabled(false);
-    rp.add(joinGameButton);
-
-    backButton = new Button("Back");
-    backButton.setPosition(250, 500);
-    backButton.setSize(300, 60);
-    rp.add(backButton);
-
-    rp.add(gameList);
-
-    return rp;
+    super(app);
   }
 
   @Override
-  public void init(GameContainer container, final GomokuClient game) throws SlickException
+  public void initialize()
   {
-    gomokuClient = game;
+    super.initialize();
 
-    createNewGameButton.addCallback(new Runnable()
+    Skin skin = Assets.getInstance().getSkin();
+
+    gameList = new List<GameListObject>(skin, "gameList");
+
+    createNewGameButton = new TextButton("Create Game", skin);
+    this.createNewGameButton.addListener(new ChangeListener()
     {
       @Override
-      public void run()
+      public void changed(ChangeEvent event, Actor actor)
       {
-        enterState(CREATEGAMESTATE);
+        final GomokuClient app = ChooseGameState.this.getApplication();
+        app.setNextState(app.getState(CreateGameState.class));
       }
     });
 
-    joinGameButton.addCallback(new Runnable()
+    joinGameButton = new TextButton("Join Game", skin);
+    joinGameButton.setDisabled(true);
+    this.joinGameButton.addListener(new ChangeListener()
     {
       @Override
-      public void run()
+      public void changed(ChangeEvent event, Actor actor)
       {
-        joinGame();
+        ChooseGameState.this.joinGame();
       }
     });
 
-    gameList.addCallback(new CallbackWithReason<ListBox.CallbackReason>()
+    backButton = new TextButton("Back", skin);
+    this.backButton.addListener(new ChangeListener()
     {
       @Override
-      public void callback(CallbackReason reason)
+      public void changed(ChangeEvent event, Actor actor)
       {
-        if (reason.actionRequested())
+        final GomokuClient app = ChooseGameState.this.getApplication();
+        app.setNextState(MainMenuState.class);
+      }
+    });
+
+    this.gameList.addListener(new ClickListener(Input.Buttons.LEFT)
+    {
+      @Override
+      public void clicked(InputEvent event, float x, float y)
+      {
+        if (this.getTapCount() > 1)
         {
           joinGame();
         }
 
-        else if (gameList.getSelected() >= 0)
+        if (gameList.getSelectedIndex() >= 0)
         {
-          joinGameButton.setEnabled(true);
+          joinGameButton.setDisabled(false);
         }
         else
         {
-          joinGameButton.setEnabled(false);
+          joinGameButton.setDisabled(true);
         }
       }
     });
 
-    backButton.addCallback(new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        enterState(MAINMENUSTATE);
-      }
-    });
+    this.getTable().add(new Label("Games:", skin)).left().padBottom(0).spaceBottom(0);
+    this.getTable().row();
+    this.getTable().add(this.gameList).minSize(200, 100).padTop(0).spaceTop(0);
+    this.getTable().row();
+    this.getTable().add(this.createNewGameButton);
+    this.getTable().row();
+    this.getTable().add(this.joinGameButton);
+    this.getTable().row();
+    this.getTable().add(this.backButton);
+
+    this.getStage().addActor(this.getTable());
   }
 
   public void joinGame()
   {
-    int id = gameListModel.getEntry(gameList.getSelected()).id;
-    if (id >= 0)
+    GameListObject selected = this.gameList.getSelected();
+    if (selected != null)
     {
-      gomokuClient.getNetworkClient().sendTCP(new JoinGamePacket(id));
+      int id = selected.id;
+      if (id >= 0)
+      {
+        this.getApplication().getClient().sendTCP(new JoinGamePacket(id));
+      }
     }
   }
 
   @Override
-  public void enter(GameContainer container, GomokuClient game) throws SlickException
+  public void show()
   {
-    game.getNetworkClient().sendTCP(Request.GET_GAME_LIST);
+    super.show();
+
+    this.getApplication().getClient().sendTCP(Request.GET_GAME_LIST);
   }
 
   @Override
-  public void render(GameContainer container, GomokuClient game, Graphics g) throws SlickException
+  public boolean keyUp(int keycode)
   {
-  }
-
-  @Override
-  public void update(GameContainer container, GomokuClient game, int delta) throws SlickException
-  {
-    Input input = container.getInput();
-
-    if (input.isKeyPressed(Input.KEY_F5))
+    if (keycode == Input.Keys.F5)
     {
-      game.getNetworkClient().sendTCP(Request.GET_GAME_LIST);
+      this.getApplication().getClient().sendTCP(Request.GET_GAME_LIST);
+      return true;
     }
+    else if (keycode == Input.Keys.ESCAPE)
+    {
+      this.gameList.setSelectedIndex(-1);
+      this.joinGameButton.setDisabled(true);
+    }
+
+    return false;
   }
 
   /**
    * Clear the current gamelist and replace it with the new list
    */
   @Override
-  protected void handleGameList(Connection connection, GameListPacket glp)
+  public void handleGameList(Connection connection, GameListPacket glp)
   {
     log.debug("Received GameListPacket");
     if (glp.gameID.length != glp.gameName.length)
@@ -179,29 +174,24 @@ public class ChooseGameState extends AbstractNetworkGameState
       elements.add(new GameListObject(glp.gameID[x], glp.gameName[x]));
     }
 
-    gameListModel.updateElements(elements);
+    this.gameList.setItems(elements.toArray(new GameListObject[elements.size()]));
+    this.gameList.setSelectedIndex(-1);
+    this.joinGameButton.setDisabled(true);
   }
 
   /**
    * The server said we're good to go, prepare the GamePlayState and enter it.
    */
   @Override
-  protected void handleInitialServerData(Connection connection, InitialServerDataPacket isdp)
+  public void handleInitialServerData(Connection connection, InitialServerDataPacket isdp)
   {
-    ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE)).setInitialData(isdp.getBoard(),
-                                                                          isdp.getConfig(),
-                                                                          isdp.getID(),
-                                                                          isdp.getTurn(),
-                                                                          isdp.getPlayerList(),
-                                                                          isdp.getPlayerOneColor(),
-                                                                          isdp.getPlayerTwoColor());
-    enterState(GAMEPLAYSTATE);
-  }
-
-  @Override
-  public int getID()
-  {
-    return CHOOSEGAMESTATE;
+    final GameplayState gps = this.getApplication().getState(GameplayState.class);
+    gps.setInitialData(isdp.getBoard(),
+                       isdp.getConfig(),
+                       isdp.getPlayerColor(),
+                       isdp.getPlayerColorCurrentTurn(),
+                       isdp.getPlayerList());
+    this.getApplication().setNextState(gps);
   }
 
   public static class GameListObject
@@ -236,87 +226,6 @@ public class ChooseGameState extends AbstractNetworkGameState
       }
 
       return "<Empty>";
-    }
-  }
-
-  public static class GameListModel extends SimpleListModel<GameListObject>
-  {
-    private ArrayList<GameListObject> content;
-
-    public GameListModel()
-    {
-      this.content = new ArrayList<GameListObject>();
-    }
-
-    @Override
-    public int getNumEntries()
-    {
-      return content.size();
-    }
-
-    @Override
-    public GameListObject getEntry(int index)
-    {
-      return content.get(index);
-    }
-
-    public void updateElements(Collection<GameListObject> elements)
-    {
-      // remove all current elements that is not
-      int entriesRemovedFirst = -1;
-      int entriesRemovedLast = -1;
-      int entriesAddedFirst = -1;
-      int entriesAddedLast = -1;
-      int entryI = -1;
-      ArrayList<GameListObject> elementsToRemove = new ArrayList<GameListObject>();
-      for (GameListObject element : content)
-      {
-        if (!elements.contains(element))
-        {
-          elementsToRemove.add(element);
-          entryI = content.indexOf(element);
-
-          if (entryI < entriesRemovedFirst || entriesRemovedFirst < 0)
-          {
-            entriesRemovedFirst = entryI;
-          }
-
-          if (entryI > entriesRemovedLast || entriesRemovedLast < 0)
-          {
-            entriesRemovedLast = entryI;
-          }
-        }
-      }
-      content.removeAll(elementsToRemove);
-
-      if (entriesRemovedFirst >= 0 && entriesRemovedLast >= 0)
-      {
-        fireEntriesDeleted(entriesRemovedFirst, entriesRemovedLast);
-      }
-
-      for (GameListObject element : elements)
-      {
-        if (!content.contains(element))
-        {
-          content.add(element);
-          entryI = content.indexOf(element);
-
-          if (entryI < entriesAddedFirst || entriesAddedFirst < 0)
-          {
-            entriesAddedFirst = entryI;
-          }
-
-          if (entryI > entriesAddedLast || entriesAddedLast < 0)
-          {
-            entriesAddedLast = entryI;
-          }
-        }
-      }
-
-      if (entriesAddedFirst >= 0 && entriesAddedLast >= 0)
-      {
-        fireEntriesInserted(entriesAddedFirst, entriesAddedLast);
-      }
     }
   }
 }

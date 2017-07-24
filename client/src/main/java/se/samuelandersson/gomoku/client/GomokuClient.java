@@ -1,153 +1,276 @@
 package se.samuelandersson.gomoku.client;
 
-import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 
-import org.newdawn.slick.AppGameContainer;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.StateBasedGame;
-import org.newdawn.slick.util.ResourceLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import de.matthiasmann.twl.slick.TWLStateBasedGame;
-import se.samuelandersson.gomoku.client.gui.Fonts;
-import se.samuelandersson.gomoku.client.states.AbstractGameState;
-import se.samuelandersson.gomoku.client.states.ChooseGameState;
-import se.samuelandersson.gomoku.client.states.ConnectState;
-import se.samuelandersson.gomoku.client.states.CreateGameState;
-import se.samuelandersson.gomoku.client.states.GameplayState;
-import se.samuelandersson.gomoku.client.states.MainMenuState;
-import se.samuelandersson.gomoku.client.states.OptionsMenuState;
-import se.samuelandersson.gomoku.client.states.PauseMenu;
+import com.badlogic.gdx.Gdx;
 
-/**
- * The main entry class for the Gomoku client.
- *
- * @author Samuel Andersson
- *
- */
-public class GomokuClient extends TWLStateBasedGame
+import se.samuelandersson.gomoku.client.net.NetworkClient;
+import se.samuelandersson.gomoku.client.net.NetworkListener;
+import se.samuelandersson.gomoku.client.net.PacketHandler;
+import se.samuelandersson.gomoku.client.net.impl.NetworkClientImpl;
+import se.samuelandersson.gomoku.client.states.GameState;
+import se.samuelandersson.gomoku.client.states.MainMenuState;
+import se.samuelandersson.gomoku.server.GomokuServer;
+
+public class GomokuClient extends StateApplicationListener
 {
   private static final Logger log = LoggerFactory.getLogger(GomokuClient.class);
 
-  /* ********** STATIC ********** */
   /** The width of the screen */
-  private static final int WIDTH = 800;
+  public static final int WIDTH = 800;
 
   /** The height of the screen */
-  private static final int HEIGHT = 600;
+  public static final int HEIGHT = 600;
 
-  /** The target max frame rate */
-  private static final int TARGET_FPS = 60;
-
-  /* ********** END STATIC ********** */
-
-  /** The network client */
   private NetworkClient client;
 
-  private Settings settings;
+  /** Internal server */
+  private GomokuServer server;
 
-  /**
-   * Create a new game client
-   */
-  public GomokuClient()
-  {
-    super("Gomoku");
-    client = new NetworkClient();
-  }
+  private static Thread renderThread;
 
-  public NetworkClient getNetworkClient()
-  {
-    return this.client;
-  }
+  private static final Map<Class<? extends GameState>, GameState> states = new HashMap<>();
 
-  public void setNetworkClient(final NetworkClient client)
-  {
-    this.client = client;
-  }
-
-  public Settings getSettings()
-  {
-    return this.settings;
-  }
-
-  /**
-   * @see StateBasedGame#initStatesList(GameContainer)
-   */
   @Override
-  public void initStatesList(GameContainer container) throws SlickException
+  public void create()
   {
-    settings = new Settings();
-    settings.loadProperties();
+    renderThread = Thread.currentThread();
 
-    Fonts.loadAngelCodeFonts("fonts/messagebox", "fonts/nametag", "fonts/default");
-    container.setDefaultFont(Fonts.getDefaultFont());
+    client = new NetworkClientImpl();
 
-    this.addState(new MainMenuState());
-    this.addState(new ConnectState());
-    this.addState(new ChooseGameState());
-    this.addState(new CreateGameState());
-    this.addState(new GameplayState());
-    this.addState(new PauseMenu());
-    this.addState(new OptionsMenuState());
+    Settings.getInstance();
+
+    super.create();
+
+    setNextState(getState(MainMenuState.class));
   }
 
-  /**
-   * The main entry point of the game client
-   *
-   * @param args
-   *          The arguments passed to the application
-   * @throws URISyntaxException
-   * @throws MalformedURLException
-   * @see #parseArgs(String[])
-   */
-  public static void main(String[] args) throws MalformedURLException, URISyntaxException
+  @Override
+  public void dispose()
   {
-    try
+    super.dispose();
+
+    for (GameState gs : states.values())
     {
-      // create the StateBasedGame to be passed to the container
-      GomokuClient game = new GomokuClient();
+      gs.dispose();
+    }
 
-      System.setProperty("org.lwjgl.librarypath", new File("lib/lwjgl-2.9.3/native/windows").getAbsolutePath());
-      // create the container
-      AppGameContainer container = new AppGameContainer(game);
+    this.client.stop();
+    if (this.server != null)
+    {
+      this.server.stop();
+    }
 
-      // set display mode and configurations
-      Input.disableControllers();
-      container.setDisplayMode(WIDTH, HEIGHT, false);
-      container.setTargetFrameRate(TARGET_FPS);
-      container.setShowFPS(false);
-      container.setAlwaysRender(true);
-      container.setUpdateOnlyWhenVisible(false);
-      container.setForceExit(false); // we want to call functions after the game is cleaned up
+    Settings.getInstance().storeProperties();
+  }
 
-      // start the game
+  @Override
+  protected void enterState(StateHolder state)
+  {
+    super.enterState(state);
+    GameState gameState = state.state;
+
+    if (gameState instanceof NetworkListener)
+    {
+      this.getClient().addListener((NetworkListener) gameState);
+    }
+
+    if (gameState instanceof PacketHandler)
+    {
+      this.getClient().addPacketHandler((PacketHandler) gameState);
+    }
+  }
+
+  @Override
+  protected void exitState(StateHolder state)
+  {
+    super.exitState(state);
+    GameState gameState = state.state;
+
+    if (gameState instanceof NetworkListener)
+    {
+      this.getClient().removeListener((NetworkListener) gameState);
+    }
+
+    if (gameState instanceof PacketHandler)
+    {
+      this.getClient().removePacketHandler((PacketHandler) gameState);
+    }
+  }
+
+  public NetworkClient getClient()
+  {
+    return client;
+  }
+  
+  public GomokuServer getServer()
+  {
+    return this.server;
+  }
+
+  public void startServer()
+  {
+    if (this.server == null)
+    {
+      this.server = new GomokuServer(9123, true);
       try
       {
-        container.start();
+        this.server.start();
       }
-      finally
+      catch (IOException e)
       {
-        // stop the client before exiting
-        game.client.stop();
-        game.settings.storeProperties();
+        log.error("Error starting server on *:" + 9123, e);
+        this.server.stop();
+        this.server = null;
       }
     }
-    catch (SlickException e)
+    else
     {
-      log.error("Error", e.getMessage());
+      this.stopServer();
+      this.startServer();
     }
   }
   
-  @Override
-  protected URL getThemeURL()
+  public void stopServer()
   {
-    return ResourceLoader.getResource("theme/theme.xml");
+    this.server.stop();
+    this.server = null;
+  }
+
+  @Override
+  public void setNextState(Class<? extends GameState> state)
+  {
+    this.setNextState(this.getState(state));
+  }
+  
+  @SuppressWarnings("unchecked")
+  public <T extends GameState> T getState(Class<T> clazz)
+  {
+    GameState state = states.get(clazz);
+    if (state == null)
+    {
+      final Callable<T> c = new Callable<T>()
+      {
+        @Override
+        public T call() throws Exception
+        {
+          try
+          {
+            Constructor<T> constructor = clazz.getConstructor(GomokuClient.class);
+            T instance = constructor.newInstance(GomokuClient.this);
+            instance.initialize();
+            states.put(clazz, (GameState) instance);
+            return instance;
+          }
+          catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException
+                 | IllegalArgumentException | InvocationTargetException e)
+          {
+            throw new IllegalStateException(e);
+          }
+        }
+      };
+
+      if (isRenderThread())
+      {
+        try
+        {
+          return c.call();
+        }
+        catch (Exception e)
+        {
+          throw new RuntimeException(e);
+        }
+      }
+      else
+      {
+        return invokeAndWait(c);
+      }
+    }
+
+    return (T) state;
+  }
+
+  private static boolean isRenderThread()
+  {
+    return Thread.currentThread() == renderThread;
+  }
+
+  private static <T> T invokeAndWait(final Callable<T> callable)
+  {
+    final CountDownLatch latch = new CountDownLatch(1);
+    class CallableRunnable implements Runnable
+    {
+      private T value;
+
+      @Override
+      public void run()
+      {
+        try
+        {
+          value = callable.call();
+        }
+        catch (Exception e)
+        {
+        }
+        finally
+        {
+          latch.countDown();
+        }
+      }
+    }
+    CallableRunnable runnable = new CallableRunnable();
+    Gdx.app.postRunnable(runnable);
+
+    try
+    {
+      latch.await();
+    }
+    catch (InterruptedException e)
+    {
+      log.error("Interrupted", e);
+    }
+
+    return runnable.value;
+  }
+
+  /**
+   * Similar to {@link java.awt.EventQueue#invokeAndWait(Runnable)} but works with the LibGDX render thread.
+   */
+  static void invokeAndWait(final Runnable runnable)
+  {
+    final CountDownLatch latch = new CountDownLatch(1);
+    Gdx.app.postRunnable(new Runnable()
+    {
+      @Override
+      public void run()
+      {
+        try
+        {
+          runnable.run();
+        }
+        finally
+        {
+          latch.countDown();
+        }
+      }
+    });
+
+    try
+    {
+      latch.await();
+    }
+    catch (InterruptedException e)
+    {
+      log.error("Interrupted", e);
+    }
   }
 }

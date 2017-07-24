@@ -1,110 +1,86 @@
 package se.samuelandersson.gomoku.client.states;
 
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
-import org.newdawn.slick.SlickException;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 
-import de.matthiasmann.twl.Button;
-import de.matthiasmann.twl.slick.RootPane;
+import se.samuelandersson.gomoku.client.Assets;
 import se.samuelandersson.gomoku.client.GomokuClient;
 
-public class MainMenuState extends AbstractGameState
+public class MainMenuState extends MenuState
 {
-  private Image gomokuTitle;
-
   private Button multiPlayerButton;
   private Button optionsButton;
   private Button exitButton;
 
-  public MainMenuState()
+  public MainMenuState(GomokuClient app)
   {
+    super(app);
   }
 
   @Override
-  public RootPane createRootPane()
+  public void initialize()
   {
-    RootPane rp = super.createRootPane();
+    super.initialize();
 
-    multiPlayerButton = new Button("Play Multiplayer");
-    multiPlayerButton.setSize(300, 50);
-    multiPlayerButton.setPosition(250, 200);
-    rp.add(multiPlayerButton);
-
-    optionsButton = new Button("Options");
-    optionsButton.setSize(300, 50);
-    optionsButton.setPosition(250, 280);
-    optionsButton.setEnabled(false);
-    rp.add(optionsButton);
-
-    exitButton = new Button("Exit Game");
-    exitButton.setSize(300, 50);
-    exitButton.setPosition(250, 360);
-    rp.add(exitButton);
-
-    return rp;
-  }
-
-  @Override
-  public void init(final GameContainer container, final GomokuClient game) throws SlickException
-  {
-    final GameContainer gamecontainer = container;
-
-    gomokuTitle = new Image("gomoku.png");
-
-    multiPlayerButton.addCallback(new Runnable()
+    Skin skin = Assets.getInstance().getSkin();
+    this.multiPlayerButton = new TextButton("Play Multiplayer", skin);
+    this.multiPlayerButton.addListener(new ChangeListener()
     {
       @Override
-      public void run()
+      public void changed(ChangeEvent event, Actor actor)
       {
-        enterState(CONNECTGAMESTATE);
+        final GomokuClient application = MainMenuState.this.getApplication();
+        application.setNextState(application.getState(JoinOrStartServerState.class));
       }
     });
 
-    optionsButton.addCallback(new Runnable()
+    this.optionsButton = new TextButton("Options", skin);
+    this.optionsButton.setDisabled(true);
+    this.optionsButton.addListener(new ChangeListener()
     {
       @Override
-      public void run()
+      public void changed(ChangeEvent event, Actor actor)
       {
-        enterState(OPTIONSMENUSTATE, (AbstractGameState) game.getCurrentState());
+        final GomokuClient application = MainMenuState.this.getApplication();
+        application.setNextState(application.getState(OptionsMenuState.class), true, false);
       }
     });
 
-    exitButton.addCallback(new Runnable()
+    this.exitButton = new TextButton("Exit Game", skin);
+    this.exitButton.addListener(new ChangeListener()
     {
       @Override
-      public void run()
+      public void changed(ChangeEvent event, Actor actor)
       {
-        gamecontainer.exit();
+        MainMenuState.this.getApplication().exit();
       }
     });
-  }
 
+    this.getTable().add(this.multiPlayerButton);
+    this.getTable().row();
+    this.getTable().add(this.optionsButton);
+    this.getTable().row();
+    this.getTable().add(this.exitButton);
+
+    this.getStage().addActor(this.getTable());
+  }
+  
   @Override
-  public void render(GameContainer container, GomokuClient game, Graphics g) throws SlickException
+  public void show()
   {
-    g.drawImage(gomokuTitle, 16, 30);
+    super.show();
+    
+    if (this.getApplication().getClient().isConnected())
+    {
+      this.getApplication().getClient().disconnect();
+    }
+    
+    if (this.getApplication().getServer() != null)
+    {
+      this.getApplication().stopServer();
+    }
   }
-
-  @Override
-  public void update(GameContainer container, GomokuClient game, int delta) throws SlickException
-  {
-  }
-
-  @Override
-  public void enter(GameContainer container, GomokuClient game) throws SlickException
-  {
-  }
-
-  @Override
-  public void leave(GameContainer container, GomokuClient game) throws SlickException
-  {
-  }
-
-  @Override
-  public int getID()
-  {
-    return MAINMENUSTATE;
-  }
-
 }

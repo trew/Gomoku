@@ -1,18 +1,18 @@
 package se.samuelandersson.gomoku.client.states;
 
-import org.newdawn.slick.Color;
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.Image;
-import org.newdawn.slick.Input;
-import org.newdawn.slick.SlickException;
-import org.newdawn.slick.state.StateBasedGame;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 
-import de.matthiasmann.twl.Button;
-import de.matthiasmann.twl.GUI;
-import de.matthiasmann.twl.Widget;
-import de.matthiasmann.twl.renderer.DynamicImage;
-import de.matthiasmann.twl.slick.RootPane;
+import se.samuelandersson.gomoku.client.Assets;
 import se.samuelandersson.gomoku.client.GomokuClient;
 import se.samuelandersson.gomoku.net.Request;
 
@@ -23,109 +23,107 @@ public class PauseMenu extends AbstractGameState
   private Button exitToMenuButton;
   private Button exitToOSButton;
 
-  public PauseMenu()
+  private ShapeRenderer backgroundRenderer;
+
+  public PauseMenu(GomokuClient app)
   {
-    setRenderingParent(true);
+    super(app);
   }
 
   @Override
-  protected RootPane createRootPane()
+  public void initialize()
   {
-    RootPane rp = super.createRootPane();
+    Skin skin = Assets.getInstance().getSkin();
 
-    continueButton = new Button("Continue");
+    backgroundRenderer = new ShapeRenderer();
+
+    continueButton = new TextButton("Continue", skin);
     continueButton.setSize(300, 50);
     continueButton.setPosition(250, 150);
-    rp.add(continueButton);
+    continueButton.addListener(new ChangeListener()
+    {
+      @Override
+      public void changed(ChangeEvent event, Actor actor)
+      {
+        PauseMenu.this.getApplication().exitCurrentState();
+      }
+    });
 
-    optionsButton = new Button("Options");
+    optionsButton = new TextButton("Options", skin);
     optionsButton.setSize(300, 50);
     optionsButton.setPosition(250, 220);
-    optionsButton.setEnabled(false);
-    rp.add(optionsButton);
+    optionsButton.setDisabled(true);
+    optionsButton.addListener(new ChangeListener()
+    {
+      @Override
+      public void changed(ChangeEvent event, Actor actor)
+      {
+        GomokuClient app = PauseMenu.this.getApplication();
+        app.setNextState(app.getState(OptionsMenuState.class), true, true);
+      }
+    });
 
-    exitToMenuButton = new Button("Exit to Menu");
+    exitToMenuButton = new TextButton("Exit to Menu", skin);
     exitToMenuButton.setSize(300, 50);
     exitToMenuButton.setPosition(250, 290);
-    rp.add(exitToMenuButton);
+    exitToMenuButton.addListener(new ChangeListener()
+    {
+      @Override
+      public void changed(ChangeEvent event, Actor actor)
+      {
+        GomokuClient app = PauseMenu.this.getApplication();
+        app.getClient().sendTCP(Request.LEAVE_GAME);
+        app.setNextState(app.getState(MainMenuState.class));
+      }
+    });
 
-    exitToOSButton = new Button("Exit to OS");
+    exitToOSButton = new TextButton("Exit to OS", skin);
     exitToOSButton.setSize(300, 50);
     exitToOSButton.setPosition(250, 360);
-    rp.add(exitToOSButton);
+    exitToOSButton.addListener(new ChangeListener()
+    {
+      @Override
+      public void changed(ChangeEvent event, Actor actor)
+      {
+        PauseMenu.this.getApplication().exit();
+      }
+    });
 
-    return rp;
+    this.getTable().defaults().minWidth(200).space(10).fill();
+    this.getTable().add(continueButton);
+    this.getTable().row();
+    this.getTable().add(optionsButton);
+    this.getTable().row();
+    this.getTable().add(exitToMenuButton);
+    this.getTable().row();
+    this.getTable().add(exitToOSButton);
+
+    this.getStage().addActor(this.getTable());
   }
 
   @Override
-  public void init(final GameContainer container, final GomokuClient game) throws SlickException
+  public void render()
   {
-    continueButton.addCallback(new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        exitState();
-      }
-    });
-    optionsButton.addCallback(new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        AbstractNetworkGameState optionsState = ((AbstractNetworkGameState) game.getState(OPTIONSMENUSTATE));
-        optionsState.setForwarding(true);
-        optionsState.setStateToForwardTo((AbstractNetworkGameState) game.getState(GAMEPLAYSTATE));
-        enterState(OPTIONSMENUSTATE, (AbstractGameState) game.getCurrentState());
-      }
-    });
-    exitToMenuButton.addCallback(new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        getGame().getNetworkClient().sendTCP(Request.LEAVE_GAME);
-        enterState(MAINMENUSTATE);
-      }
-    });
-    exitToOSButton.addCallback(new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        container.exit();
-      }
-    });
+    Gdx.gl.glEnable(GL20.GL_BLEND);
+    Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+    backgroundRenderer.begin(ShapeType.Filled);
+    backgroundRenderer.setColor(0, 0, 0, 0.5f);
+    backgroundRenderer.rect(0, 0, GomokuClient.WIDTH, GomokuClient.HEIGHT);
+    backgroundRenderer.end();
+    Gdx.gl.glDisable(GL20.GL_BLEND);
+
+    this.getStage().draw();
   }
 
   @Override
-  public void leave(GameContainer container, GomokuClient game) throws SlickException
+  public boolean keyUp(int keycode)
   {
-    AbstractNetworkGameState optionsState = ((AbstractNetworkGameState) game.getState(OPTIONSMENUSTATE));
-    optionsState.setForwarding(false);
-    optionsState.setStateToForwardTo(null);
-  }
-
-  @Override
-  public void update(GameContainer container, GomokuClient game, int delta) throws SlickException
-  {
-    Input input = container.getInput();
-
-    if (input.isKeyPressed(Input.KEY_ESCAPE))
+    if (keycode == Input.Keys.ESCAPE)
     {
-      exitState();
+      this.getApplication().exitCurrentState();
+      return true;
     }
-  }
 
-  @Override
-  public void render(GameContainer container, GomokuClient game, Graphics g) throws SlickException
-  {
+    return super.keyUp(keycode);
   }
-
-  @Override
-  public int getID()
-  {
-    return PAUSEMENUSTATE;
-  }
-
 }

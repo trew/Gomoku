@@ -25,6 +25,7 @@ public class AbstractGameEvent implements GameEvent
     return this.aborted;
   }
   
+  @Override
   public String getAbortReason()
   {
     return this.abortReason;

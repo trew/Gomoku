@@ -1,6 +1,9 @@
 package se.samuelandersson.gomoku.server;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.esotericsoftware.kryonet.Connection;
 import com.esotericsoftware.kryonet.Server;
 
+import se.samuelandersson.gomoku.Color;
 import se.samuelandersson.gomoku.GomokuConfig;
 import se.samuelandersson.gomoku.GomokuGame;
 import se.samuelandersson.gomoku.GomokuGameListener;
@@ -43,10 +47,10 @@ public class GomokuNetworkGame implements GomokuGameListener
   private int playerTwoConnID;
 
   /** The list of connected players */
-  private HashMap<Integer, String> playerList;
+  private Map<Integer, Player> playerList;
 
   /** The list of all spectators */
-  private HashMap<Integer, String> spectators;
+  private Map<Integer, Player> spectators;
 
   /** The game logic */
   private GomokuGame game;
@@ -89,8 +93,8 @@ public class GomokuNetworkGame implements GomokuGameListener
     isEnding = false;
     id = IDCOUNTER++;
 
-    playerList = new HashMap<Integer, String>();
-    spectators = new HashMap<Integer, String>();
+    playerList = new HashMap<Integer, Player>();
+    spectators = new HashMap<Integer, Player>();
   }
 
   @Override
@@ -140,37 +144,37 @@ public class GomokuNetworkGame implements GomokuGameListener
    *
    * @param conn
    *          the connection that wants to join the game
-   * @param name
-   *          the name of the player at the remote endpoint
-   * @return the playercolor that the player received
+   * @param player
+   *          the player at the remote endpoint
+   * @return the player object of the joined player
    */
-  public int join(Connection conn, String name)
+  public Player join(Connection conn, String playerName)
   {
-    int playerID = Player.NOPLAYER;
+    Player player = new Player(playerName, Color.NONE);
     if (playerOneConnID == 0)
     {
       playerOneConnID = conn.getID();
-      game.getPlayerOne().setName(name);
-      playerID = Player.PLAYERONE;
-      log.info(name + " joined game " + this.name + " as player one.");
+      player.setColor(Color.BLACK);
+      game.getPlayerOne().setFrom(player);
+      log.info(player + " joined game " + this.name + " as player one (black).");
     }
     else if (playerTwoConnID == 0)
     {
       playerTwoConnID = conn.getID();
-      game.getPlayerTwo().setName(name);
-      playerID = Player.PLAYERTWO;
-      log.info(name + " joined game " + this.name + " as player two.");
+      player.setColor(Color.WHITE);
+      game.getPlayerTwo().setFrom(player);
+      log.info(player + " joined game " + this.name + " as player two (white).");
     }
     else
     {
-      spectators.put(conn.getID(), name);
-      log.info(name + " joined game " + this.name + " as spectator.");
+      spectators.put(conn.getID(), player);
+      log.info(player + " joined game " + this.name + " as spectator.");
     }
 
-    playerList.put(conn.getID(), name);
+    playerList.put(conn.getID(), player);
     broadcast(conn, new PlayerListPacket(getPlayerList()));
 
-    return playerID;
+    return player;
   }
 
   /**
@@ -260,32 +264,23 @@ public class GomokuNetworkGame implements GomokuGameListener
    *
    * @return a list of connected players
    */
-  public String[] getPlayerList()
+  public List<Player> getPlayerList()
   {
-    String[] players = new String[spectators.size() + 2];
+    List<Player> players = new ArrayList<>();
 
     // add black to the first position
-    if (playerOneConnID == 0)
+    if (playerOneConnID != 0)
     {
-      players[0] = "(none)";
+      players.add(playerList.get(playerOneConnID));
     }
-    else
+    if (playerTwoConnID != 0)
     {
-      players[0] = playerList.get(playerOneConnID);
-    }
-    if (playerTwoConnID == 0)
-    {
-      players[1] = "(none)";
-    }
-    else
-    {
-      players[1] = playerList.get(playerTwoConnID);
+      players.add(playerList.get(playerTwoConnID));
     }
 
-    int x = 2;
-    for (String p : spectators.values())
+    for (Player p : spectators.values())
     {
-      players[x++] = p;
+      players.add(p);
     }
 
     return players;
@@ -350,25 +345,25 @@ public class GomokuNetworkGame implements GomokuGameListener
    */
   private void handleBoardAction(Connection conn, GameActionPacket ppp)
   {
-
-    int playerID = Player.NOPLAYER;
+    Color playerColor = Color.NONE;
     if (playerOneConnID == conn.getID())
     {
-      playerID = Player.PLAYERONE;
+      playerColor = Color.BLACK;
     }
     else if (playerTwoConnID == conn.getID())
     {
-      playerID = Player.PLAYERTWO;
+      playerColor = Color.WHITE;
     }
     else
     { // player is a spectator. he cannot place
+      log.error("Board action received from spectator player", new RuntimeException());
       return;
     }
 
     // not the players turn
-    if (playerID != game.getCurrentTurnPlayer().getID())
+    if (playerColor != game.getCurrentTurnPlayer().getColor())
     {
-      throw new IllegalStateException("Unable to handle game action from player: " + playerID);
+      throw new IllegalStateException("Unable to handle game action from player: " + playerColor);
     }
 
     try
@@ -403,11 +398,11 @@ public class GomokuNetworkGame implements GomokuGameListener
     {
       game.reset();
       broadcast(null, new BoardPacket(game.getBoard()));
-      broadcast(null, new NotifyTurnPacket(game.getCurrentTurnPlayer().getID()));
+      broadcast(null, new NotifyTurnPacket(game.getCurrentTurnPlayer().getColor()));
     }
     else if (request == Request.GET_TURN)
     {
-      this.gomokuServer.sendTCP(connection, new NotifyTurnPacket(game.getCurrentTurnPlayer().getID()));
+      this.gomokuServer.sendTCP(connection, new NotifyTurnPacket(game.getCurrentTurnPlayer().getColor()));
     }
     else if (request == Request.GET_PLAYER_LIST)
     {

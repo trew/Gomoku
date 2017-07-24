@@ -1,209 +1,190 @@
 package se.samuelandersson.gomoku.client.states;
 
-import org.newdawn.slick.GameContainer;
-import org.newdawn.slick.Graphics;
-import org.newdawn.slick.SlickException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.ui.Button;
+import com.badlogic.gdx.scenes.scene2d.ui.CheckBox;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.ui.SelectBox;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.TextField;
+import com.badlogic.gdx.scenes.scene2d.ui.TextTooltip;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.Align;
 import com.esotericsoftware.kryonet.Connection;
 
-import de.matthiasmann.twl.Button;
-import de.matthiasmann.twl.ComboBox;
-import de.matthiasmann.twl.EditField;
-import de.matthiasmann.twl.ToggleButton;
-import de.matthiasmann.twl.model.SimpleChangableListModel;
-import de.matthiasmann.twl.slick.RootPane;
 import se.samuelandersson.gomoku.GomokuConfig;
+import se.samuelandersson.gomoku.client.Assets;
 import se.samuelandersson.gomoku.client.GomokuClient;
+import se.samuelandersson.gomoku.client.net.PacketHandler;
 import se.samuelandersson.gomoku.net.CreateGamePacket;
 import se.samuelandersson.gomoku.net.InitialServerDataPacket;
 
-public class CreateGameState extends AbstractNetworkGameState
+public class CreateGameState extends MenuState implements PacketHandler
 {
-  private static final Logger log = LoggerFactory.getLogger(CreateGameState.class);
-
-  private EditField gameNameField;
-  SimpleChangableListModel<Integer> widthBoxModel;
-  SimpleChangableListModel<Integer> heightBoxModel;
-  private ComboBox<Integer> widthBox;
-  private ComboBox<Integer> heightBox;
-  private ToggleButton allowOverlinesCB;
-  private ToggleButton threeAndThreeCB;
-  private ToggleButton fourAndFourCB;
+  private TextField gameNameField;
+  private SelectBox<Integer> widthBox;
+  private SelectBox<Integer> heightBox;
+  private CheckBox allowOverlinesCB;
+  private CheckBox threeAndThreeCB;
+  private CheckBox fourAndFourCB;
   private Button confirmButton;
 
   private Button backButton;
 
-  private GomokuClient gomokuClient;
+  private Label gameNameLabel;
+  private Label whLabel;
 
-  private String errorMsg;
-
-  public CreateGameState()
+  public CreateGameState(GomokuClient app)
   {
+    super(app);
   }
 
   @Override
-  public RootPane createRootPane()
+  public void initialize()
   {
-    RootPane rp = super.createRootPane();
+    super.initialize();
 
-    gameNameField = new EditField();
-    gameNameField.setPosition(250, 50);
-    gameNameField.setSize(300, 30);
-    rp.add(gameNameField);
+    Skin skin = Assets.getInstance().getSkin();
 
-    widthBoxModel = new SimpleChangableListModel<Integer>();
-    heightBoxModel = new SimpleChangableListModel<Integer>();
+    gameNameField = new TextField("game", skin);
+
+    List<Integer> widthItems = new ArrayList<>();
+    List<Integer> heightItems = new ArrayList<>();
+
     for (int i = 5; i <= 40; i++)
     {
-      widthBoxModel.addElement(i);
-      heightBoxModel.addElement(i);
+      widthItems.add(i);
+      heightItems.add(i);
     }
 
-    widthBox = new ComboBox<Integer>(widthBoxModel);
-    widthBox.setPosition(330, 110);
-    widthBox.setSize(60, 30);
-    widthBox.setSelected(widthBoxModel.findElement(Integer.valueOf(15)));
+    widthBox = new SelectBox<Integer>(skin);
+    widthBox.setItems(widthItems.toArray(new Integer[widthItems.size()]));
+    widthBox.setSelected(Integer.valueOf(15));
 
-    heightBox = new ComboBox<Integer>(heightBoxModel);
-    heightBox.setPosition(410, 110);
-    heightBox.setSize(60, 30);
-    heightBox.setSelected(widthBoxModel.findElement(Integer.valueOf(15)));
+    heightBox = new SelectBox<Integer>(skin);
+    heightBox.setItems(heightItems.toArray(new Integer[heightItems.size()]));
+    heightBox.setSelected(Integer.valueOf(15));
 
-    rp.add(widthBox);
-    rp.add(heightBox);
+    allowOverlinesCB = new CheckBox("Allow Overlines", skin);
+    allowOverlinesCB.align(Align.left);
+    allowOverlinesCB.getLabelCell().spaceLeft(10);
+    allowOverlinesCB.addListener(new TextTooltip("Allowing overlines means you can win by having 6 or more stones in a row",
+                                                 skin));
 
-    allowOverlinesCB = new ToggleButton("Allow Overlines");
-    allowOverlinesCB.setPosition(250, 200);
-    allowOverlinesCB.setSize(130, 30);
-    allowOverlinesCB.setTooltipContent("Allowing overlines means you\n" + "can win by having 6 or more\n" +
-                                       "stones in a row.");
+    threeAndThreeCB = new CheckBox("Three And Three", skin);
+    threeAndThreeCB.align(Align.left);
+    threeAndThreeCB.getLabelCell().spaceLeft(10);
+    threeAndThreeCB.addListener(new TextTooltip("Three and three means you are not allowed to place a stone with which you create two open rows of 3.",
+                                                skin));
 
-    threeAndThreeCB = new ToggleButton("Three And Three");
-    threeAndThreeCB.setPosition(250, 235);
-    threeAndThreeCB.setSize(130, 30);
-    threeAndThreeCB.setTooltipContent("Three and three means you are not\n" + "allowed to place a stone with which\n" +
-                                      "you create two open rows of 3.");
+    fourAndFourCB = new CheckBox("Four And Four", skin);
+    fourAndFourCB.align(Align.left);
+    fourAndFourCB.getLabelCell().spaceLeft(10);
+    fourAndFourCB.addListener(new TextTooltip("Four and four means you are not allowed to place a stone with which you create two open rows of 4.",
+                                              skin));
 
-    fourAndFourCB = new ToggleButton("Four And Four");
-    fourAndFourCB.setPosition(250, 270);
-    fourAndFourCB.setSize(130, 30);
-    fourAndFourCB.setTooltipContent("Four and four means you are not\n" + "allowed to place a stone with which\n" +
-                                    "you create two rows of 4.");
-
-    rp.add(allowOverlinesCB);
-    rp.add(threeAndThreeCB);
-    rp.add(fourAndFourCB);
-
-    confirmButton = new Button("Create Game!");
-    confirmButton.setPosition(250, 380);
-    confirmButton.setSize(300, 60);
-    rp.add(confirmButton);
-
-    backButton = new Button("Back");
-    backButton.setPosition(250, 500);
-    backButton.setSize(300, 60);
-
-    rp.add(backButton);
-
-    return rp;
-  }
-
-  @Override
-  public void init(GameContainer container, final GomokuClient game) throws SlickException
-  {
-    gomokuClient = game;
-
-    confirmButton.addCallback(new Runnable()
+    confirmButton = new TextButton("Create Game!", skin);
+    confirmButton.setColor(Color.GREEN);
+    confirmButton.addListener(new ChangeListener()
     {
       @Override
-      public void run()
+      public void changed(ChangeEvent event, Actor actor)
       {
-        try
+        createNewGame();
+      }
+    });
+
+    backButton = new TextButton("Back", skin);
+    backButton.addListener(new ChangeListener()
+    {
+      @Override
+      public void changed(ChangeEvent event, Actor actor)
+      {
+        GomokuClient app = CreateGameState.this.getApplication();
+        if (app.getServer() != null)
         {
-          createNewGame();
+          app.getClient().disconnect();
+          app.stopServer();
+          app.setNextState(JoinOrStartServerState.class);
         }
-        catch (IllegalArgumentException e)
+        else
         {
-          log.error("Error creating game", e);
-          errorMsg = e.getMessage();
+          app.setNextState(ChooseGameState.class);
         }
       }
     });
 
-    backButton.addCallback(new Runnable()
-    {
-      @Override
-      public void run()
-      {
-        enterState(CHOOSEGAMESTATE);
-      }
-    });
+    gameNameLabel = new Label("Game Name", skin);
+    whLabel = new Label("Width / Height", skin);
+
+    Table widthHeightBoxContainer = new Table(skin);
+    widthHeightBoxContainer.defaults().grow().spaceLeft(5).spaceRight(5);
+    widthHeightBoxContainer.add(widthBox);
+    widthHeightBoxContainer.add(heightBox);
+
+    this.getTable().add(gameNameLabel);
+    this.getTable().add(gameNameField);
+    this.getTable().row();
+    this.getTable().add(whLabel);
+    this.getTable().add(widthHeightBoxContainer);
+    this.getTable().row();
+    this.getTable().add(allowOverlinesCB).colspan(2);
+    this.getTable().row();
+    this.getTable().add(threeAndThreeCB).colspan(2);
+    this.getTable().row();
+    this.getTable().add(fourAndFourCB).colspan(2);
+    this.getTable().row();
+    this.getTable().add(confirmButton);
+    this.getTable().add(backButton);
+
+    this.getStage().addActor(this.getTable());
+
   }
 
   public GomokuConfig getCurrentConfig()
   {
-    int w = widthBoxModel.getEntry(widthBox.getSelected());
-    int h = heightBoxModel.getEntry(heightBox.getSelected());
+    int w = widthBox.getSelected().intValue();
+    int h = widthBox.getSelected().intValue();
 
     return new GomokuConfig(gameNameField.getText().trim(),
                             w,
                             h,
                             5,
-                            allowOverlinesCB.isActive(),
-                            threeAndThreeCB.isActive(),
-                            fourAndFourCB.isActive());
+                            allowOverlinesCB.isChecked(),
+                            threeAndThreeCB.isChecked(),
+                            fourAndFourCB.isChecked());
   }
 
   public void createNewGame()
   {
     GomokuConfig config = getCurrentConfig();
 
-    if (gameNameField.getText().trim().equals(""))
+    if (config.getName().equals(""))
     {
       throw new IllegalArgumentException("You must provide a game name");
     }
 
-    confirmButton.setEnabled(false);
-    gomokuClient.getNetworkClient().sendTCP(new CreateGamePacket(config));
+    confirmButton.setDisabled(true);
+    this.getApplication().getClient().sendTCP(new CreateGamePacket(config));
   }
 
   @Override
-  protected void handleInitialServerData(Connection connection, InitialServerDataPacket isdp)
+  public void handleInitialServerData(Connection connection, InitialServerDataPacket isdp)
   {
-    confirmButton.setEnabled(true);
-    ((GameplayState) gomokuClient.getState(GAMEPLAYSTATE)).setInitialData(isdp.getBoard(),
-                                                                          isdp.getConfig(),
-                                                                          isdp.getID(),
-                                                                          isdp.getTurn(),
-                                                                          isdp.getPlayerList(),
-                                                                          isdp.getPlayerOneColor(),
-                                                                          isdp.getPlayerTwoColor());
-    enterState(GAMEPLAYSTATE);
+    confirmButton.setDisabled(false);
+    final GomokuClient app = CreateGameState.this.getApplication();
+    GameplayState state = app.getState(GameplayState.class);
+    state.setInitialData(isdp.getBoard(),
+                         isdp.getConfig(),
+                         isdp.getPlayerColor(),
+                         isdp.getPlayerColorCurrentTurn(),
+                         isdp.getPlayerList());
+    app.setNextState(state);
   }
-
-  @Override
-  public void update(GameContainer container, GomokuClient game, int delta) throws SlickException
-  {
-  }
-
-  @Override
-  public void render(GameContainer container, GomokuClient game, Graphics g) throws SlickException
-  {
-    drawCenteredString("Game Name", 20, container, g);
-    drawCenteredString("Width / Height", 90, container, g);
-
-    if (errorMsg != null && errorMsg != "")
-    {
-      drawCenteredString(errorMsg, 450, container, g);
-    }
-  }
-
-  @Override
-  public int getID()
-  {
-    return CREATEGAMESTATE;
-  }
-
 }

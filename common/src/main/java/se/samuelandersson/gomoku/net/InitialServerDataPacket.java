@@ -1,8 +1,11 @@
 package se.samuelandersson.gomoku.net;
 
+import java.util.List;
+
 import se.samuelandersson.gomoku.Color;
 import se.samuelandersson.gomoku.GomokuBoard;
 import se.samuelandersson.gomoku.GomokuConfig;
+import se.samuelandersson.gomoku.Player;
 import se.samuelandersson.gomoku.impl.BoardImpl;
 
 /**
@@ -21,17 +24,14 @@ public class InitialServerDataPacket
   private GomokuConfig config;
 
   /** The color the player will receive */
-  private int playerID;
+  private Color playerColor;
 
   /** The current turn ID */
-  private int turnID;
-
-  private Color playerOneColor;
-  private Color playerTwoColor;
+  private Color turnColor;
 
   /** The currently connected players */
-  private String[] playerList;
-  
+  private List<Player> playerList;
+
   /** Empty constructor for Kryonet */
   public InitialServerDataPacket()
   {
@@ -49,16 +49,14 @@ public class InitialServerDataPacket
    * @param opponentName
    *          The name of the opponent
    */
-  public InitialServerDataPacket(GomokuBoard board, GomokuConfig config, int playerID, int turnID,
-      String[] playerList, Color playerOneColor, Color playerTwoColor)
+  public InitialServerDataPacket(GomokuBoard board, GomokuConfig config, Color playerColor, Color turnColor,
+      List<Player> playerList)
   {
     this.board = board.getBoardData();
     this.config = config;
-    this.playerID = playerID;
-    this.turnID = turnID;
+    this.playerColor = playerColor;
+    this.turnColor = turnColor;
     this.playerList = playerList;
-    this.playerOneColor = playerOneColor;
-    this.playerTwoColor = playerTwoColor;
   }
 
   /**
@@ -78,15 +76,15 @@ public class InitialServerDataPacket
   {
     return config;
   }
-  
+
   /**
    * Returns the player id
    *
    * @return the player id
    */
-  public int getID()
+  public Color getPlayerColor()
   {
-    return playerID;
+    return this.playerColor;
   }
 
   /**
@@ -94,9 +92,9 @@ public class InitialServerDataPacket
    *
    * @return the color of the player in turn
    */
-  public int getTurn()
+  public Color getPlayerColorCurrentTurn()
   {
-    return turnID;
+    return this.turnColor;
   }
 
   /**
@@ -104,29 +102,14 @@ public class InitialServerDataPacket
    *
    * @return the currently connected players
    */
-  public String[] getPlayerList()
+  public List<Player> getPlayerList()
   {
     return playerList;
-  }
-
-  public Color getPlayerOneColor()
-  {
-    return playerOneColor;
-  }
-
-  public Color getPlayerTwoColor()
-  {
-    return playerTwoColor;
   }
 
   @Override
   public String toString()
   {
-    return String.format("InitialServerData<%s,%s,%s,%s,%s>",
-                         this.config,
-                         this.turnID,
-                         this.playerOneColor.getName(),
-                         this.playerTwoColor.getName(),
-                         this.playerID);
+    return String.format("InitialServerData<%s,%s,%s>", this.config, this.turnColor, this.playerColor);
   }
 }

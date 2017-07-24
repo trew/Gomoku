@@ -13,23 +13,52 @@ public class Settings
 {
   public static enum Setting
   {
-    PLAYER_NAME("playername", "Player"),
-    SERVER_IP("server", "127.0.0.1"),
-    CONFIRM("confirm", "true");
-    
+    PLAYER_NAME("playername", "Player", String.class), SERVER_IP("server", "127.0.0.1",
+        String.class), CONFIRM("confirm", "true", Boolean.class), DEBUG("debug", "false", Boolean.class);
+
     private String name;
     private String defaultValue;
-    
-    private Setting(final String name, final String defaultValue)
+    private Class<?> type;
+
+    private Setting(final String name, final String defaultValue, final Class<?> type)
     {
       this.name = name;
       this.defaultValue = defaultValue;
+      this.type = type;
     }
   }
+
   private static final Logger log = LoggerFactory.getLogger(Settings.class);
-  
+
+  private static Settings instance;
+
+  private Settings()
+  {
+  }
+
+  public static Settings getInstance()
+  {
+    if (instance == null)
+    {
+      instance = new Settings();
+      instance.loadProperties();
+    }
+
+    return instance;
+  }
+
   protected Properties properties;
   private String propertiesFilename = "settings.properties";
+
+  public boolean getBoolean(Setting setting)
+  {
+    if (setting.type != Boolean.class)
+    {
+      throw new IllegalArgumentException(setting.name + " is not a boolean type");
+    }
+
+    return Boolean.valueOf(this.getProperty(setting));
+  }
 
   public String getProperty(Setting setting)
   {
@@ -40,12 +69,12 @@ public class Settings
   {
     return this.properties.getProperty(setting.name, defaultValue);
   }
-  
+
   public void setProperty(final Setting setting, String value)
   {
     this.properties.setProperty(setting.name, value);
   }
-  
+
   protected void loadProperties()
   {
     log.info("Reading configuration file");

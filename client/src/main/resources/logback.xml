@@ -19,6 +19,9 @@
 
 	<logger name="se.samuelandersson" level="TRACE" />
 
+	<logger name="com.esotericsoftware" level="DEBUG" />
+	<logger name="com.esotericsoftware.kryo" level="INFO" />
+
 	<root level="INFO">
 		<appender-ref ref="FILE"/>
 		<appender-ref ref="STDOUT"/>

@@ -1,11 +1,14 @@
 package se.samuelandersson.gomoku.net;
 
+import java.util.ArrayList;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Server;
 
 import se.samuelandersson.gomoku.Color;
 import se.samuelandersson.gomoku.GomokuConfig;
+import se.samuelandersson.gomoku.Player;
 import se.samuelandersson.gomoku.action.PlacePieceAction;
 import se.samuelandersson.gomoku.impl.BoardImpl;
 
@@ -26,9 +29,11 @@ public abstract class RegisterPackets
    */
   public static void register(Kryo kryo)
   {
+    kryo.register(ArrayList.class);
+    kryo.register(int[].class);
+
     kryo.register(GameActionPacket.class);
     kryo.register(BoardImpl.class);
-    kryo.register(int[].class);
     kryo.register(BoardPacket.class);
     kryo.register(NotifyTurnPacket.class);
     kryo.register(InitialClientDataPacket.class);
@@ -43,5 +48,8 @@ public abstract class RegisterPackets
     kryo.register(PlacePieceAction.class);
     kryo.register(Request.class);
     kryo.register(Color.class);
+    kryo.register(Player.class);
+    kryo.register(HandshakeClientPacket.class);
+    kryo.register(HandshakeServerPacket.class);
   }
 }

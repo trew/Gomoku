@@ -7,14 +7,11 @@ package se.samuelandersson.gomoku;
  */
 public class Player
 {
-  public static final int NOPLAYER = 0;
-  public static final int PLAYERONE = 1;
-  public static final int PLAYERTWO = 2;
-
-  /**
-   * 0 = Spectator, or no player 1 = Player one 2 = Player two
-   */
-  private int playerID;
+  public void setFrom(Player other)
+  {
+    this.color = other.color;
+    this.name = other.name;
+  }
 
   /**
    * The player color
@@ -31,34 +28,11 @@ public class Player
 
   /**
    * Create a new player
-   *
-   * @param name
-   *          The player name
-   * @param id
-   *          The player ID. {@link Player#NOPLAYER},
-   *          {@link Player#PLAYERONE} or {@link Player#PLAYERTWO}
    */
-  public Player(String name, int id)
+  public Player(String name, Color color)
   {
     this.name = name;
-    setID(id);
-  }
-
-  public int getID()
-  {
-    return playerID;
-  }
-
-  public void setID(int id)
-  {
-    if (id == 0 || id == 1 || id == 2)
-    {
-      playerID = id;
-    }
-    else
-    {
-      throw new IllegalArgumentException("PlayerID set to unknown value " + id);
-    }
+    this.color = color;
   }
 
   /**
@@ -79,11 +53,6 @@ public class Player
    */
   public void setColor(Color color) throws IllegalArgumentException
   {
-    if (!color.isValidPlayerColor())
-    {
-      throw new IllegalArgumentException("Player cannot be " + color);
-    }
-
     this.color = color;
   }
 
@@ -115,6 +84,6 @@ public class Player
   @Override
   public String toString()
   {
-    return String.format("Player<%s(%s):%s>", this.name, this.playerID, this.color);
+    return String.format("Player<%s(%s)>", this.name, this.color);
   }
 }

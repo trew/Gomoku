@@ -16,7 +16,7 @@
 		<maven.compiler.target>1.8</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<version.org.slf4j>1.7.25</version.org.slf4j>
-		<version.org.slick2d>1.0.2</version.org.slick2d>
+		<version.com.badlogicgames.gdx>1.9.6</version.com.badlogicgames.gdx>
 		<version.ch.qos.logback>1.2.3</version.ch.qos.logback>
 	</properties>
 	<repositories>
@@ -24,6 +24,10 @@
 			<!-- For kryonet -->
 			<id>clojars</id>
 			<url>http://clojars.org/repo/</url>
+		</repository>
+		<repository>
+			<id>gdx</id>
+			<url>https://oss.sonatype.org/content/repositories/releases/</url>
 		</repository>
 	</repositories>
 	<dependencyManagement>
@@ -59,9 +63,26 @@
 				<version>${version.ch.qos.logback}</version>
 			</dependency>
 			<dependency>
-				<groupId>org.slick2d</groupId>
-				<artifactId>slick2d-core</artifactId>
-				<version>${version.org.slick2d}</version>
+				<groupId>com.badlogicgames.gdx</groupId>
+				<artifactId>gdx</artifactId>
+				<version>${version.com.badlogicgames.gdx}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.badlogicgames.gdx</groupId>
+				<artifactId>gdx-platform</artifactId>
+				<version>${version.com.badlogicgames.gdx}</version>
+				<classifier>natives-desktop</classifier>
+			</dependency>
+			<dependency>
+				<groupId>com.badlogicgames.gdx</groupId>
+				<artifactId>gdx-backend-lwjgl</artifactId>
+				<version>${version.com.badlogicgames.gdx}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.badlogicgames.gdx</groupId>
+				<artifactId>gdx-tools</artifactId>
+				<version>${version.com.badlogicgames.gdx}</version>
+				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>kryonet</groupId>
@@ -73,16 +94,12 @@
 				<artifactId>jsap</artifactId>
 				<version>2.1</version>
 			</dependency>
+			
 			<dependency>
-				<groupId>de.matthiasmann.twl</groupId>
-				<artifactId>twl</artifactId>
-				<version>1.0.0</version>
-			</dependency>
-			<dependency>
-				<!-- twl dependency -->
-				<groupId>xpp3</groupId>
-				<artifactId>xpp3</artifactId>
-				<version>1.1.4c</version>
+				<groupId>org.testng</groupId>
+				<artifactId>testng</artifactId>
+				<version>6.9.10</version>
+				<scope>test</scope>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

@@ -15,6 +15,7 @@ import se.samuelandersson.gomoku.GomokuGameListener;
 import se.samuelandersson.gomoku.Player;
 import se.samuelandersson.gomoku.event.GameEvent;
 import se.samuelandersson.gomoku.event.GameOverEvent;
+import se.samuelandersson.gomoku.event.SetPlayerTurnEvent;
 
 /**
  * Contains game logic for Gomoku game. The game keeps track of the board, the
@@ -70,11 +71,9 @@ public class GomokuGameImpl implements GomokuGame
   public GomokuGameImpl(GomokuBoard board, GomokuConfig config)
   {
     this.board = board;
-    
-    playerOne = new Player("", Player.PLAYERONE);
-    playerOne.setColor(Color.BLACK);
-    playerTwo = new Player("", Player.PLAYERTWO);
-    playerTwo.setColor(Color.WHITE);
+
+    playerOne = new Player("", Color.BLACK);
+    playerTwo = new Player("", Color.WHITE);
     turn = playerOne;
     gameOver = false;
 
@@ -179,9 +178,12 @@ public class GomokuGameImpl implements GomokuGame
       listener.preEvent(event);
     }
 
-    for (final GomokuGameListener listener : this.listeners)
+    if (!event.isAborted())
     {
-      listener.onEvent(event);
+      for (final GomokuGameListener listener : this.listeners)
+      {
+        listener.onEvent(event);
+      }
     }
   }
 
@@ -208,29 +210,6 @@ public class GomokuGameImpl implements GomokuGame
     return null;
   }
 
-  public void setColor(int playerID, Color color)
-  {
-    log.debug("Setting color of " + playerID + " to " + color);
-    Color otherColor = Color.BLACK;
-
-    if (color == Color.BLACK)
-    {
-      otherColor = Color.WHITE;
-    }
-
-    if (playerID == Player.PLAYERONE)
-    {
-      playerOne.setColor(color);
-      playerTwo.setColor(otherColor);
-    }
-    else if (playerID == Player.PLAYERTWO)
-    {
-      playerOne.setColor(otherColor);
-      playerTwo.setColor(color);
-    }
-
-  }
-
   /**
    * Swap turns between black and white
    */
@@ -239,7 +218,7 @@ public class GomokuGameImpl implements GomokuGame
   {
     if (gameOver)
     {
-      log.error("Attempted to switch turn, but game was over");
+      log.error("Attempted to switch turn, but game was over", new RuntimeException());
       return;
     }
 
@@ -262,36 +241,49 @@ public class GomokuGameImpl implements GomokuGame
   @Override
   public void setCurrentTurnPlayer(Player player)
   {
-    setTurn(player.getID());
+    setTurn(player.getColor());
   }
 
   /**
    * Set turn to player with provided ID
    *
-   * @param playerID the provided player ID
+   * @param playerType the provided player ID
    */
-  public void setTurn(int playerID)
+  public void setTurn(Color color)
   {
     if (gameOver)
     {
-      log.error("Attempted to set turn to {} but game was already over.", playerID);
+      log.error(String.format("Attempted to set turn to %s but game was already over.", color.getName()),
+                new RuntimeException());
       return;
     }
 
-    if (playerID == playerOne.getID())
+    Player nextTurnPlayer = null;
+
+    if (color == playerOne.getColor())
     {
-      turn = playerOne;
+      nextTurnPlayer = playerOne;
     }
-    else if (playerID == playerTwo.getID())
+    else if (color == playerTwo.getColor())
     {
-      turn = playerTwo;
+      nextTurnPlayer = playerTwo;
     }
     else
     {
-      throw new IllegalStateException("Player set to unknown player: " + playerID);
+      throw new IllegalArgumentException("Turn set to invalid color: " + color);
     }
 
-    log.debug("Turn set to player {}({})", turn.getID(), turn.getName());
+    SetPlayerTurnEvent spte = new SetPlayerTurnEvent(this, nextTurnPlayer.getColor());
+    fireEvent(spte);
+    if (!spte.isAborted())
+    {
+      if (log.isDebugEnabled())
+      {
+        log.debug("Turn set to {}({})", turn.getColor(), turn.getName());
+      }
+
+      turn = nextTurnPlayer;
+    }
   }
 
   /**
@@ -352,13 +344,13 @@ public class GomokuGameImpl implements GomokuGame
   }
 
   @Override
-  public Player getPlayer(int id)
+  public Player getPlayer(Color color)
   {
-    if (id == playerOne.getID())
+    if (color == playerOne.getColor())
     {
       return playerOne;
     }
-    else if (id == playerTwo.getID())
+    else if (color == playerTwo.getColor())
     {
       return playerTwo;
     }
@@ -377,6 +369,7 @@ public class GomokuGameImpl implements GomokuGame
     return board;
   }
 
+  @Override
   public boolean isGameOver()
   {
     return gameOver;
