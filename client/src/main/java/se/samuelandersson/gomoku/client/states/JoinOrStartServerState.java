@@ -175,7 +175,14 @@ public class JoinOrStartServerState extends MenuState
   public void startNewServer()
   {
     this.getApplication().startServer();
-    this.connect("127.0.0.1", 9123, true);
+    if (this.getApplication().getServer() != null)
+    {
+      this.connect("127.0.0.1", 9123, true);
+    }
+    else
+    {
+      this.connectMessageLabel.setText("Unable to start game server");
+    }
   }
 
   /**

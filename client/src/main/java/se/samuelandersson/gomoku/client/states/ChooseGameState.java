@@ -79,7 +79,17 @@ public class ChooseGameState extends MenuState implements PacketHandler
       public void changed(ChangeEvent event, Actor actor)
       {
         final GomokuClient app = ChooseGameState.this.getApplication();
-        app.setNextState(MainMenuState.class);
+        app.getClient().disconnect();
+
+        if (app.getServer() != null)
+        {
+          app.stopServer();
+          app.setNextState(MainMenuState.class);
+        }
+        else
+        {
+          app.setNextState(JoinOrStartServerState.class);
+        }
       }
     });
 
