@@ -180,11 +180,7 @@ public class CreateGameState extends MenuState implements PacketHandler
     confirmButton.setDisabled(false);
     final GomokuClient app = CreateGameState.this.getApplication();
     GameplayState state = app.getState(GameplayState.class);
-    state.setInitialData(isdp.getBoard(),
-                         isdp.getConfig(),
-                         isdp.getPlayerColor(),
-                         isdp.getPlayerColorCurrentTurn(),
-                         isdp.getPlayerList());
+    state.setInitialData(isdp);
     app.setNextState(state);
   }
 }

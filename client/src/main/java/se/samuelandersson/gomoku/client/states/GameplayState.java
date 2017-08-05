@@ -14,14 +14,12 @@ import com.badlogic.gdx.scenes.scene2d.Touchable;
 import com.badlogic.gdx.scenes.scene2d.actions.Actions;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Container;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.ScrollPane;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.utils.Align;
 import com.esotericsoftware.kryonet.Connection;
 
 import se.samuelandersson.gomoku.Color;
@@ -71,16 +69,13 @@ public class GameplayState extends AbstractGameState implements PacketHandler, G
   private ScrollPane boardPane;
   private BoardEntity boardEntity;
 
-  private Image versus;
   private Container<Label> nametag1;
   private Container<Label> nametag2;
-  private Container<Container<Label>> statusBar;
+  private Table statusBar;
 
-  private Table infoTable;
-  private Label gameNameInfoLabel;
-  private Label boardInfoLabel;
-  private com.badlogic.gdx.scenes.scene2d.ui.List<String> playerListInfoList;
+  private Table confirmOrCancelTable;
   private Button confirmButton;
+  private Button cancelButton;
 
   private Container<Label> messageLabelContainer;
   private Label messageLabel;
@@ -115,12 +110,12 @@ public class GameplayState extends AbstractGameState implements PacketHandler, G
                         isdp.getPlayerColorCurrentTurn(),
                         isdp.getPlayerList());
   }
-  
-  public void setInitialData(GomokuBoard board,
-                             GomokuConfig config,
-                             Color playerColor,
-                             Color playerColorCurrentTurn,
-                             List<Player> playerList)
+
+  private void setInitialData(GomokuBoard board,
+                              GomokuConfig config,
+                              Color playerColor,
+                              Color playerColorCurrentTurn,
+                              List<Player> playerList)
   {
     // create a new game
     gomokuGame = new GomokuGameImpl(board, config);
@@ -136,15 +131,12 @@ public class GameplayState extends AbstractGameState implements PacketHandler, G
     {
       gomokuGame.setCurrentTurnPlayer(gomokuGame.getPlayerTwo());
     }
-    
+
     setBoard(board);
-    
-    this.gameNameInfoLabel.setText(config.getName());
+
     loading = false;
     pendingAction = null;
     boardEntity.setTouchable(Touchable.enabled);
-    
-    this.updateInfoTable();
   }
 
   /**
@@ -185,12 +177,11 @@ public class GameplayState extends AbstractGameState implements PacketHandler, G
 
     me.setName(playerName);
 
-    updatePlayerListInfoList();
+    updatePlayerNames();
   }
 
-  private void updatePlayerListInfoList()
+  private void updatePlayerNames()
   {
-    this.playerListInfoList.clearItems();
     String[] items = new String[this.playerList.size()];
 
     this.nametag1Label.setText("(none)");
@@ -209,14 +200,12 @@ public class GameplayState extends AbstractGameState implements PacketHandler, G
         this.nametag2Label.setText(player.getName());
       }
     }
-    this.playerListInfoList.setItems(items);
-    this.playerListInfoList.setSelectedIndex(-1);
   }
 
   public void setPlayerList(List<Player> playerList)
   {
     this.playerList = new ArrayList<>(playerList);
-    updatePlayerListInfoList();
+    updatePlayerNames();
 
     // if I'm player 1, do not update my name from the server. I *should*
     // know my name better that the server.
@@ -249,8 +238,9 @@ public class GameplayState extends AbstractGameState implements PacketHandler, G
     Skin skin = Assets.getInstance().getSkin();
 
     this.boardPane = new ScrollPane(this.boardEntity, skin);
-    this.boardPane.setPosition(55, 68);
-    this.boardPane.setSize(455, 455);
+    this.boardPane.setSize(this.boardEntity.getWidth() + 5, this.boardEntity.getHeight() + 5);
+    this.boardPane.setPosition((int) (GomokuClient.WIDTH / 2.f - this.boardPane.getWidth() / 2),
+                               (int) (GomokuClient.HEIGHT / 2f - this.boardPane.getHeight() / 2));
     this.boardPane.setFadeScrollBars(false);
 
     this.getStage().addActor(this.boardPane);
@@ -276,18 +266,6 @@ public class GameplayState extends AbstractGameState implements PacketHandler, G
       }
     });
 
-    versus = new Image(Assets.getInstance().getDrawable("versus"));
-    versus.setPosition(400 - 117 / 2, GomokuClient.HEIGHT - versus.getHeight());
-    infoTable = new Table(skin);
-    infoTable.setBackground(Assets.getInstance().getDrawable("infobar"));
-    infoTable.setSize(225, 454);
-    infoTable.setPosition(GomokuClient.WIDTH - 225, 454 / 2 - 160);
-
-    this.gameNameInfoLabel = new Label("(none)", skin);
-    this.boardInfoLabel = new Label("0x0", skin);
-    this.playerListInfoList = new com.badlogic.gdx.scenes.scene2d.ui.List<>(skin);
-    this.playerListInfoList.setTouchable(Touchable.disabled);
-
     confirmButton = new TextButton("Confirm move?", skin);
     confirmButton.setColor(0, 1, 0, 1);
     confirmButton.addListener(new ChangeListener()
@@ -303,17 +281,36 @@ public class GameplayState extends AbstractGameState implements PacketHandler, G
         }
       }
     });
-    confirmButton.setVisible(false);
+
+    cancelButton = new TextButton("Cancel move?", skin);
+    cancelButton.setColor(1, 0, 0, 1);
+    cancelButton.addListener(new ChangeListener()
+    {
+      @Override
+      public void changed(ChangeEvent event, Actor actor)
+      {
+        if (GameplayState.this.pendingAction != null)
+        {
+          GameplayState.this.pendingAction.undoAction(gomokuGame);
+          GameplayState.this.setPendingAction(null);
+        }
+      }
+    });
+
+    confirmOrCancelTable = new Table(skin);
+    confirmOrCancelTable.defaults().pad(10);
+    confirmOrCancelTable.add(confirmButton, cancelButton);
 
     messageLabel = new Label("message", skin);
     messageLabel.setColor(0, 0, 0, 1);
     this.messageLabelContainer = new Container<Label>(messageLabel);
     this.messageLabelContainer.setTransform(true);
 
-    statusBar = new Container<Container<Label>>(this.messageLabelContainer);
+    statusBar = new Table();
     statusBar.setBackground(Assets.getInstance().getDrawable("bottommessagebox"));
     statusBar.setSize(800, 63);
     statusBar.setPosition(0, 0);
+    statusBar.add(this.messageLabelContainer).center();
 
     nametag1Label = new Label("(none)", skin);
     nametag1Label.setColor(0, 0, 0, 1);
@@ -331,10 +328,8 @@ public class GameplayState extends AbstractGameState implements PacketHandler, G
     nametag2.setPosition(GomokuClient.WIDTH - 20 - nametag2.getWidth(),
                          GomokuClient.HEIGHT - nametag2.getHeight() - 10);
 
-    this.getStage().addActor(versus);
     this.getStage().addActor(nametag1);
     this.getStage().addActor(nametag2);
-    this.getStage().addActor(infoTable);
     this.getStage().addActor(statusBar);
   }
 
@@ -349,7 +344,18 @@ public class GameplayState extends AbstractGameState implements PacketHandler, G
   private void setPendingAction(GameAction action)
   {
     this.pendingAction = action;
-    this.confirmButton.setVisible(this.pendingAction != null);
+    boolean hasPendingAction = this.pendingAction != null;
+    this.messageLabelContainer.setVisible(!hasPendingAction);
+
+    this.statusBar.clearChildren();
+    if (hasPendingAction)
+    {
+      this.statusBar.add(this.confirmOrCancelTable).center();
+    }
+    else
+    {
+      this.statusBar.add(this.messageLabelContainer).center();
+    }
   }
 
   /**
@@ -428,43 +434,6 @@ public class GameplayState extends AbstractGameState implements PacketHandler, G
   protected void setBoard(GomokuBoard board)
   {
     boardEntity.setBoard(board);
-    this.boardInfoLabel.setText(String.format("%sx%s",
-                                              this.gomokuGame.getBoard().getWidth(),
-                                              this.gomokuGame.getBoard().getHeight()));
-  }
-
-  private void updateInfoTable()
-  {
-    this.infoTable.clearChildren();
-    this.infoTable.align(Align.top);
-    this.infoTable.pad(10);
-
-    this.infoTable.columnDefaults(0).align(Align.right);
-    this.infoTable.columnDefaults(1).align(Align.left).growX().padLeft(10);
-
-    Skin skin = Assets.getInstance().getSkin();
-    this.infoTable.add(new Label("Game Name:", skin));
-    this.infoTable.add(this.gameNameInfoLabel);
-    this.infoTable.row();
-    this.infoTable.add(new Label("Your name:", skin));
-    this.infoTable.add(new Label(me.getName(), skin));
-    this.infoTable.row();
-    this.infoTable.add(new Label("Your color:", skin));
-    this.infoTable.add(new Label(me.getColor().getName(), skin));
-    this.infoTable.row();
-    this.infoTable.add(new Label("Board size:", skin));
-    this.infoTable.add(this.boardInfoLabel);
-    this.infoTable.row().padTop(30);
-    this.infoTable.add(new Label("Connected players", skin)).center().colspan(2);
-    this.infoTable.row();
-
-    this.infoTable.add(this.playerListInfoList).center().colspan(2);
-
-    this.infoTable.row();
-    this.infoTable.add().colspan(2).growY();
-    this.infoTable.row();
-
-    this.infoTable.add(this.confirmButton).bottom().center().colspan(2);
   }
 
   @Override

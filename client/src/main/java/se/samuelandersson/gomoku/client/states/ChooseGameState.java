@@ -196,11 +196,7 @@ public class ChooseGameState extends MenuState implements PacketHandler
   public void handleInitialServerData(Connection connection, InitialServerDataPacket isdp)
   {
     final GameplayState gps = this.getApplication().getState(GameplayState.class);
-    gps.setInitialData(isdp.getBoard(),
-                       isdp.getConfig(),
-                       isdp.getPlayerColor(),
-                       isdp.getPlayerColorCurrentTurn(),
-                       isdp.getPlayerList());
+    gps.setInitialData(isdp);
     this.getApplication().setNextState(gps);
   }
 

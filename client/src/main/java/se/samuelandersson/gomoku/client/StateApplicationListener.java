@@ -109,9 +109,10 @@ public class StateApplicationListener implements ApplicationListener
       float delta = Gdx.graphics.getRawDeltaTime();
       accumulator += delta;
       boolean updateOnce = (accumulator > TIMESTEP / speed);
-
+      
       while (accumulator > TIMESTEP / speed)
       {
+        this.update(delta);
         this.currentState.state.update(TIMESTEP);
         accumulator -= TIMESTEP / speed;
       }
@@ -123,6 +124,10 @@ public class StateApplicationListener implements ApplicationListener
 
       renderState(this.currentState);
     }
+  }
+  
+  public void update(float delta)
+  {
   }
 
   @Override

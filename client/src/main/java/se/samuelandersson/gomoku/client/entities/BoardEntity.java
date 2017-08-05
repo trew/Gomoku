@@ -9,9 +9,12 @@ import org.slf4j.LoggerFactory;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener.ChangeEvent;
 
 import se.samuelandersson.gomoku.Color;
 import se.samuelandersson.gomoku.GomokuBoard;
@@ -41,7 +44,6 @@ public class BoardEntity extends Table
 
   public void drawLines()
   {
-
     int width = Math.min(30, (int) (450.f / board.getWidth()));
     int height = Math.min(30, (int) (450.f / board.getHeight()));
     int size = Math.min(width, height);
@@ -92,12 +94,12 @@ public class BoardEntity extends Table
       {
         BoardSlot slot = new BoardSlot(x, y);
 
-        slot.addListener(new ClickListener(Input.Buttons.LEFT)
+        slot.addListener(new ChangeListener()
         {
           @Override
-          public void clicked(InputEvent event, float x, float y)
+          public void changed(ChangeEvent event, Actor actor)
           {
-            final BoardSlot boardSlot = (BoardSlot) event.getTarget();
+            final BoardSlot boardSlot = (BoardSlot) actor;
             BoardEntity.this.fire(new BoardEvent(boardSlot.getSlotX(), boardSlot.getSlotY()));
           }
         });

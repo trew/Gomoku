@@ -1,77 +1,45 @@
 package se.samuelandersson.gomoku.client.entities;
 
-import com.badlogic.gdx.scenes.scene2d.Touchable;
-import com.badlogic.gdx.scenes.scene2d.ui.Button;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 
 import se.samuelandersson.gomoku.Color;
 import se.samuelandersson.gomoku.client.Assets;
 
-public class BoardSlot extends Button
+public class BoardSlot extends ImageButton
 {
   private int x;
   private int y;
 
-  private Image overlay;
+  private ImageButtonStyle emptyStyle;
+  private ImageButtonStyle blackStyle;
+  private ImageButtonStyle whiteStyle;
 
   /**
    * Package protected because this entity belongs to {@link BoardEntity}.
    */
   BoardSlot(int x, int y)
   {
-    super(Assets.getInstance().getSkin(), "slot");
+    super(Assets.getInstance().getSkin(), "slot-none");
+    this.emptyStyle = Assets.getInstance().getSkin().get("slot-none", ImageButtonStyle.class);
+    this.blackStyle = Assets.getInstance().getSkin().get("slot-black", ImageButtonStyle.class);
+    this.whiteStyle = Assets.getInstance().getSkin().get("slot-white", ImageButtonStyle.class);
     this.x = x;
     this.y = y;
   }
-
-  private void removeCurrentPiece()
-  {
-    if (this.overlay != null)
-    {
-      this.overlay.remove();
-    }
-  }
-
-  private void initializeOverlayImage()
-  {
-    if (this.overlay == null)
-    {
-      this.overlay = new Image(Assets.getInstance().getDrawable("piece-white"));
-      this.overlay.setTouchable(Touchable.disabled);
-    }
-
-  }
-
+  
   public void setPiece(Color color)
   {
-    this.removeCurrentPiece();
-
-    if (color != Color.NONE)
+    if (color == Color.BLACK)
     {
-      this.initializeOverlayImage();
-
-      if (color == Color.BLACK)
-      {
-        this.overlay.setDrawable(Assets.getInstance().getDrawable("piece-black"));
-      }
-      else if (color == Color.WHITE)
-      {
-        this.overlay.setDrawable(Assets.getInstance().getDrawable("piece-white"));
-      }
-
-      // scaling uneven sizes looks weird, so it should needs to be adjusted slightly
-      if (this.getWidth() % 2 == 1)
-      {
-        this.add(this.overlay).size(this.getWidth() - 1, this.getHeight() - 1).padRight(1).padTop(1).center();
-      }
-      else
-      {
-        this.add(this.overlay).size(this.getWidth(), this.getHeight()).center();
-      }
-
-      // for some reason the overlay slowly drifts to the right when canceling and replace a slot if this is not done...
-      this.validate();
-      this.overlay.setPosition(0, 0);
+      this.setStyle(this.blackStyle);
+    }
+    else if (color == Color.WHITE)
+    {
+      this.setStyle(this.whiteStyle);
+    }
+    else if (color == Color.NONE)
+    {
+      setStyle(this.emptyStyle);
     }
   }
 

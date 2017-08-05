@@ -14,7 +14,7 @@ public class Main
     cfg.backgroundFPS = StateApplicationListener.TARGET_FPS;
     cfg.foregroundFPS = StateApplicationListener.TARGET_FPS;
     cfg.fullscreen = false;
-    cfg.resizable = false;
+    cfg.resizable = true;
     cfg.title = "Gomoku";
 
     new LwjglApplication(new GomokuClient(), cfg);

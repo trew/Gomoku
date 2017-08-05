@@ -72,6 +72,12 @@ public class GomokuClient extends StateApplicationListener
 
     Settings.getInstance().storeProperties();
   }
+  
+  @Override
+  public void update(float delta)
+  {
+    this.getClient().processExecutionQueue();
+  }
 
   @Override
   protected void enterState(StateHolder state)

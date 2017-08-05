@@ -1,11 +1,11 @@
 package se.samuelandersson.gomoku.client.net.impl;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.Queue;
 import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import com.esotericsoftware.kryonet.Client;
 import com.esotericsoftware.kryonet.Connection;
@@ -28,14 +28,14 @@ import se.samuelandersson.gomoku.net.VictoryPacket;
 
 public class NetworkClientImpl implements NetworkClient
 {
-  private static final Logger log = LoggerFactory.getLogger(NetworkClientImpl.class);
-
   private Set<NetworkListener> listeners = new LinkedHashSet<>();
   private Set<NetworkListener> listenersToAdd = new LinkedHashSet<>();
   private Set<NetworkListener> listenersToRemove = new LinkedHashSet<>();
   private Set<PacketHandler> packetHandlers = new LinkedHashSet<>();
   private Set<PacketHandler> packetHandlersToAdd = new LinkedHashSet<>();
   private Set<PacketHandler> packetHandlersToRemove = new LinkedHashSet<>();
+
+  private Queue<Runnable> executionQueue = new LinkedBlockingQueue<>();
 
   private Client client = new Client();
 
@@ -80,78 +80,117 @@ public class NetworkClientImpl implements NetworkClient
       @Override
       public void connected(Connection connection)
       {
-        begin();
-        listeners.forEach((listener) -> listener.connected(connection));
-        end();
+        executionQueue.add(new Runnable()
+        {
+          @Override
+          public void run()
+          {
+            begin();
+            listeners.forEach((listener) -> listener.connected(connection));
+            end();
+          }
+        });
       }
 
       @Override
       public void disconnected(Connection connection)
       {
-        begin();
-        listeners.forEach((listener) -> listener.disconnected(connection));
-        end();
+        executionQueue.add(new Runnable()
+        {
+          @Override
+          public void run()
+          {
+            begin();
+            listeners.forEach((listener) -> listener.disconnected(connection));
+            end();
+          }
+        });
       }
 
       @Override
       public void idle(Connection connection)
       {
-        begin();
-        listeners.forEach((listener) -> listener.idle(connection));
-        end();
+        executionQueue.add(new Runnable()
+        {
+          @Override
+          public void run()
+          {
+            begin();
+            listeners.forEach((listener) -> listener.idle(connection));
+            end();
+          }
+        });
       }
 
       @Override
       public void received(Connection connection, Object object)
       {
-        begin();
-        listeners.forEach((listener) -> listener.received(connection, object));
+        executionQueue.add(new Runnable()
+        {
+          @Override
+          public void run()
+          {
+            begin();
+            listeners.forEach((listener) -> listener.received(connection, object));
 
-        packetHandlers.forEach((handler) -> {
-          if (object instanceof BoardPacket)
-          {
-            handler.handleBoard(connection, (BoardPacket) object);
-          }
-          else if (object instanceof GameListPacket)
-          {
-            handler.handleGameList(connection, (GameListPacket) object);
-          }
-          else if (object instanceof Request)
-          {
-            handler.handleRequest(connection, (Request) object);
-          }
-          else if (object instanceof InitialServerDataPacket)
-          {
-            handler.handleInitialServerData(connection, (InitialServerDataPacket) object);
-          }
-          else if (object instanceof NotifyTurnPacket)
-          {
-            handler.handleNotifyTurn(connection, (NotifyTurnPacket) object);
-          }
-          else if (object instanceof GameActionPacket)
-          {
-            handler.handleGameAction(connection, (GameActionPacket) object);
-          }
-          else if (object instanceof PlayerListPacket)
-          {
-            handler.handlePlayerList(connection, (PlayerListPacket) object);
-          }
-          else if (object instanceof VictoryPacket)
-          {
-            handler.handleVictory(connection, (VictoryPacket) object);
-          }
-          else if (object instanceof HandshakeClientPacket)
-          {
-            handler.handleHandshakeClient(connection, (HandshakeClientPacket) object);
-          }
-          else if (object instanceof HandshakeServerPacket)
-          {
-            handler.handleHandshakeServer(connection, (HandshakeServerPacket) object);
+            packetHandlers.forEach((handler) -> {
+              if (object instanceof BoardPacket)
+              {
+                handler.handleBoard(connection, (BoardPacket) object);
+              }
+              else if (object instanceof GameListPacket)
+              {
+                handler.handleGameList(connection, (GameListPacket) object);
+              }
+              else if (object instanceof Request)
+              {
+                handler.handleRequest(connection, (Request) object);
+              }
+              else if (object instanceof InitialServerDataPacket)
+              {
+                handler.handleInitialServerData(connection, (InitialServerDataPacket) object);
+              }
+              else if (object instanceof NotifyTurnPacket)
+              {
+                handler.handleNotifyTurn(connection, (NotifyTurnPacket) object);
+              }
+              else if (object instanceof GameActionPacket)
+              {
+                handler.handleGameAction(connection, (GameActionPacket) object);
+              }
+              else if (object instanceof PlayerListPacket)
+              {
+                handler.handlePlayerList(connection, (PlayerListPacket) object);
+              }
+              else if (object instanceof VictoryPacket)
+              {
+                handler.handleVictory(connection, (VictoryPacket) object);
+              }
+              else if (object instanceof HandshakeClientPacket)
+              {
+                handler.handleHandshakeClient(connection, (HandshakeClientPacket) object);
+              }
+              else if (object instanceof HandshakeServerPacket)
+              {
+                handler.handleHandshakeServer(connection, (HandshakeServerPacket) object);
+              }
+            });
+            end();
           }
         });
-        end();
       }
     });
+  }
+
+  @Override
+  public void processExecutionQueue()
+  {
+    Iterator<Runnable> it = this.executionQueue.iterator();
+    while (it.hasNext())
+    {
+      it.next().run();
+      it.remove();
+    }
   }
 
   @Override
@@ -177,7 +216,7 @@ public class NetworkClientImpl implements NetworkClient
   {
     client.connect(timeout, host, port);
   }
-  
+
   @Override
   public void disconnect()
   {
@@ -185,30 +224,17 @@ public class NetworkClientImpl implements NetworkClient
   }
 
   @Override
-  public int sendTCP(Object obj)
+  public void sendTCP(Object obj)
   {
-    if (log.isDebugEnabled())
-    {
-      if (obj.getClass().getName().startsWith("se.samuelandersson"))
-      {
-        log.debug("Sending {}", obj.toString());
-      }
-    }
-
-    return client.sendTCP(obj);
+    client.sendTCP(obj);
   }
 
   @Override
-  public int sendTCP(Connection connection, Object obj)
+  public void sendTCP(Connection connection, Object obj)
   {
-    if (log.isDebugEnabled())
-    {
-      log.debug("Sending {}", obj.toString());
-    }
-
-    return connection.sendTCP(obj);
+    connection.sendTCP(obj);
   }
-  
+
   @Override
   public void addListener(NetworkListener listener)
   {

@@ -16,9 +16,9 @@ public interface NetworkClient
 
   void disconnect();
 
-  int sendTCP(Object obj);
+  void sendTCP(Object obj);
 
-  int sendTCP(Connection connection, Object obj);
+  void sendTCP(Connection connection, Object obj);
 
   void addListener(NetworkListener listener);
 
@@ -27,4 +27,6 @@ public interface NetworkClient
   void addPacketHandler(PacketHandler handler);
 
   void removePacketHandler(PacketHandler handler);
+  
+  void processExecutionQueue();
 }
